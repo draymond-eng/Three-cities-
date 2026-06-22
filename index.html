@@ -17,6 +17,7 @@
     --accent2:#3aa0ff;
     --good:#39d98a;
     --bad:#ff5d6c;
+    --comm:#2fd06b;
     --shadow:0 10px 30px rgba(0,0,0,.45);
   }
   *{box-sizing:border-box}
@@ -148,6 +149,28 @@
 
   .finished-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
 
+  /* ---------- Commissioner ---------- */
+  .comm-chip{display:flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);
+    padding:5px 12px 5px 5px;border-radius:30px}
+  .comm-avatar{width:34px;height:34px;border-radius:50%;flex:none;object-fit:cover;
+    background:linear-gradient(180deg,#1c8a3f,#0c5a26);display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:13px;color:#eafff0;border:2px solid #2fd06b;overflow:hidden}
+  .comm-chip .cc-text{line-height:1.1}
+  .comm-chip .cc-role{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--comm)}
+  .comm-chip .cc-name{font-size:14px;font-weight:700}
+
+  .booth{display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,rgba(47,208,107,.10),rgba(0,0,0,0));
+    border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+  .booth .b-avatar{width:64px;height:64px;border-radius:50%;flex:none;object-fit:cover;
+    background:linear-gradient(180deg,#1c8a3f,#0c5a26);display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:22px;color:#eafff0;border:3px solid #2fd06b;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+  .booth .b-info{flex:1}
+  .booth .b-role{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--comm);font-weight:700}
+  .booth .b-name{font-size:20px;font-weight:800;margin:2px 0}
+  .booth .b-sub{font-size:12.5px;color:var(--muted)}
+  .booth .b-actions{display:flex;flex-direction:column;gap:6px}
+  .booth .b-actions .btn{padding:7px 12px;font-size:12.5px}
+
   /* confetti canvas */
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
 
@@ -171,6 +194,13 @@
     </div>
   </div>
   <div class="head-actions">
+    <div class="comm-chip" id="commChip" title="League Commissioner">
+      <span class="comm-avatar" id="commChipAvatar">DC</span>
+      <span class="cc-text">
+        <span class="cc-role">Commissioner</span><br>
+        <span class="cc-name" id="commChipName">d_cape15</span>
+      </span>
+    </div>
     <button class="btn ghost" id="soundToggle" title="Toggle sound">🔊 Sound: On</button>
     <button class="btn ghost hidden" id="backToSetup">⚙️ Edit Teams</button>
   </div>
@@ -193,7 +223,7 @@
 
       <div class="card">
         <h2>2 · Review the field</h2>
-        <p class="sub">Edit names &amp; weights inline. The % is each team's chance at the <em>next</em> pick.</p>
+        <p class="sub">Edit names &amp; weights inline. The % is each team's lottery odds (chance at the <em>#1</em> pick).</p>
         <div class="tablewrap">
           <table id="teamTable">
             <thead>
@@ -221,6 +251,19 @@
   <section id="lotteryView" class="hidden">
     <div class="lottery-grid">
       <div>
+        <div class="booth">
+          <span class="b-avatar" id="boothAvatar">DC</span>
+          <div class="b-info">
+            <div class="b-role">On the Clock · Commissioner</div>
+            <div class="b-name" id="boothName">d_cape15</div>
+            <div class="b-sub">Til The Wheels Fall Off · presiding over the NCAA 27 lottery</div>
+          </div>
+          <div class="b-actions">
+            <button class="btn" id="commPhotoBtn">📷 Photo</button>
+            <button class="btn ghost" id="commNameBtn">✎ Name</button>
+          </div>
+        </div>
+        <input type="file" id="commPhotoInput" accept="image/*" class="hidden" />
         <div class="machine-wrap">
           <canvas id="machine" width="720" height="460"></canvas>
           <div class="reveal" id="reveal">
@@ -242,7 +285,7 @@
         </div>
 
         <div class="remaining">
-          <h2>Live odds — chance at the next pick</h2>
+          <h2 id="remTitle">Still in the hopper — who's left for the top picks</h2>
           <div class="rem-list" id="remList"></div>
         </div>
       </div>
@@ -269,6 +312,7 @@
    ============================================================ */
 
 const LS_KEY = "ncaa27-lottery-teams-v1";
+const LS_COMM = "ncaa27-lottery-commish-v1";
 const $ = id => document.getElementById(id);
 
 // ---------- color palette (distinct, evenly spread) ----------
@@ -281,11 +325,48 @@ function colorFor(i, n){
 
 // ---------- state ----------
 let teams = [];           // {name, weight, color}
-let remaining = [];       // indices into teams still in the hopper
-let order = [];           // resulting team indices, pick 1..N
+let order = [];           // FULL precomputed order: order[0]=pick #1 ... order[N-1]=last pick
+let revealed = [];        // slot indices already revealed (true/false per slot)
+let revealSlot = -1;      // next slot to reveal (counts DOWN: last pick first)
 let drawing = false;
 let finished = false;
 let soundOn = true;
+
+// ---------- commissioner ----------
+let commish = { name:"d_cape15", photo:null };
+function loadCommish(){
+  try{ const j = JSON.parse(localStorage.getItem(LS_COMM)); if(j && j.name) commish = j; }catch(e){}
+}
+function saveCommish(){ try{ localStorage.setItem(LS_COMM, JSON.stringify(commish)); }catch(e){} }
+function commInitials(){
+  const p = commish.name.replace(/[^a-zA-Z ]/g," ").trim().split(/\s+/).filter(Boolean);
+  if(!p.length) return "DC";
+  if(p.length===1) return p[0].slice(0,2).toUpperCase();
+  return (p[0][0]+p[1][0]).toUpperCase();
+}
+function renderCommish(){
+  const name = commish.name || "Commissioner";
+  $("commChipName").textContent = name;
+  $("boothName").textContent = name;
+  [["commChipAvatar"],["boothAvatar"]].forEach(([id])=>{
+    const el = $(id);
+    if(commish.photo){ el.innerHTML = `<img src="${commish.photo}" style="width:100%;height:100%;object-fit:cover" alt="">`; }
+    else { el.textContent = commInitials(); }
+  });
+}
+function bindCommish(){
+  $("commPhotoBtn").addEventListener("click", ()=> $("commPhotoInput").click());
+  $("commPhotoInput").addEventListener("change", e=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = ()=>{ commish.photo = rd.result; saveCommish(); renderCommish(); toast("Commissioner photo set."); };
+    rd.readAsDataURL(f);
+  });
+  $("commNameBtn").addEventListener("click", ()=>{
+    const n = prompt("Commissioner name:", commish.name);
+    if(n && n.trim()){ commish.name = n.trim(); saveCommish(); renderCommish(); }
+  });
+}
 
 // ===========================================================
 //  SETUP
@@ -396,68 +477,75 @@ $("startBtn").addEventListener("click", ()=>{
 // ===========================================================
 //  LOTTERY ENGINE
 // ===========================================================
-function totalRemainingWeight(){ return remaining.reduce((s,i)=> s + teams[i].weight, 0); }
+function totalWeight(){ return teams.reduce((s,t)=> s + t.weight, 0); }
+function seasonOdds(teamIdx){ const tot = totalWeight(); return tot>0 ? teams[teamIdx].weight/tot : 0; }
 
-function drawWeighted(){
-  const total = totalRemainingWeight();
-  let r = Math.random() * total;
-  for(let k=0;k<remaining.length;k++){
-    r -= teams[remaining[k]].weight;
-    if(r <= 0) return k; // index within `remaining`
+// Lock in the full draft order up front with a correct sequential weighted
+// draw (so team with most weight is most likely to land pick #1). We then
+// REVEAL bottom-up: last pick first, building suspense toward #1.
+function computeOrder(){
+  const pool = teams.map((_,i)=>i);
+  const result = [];
+  while(pool.length){
+    const total = pool.reduce((s,i)=> s + teams[i].weight, 0);
+    let r = Math.random()*total, k=0;
+    for(; k<pool.length; k++){ r -= teams[pool[k]].weight; if(r<=0) break; }
+    if(k>=pool.length) k = pool.length-1;
+    result.push(pool[k]);
+    pool.splice(k,1);
   }
-  return remaining.length - 1;
+  return result; // result[0] = pick #1
 }
 
 function startLottery(){
   recolor();
-  remaining = teams.map((_,i)=>i);
-  order = [];
+  order = computeOrder();
+  revealed = teams.map(()=>false);
+  revealSlot = teams.length - 1;   // reveal the LAST pick first
   finished = false;
   drawing = false;
   $("setupView").classList.add("hidden");
   $("lotteryView").classList.remove("hidden");
   $("backToSetup").classList.remove("hidden");
   $("finishedActions").classList.add("hidden");
-  $("subline").textContent = `${teams.length} teams · live draw`;
+  $("subline").textContent = `${teams.length} teams · reverse reveal · Commissioner ${commish.name}`;
   buildBalls();
   renderBoard();
   renderRemaining();
   startAnim();
   updateDrawBtn();
-  $("status").textContent = `All ${teams.length} balls are in the hopper. Commissioner, you're up.`;
+  $("status").textContent = `All ${teams.length} balls are in the hopper. Commissioner ${commish.name}, the floor is yours.`;
 }
-
-function nextPickNumber(){ return order.length + 1; }
 
 function updateDrawBtn(){
   const btn = $("drawBtn");
   if(finished){ btn.classList.add("hidden"); return; }
   btn.classList.remove("hidden");
   btn.disabled = drawing;
-  btn.textContent = drawing ? "🎱 Drawing…" : `🎬 Draw Pick #${nextPickNumber()}`;
+  const pickNo = revealSlot + 1;
+  btn.textContent = drawing ? "🎱 Drawing…" :
+    (pickNo === 1 ? "🏆 Reveal the #1 PICK" : `🎬 Reveal Pick #${pickNo}`);
 }
 
-// ---- the commissioner draw ----
+// ---- the commissioner draw (reveals one pick, bottom-up) ----
 $("drawBtn").addEventListener("click", ()=>{
-  if(drawing || finished) return;
+  if(drawing || finished || revealSlot < 0) return;
   drawing = true; updateDrawBtn();
   $("status").textContent = "The balls are tumbling…";
   churn(2.6);
   startDrumroll();
 
-  const remIndex = drawWeighted();
-  const teamIdx = remaining[remIndex];
-  const oddsAtDraw = teams[teamIdx].weight / totalRemainingWeight();
+  const slot = revealSlot;
+  const teamIdx = order[slot];
 
-  // suspense, then suck the winning ball up
   setTimeout(()=>{
     ejectBall(teamIdx, ()=>{
       stopDrumroll();
       ding();
-      const pickNo = nextPickNumber();
-      order.push(teamIdx);
-      remaining.splice(remIndex,1);
-      showReveal(pickNo, teamIdx, oddsAtDraw);
+      revealed[slot] = true;
+      // clear that team's remaining balls from the hopper
+      balls = balls.filter(b => b.team !== teamIdx);
+      showReveal(slot+1, teamIdx, seasonOdds(teamIdx));
       renderBoard();
       renderRemaining();
     });
@@ -466,13 +554,13 @@ $("drawBtn").addEventListener("click", ()=>{
 
 function showReveal(pickNo, teamIdx, odds){
   const t = teams[teamIdx];
-  $("revealPickNo").textContent = ordinal(pickNo) + " Overall Pick";
+  $("revealPickNo").textContent = (pickNo===1 ? "🏆 " : "") + ordinal(pickNo) + " Overall Pick";
   const ball = $("revealBall");
   ball.style.background = t.color;
   ball.textContent = initials(t.name);
   ball.style.animation = "none"; void ball.offsetWidth; ball.style.animation = "";
   $("revealTeam").textContent = t.name;
-  $("revealOdds").textContent = `had a ${(odds*100).toFixed(1)}% chance at this pick`;
+  $("revealOdds").textContent = `${(odds*100).toFixed(1)}% lottery odds`;
   $("reveal").classList.add("show");
   if(pickNo === 1) burstConfetti();
 }
@@ -480,21 +568,20 @@ function showReveal(pickNo, teamIdx, odds){
 $("revealContinue").addEventListener("click", ()=>{
   $("reveal").classList.remove("show");
   drawing = false;
-  if(remaining.length === 1){
-    // last team auto-takes the final pick
-    const teamIdx = remaining[0];
-    order.push(teamIdx);
-    remaining = [];
-    renderBoard(); renderRemaining();
+  revealSlot--;
+  if(revealSlot < 0){ finish(); }
+  else {
+    updateDrawBtn();
+    $("status").textContent = revealSlot === 0
+      ? `Down to the final ball. Who's the #1 pick?`
+      : `${revealSlot+1} balls left. Next up: pick #${revealSlot+1}.`;
   }
-  if(remaining.length === 0){ finish(); }
-  else { updateDrawBtn(); $("status").textContent = `${remaining.length} balls left. On to pick #${nextPickNumber()}.`; }
 });
 
 function finish(){
   finished = true;
   updateDrawBtn();
-  $("status").textContent = "🏆 The draft order is set! Pick #1 is on the clock.";
+  $("status").textContent = `🏆 The draft order is set! ${teams[order[0]].name} lands the #1 pick.`;
   $("finishedActions").classList.remove("hidden");
   burstConfetti();
 }
@@ -516,34 +603,39 @@ function renderBoard(){
   const list = $("pickList");
   list.innerHTML = "";
   const N = teams.length;
+  let count = 0;
   for(let i=0;i<N;i++){
-    const filled = i < order.length;
+    const isRevealed = revealed[i];
+    if(isRevealed) count++;
+    const justNow = isRevealed && i === revealSlot; // the slot just revealed
     const div = document.createElement("div");
-    div.className = "pick" + (filled ? " filled" : "") + (i===0&&filled ? " first":"") +
-                    (filled && i===order.length-1 ? " justfilled":"");
+    div.className = "pick" + (isRevealed ? " filled" : "") + (i===0 && isRevealed ? " first":"") +
+                    (justNow ? " justfilled":"");
     let nm, od="";
-    if(filled){
+    if(isRevealed){
       const t = teams[order[i]];
       nm = `<span class="swatch" style="background:${t.color};margin-right:8px"></span>${escapeHtml(t.name)}`;
+      od = `${(seasonOdds(order[i])*100).toFixed(1)}%`;
     } else {
-      nm = `<span class="nm empty">on the board…</span>`;
+      nm = `<span class="nm empty">${i===0 ? "the #1 pick…" : "on the board…"}</span>`;
     }
     div.innerHTML = `<div class="num">${i+1}</div><div class="nm">${nm}</div><div class="od">${od}</div>`;
     list.appendChild(div);
   }
-  $("boardCount").textContent = `${order.length} / ${N} set`;
+  $("boardCount").textContent = `${count} / ${N} revealed`;
 }
 
 function renderRemaining(){
   const wrap = $("remList");
   wrap.innerHTML = "";
-  if(!remaining.length){ wrap.innerHTML = `<div class="rem-item muted" style="padding:14px">All picks decided.</div>`; return; }
-  const total = totalRemainingWeight();
-  const sorted = [...remaining].sort((a,b)=> teams[b].weight - teams[a].weight);
-  const max = teams[sorted[0]].weight / total;
+  // teams still hidden = those whose slot hasn't been revealed yet (the better picks)
+  const hidden = order.filter((_,i)=> !revealed[i]);
+  if(!hidden.length){ wrap.innerHTML = `<div class="rem-item muted" style="padding:14px">All picks revealed.</div>`; return; }
+  const sorted = [...hidden].sort((a,b)=> teams[b].weight - teams[a].weight);
+  const max = seasonOdds(sorted[0]) || 1;
   for(const idx of sorted){
     const t = teams[idx];
-    const p = t.weight/total;
+    const p = seasonOdds(idx);
     const div = document.createElement("div");
     div.className = "rem-item";
     div.innerHTML = `
@@ -773,9 +865,10 @@ function confLoop(){
 // ===========================================================
 function resultsText(){
   let s = `NCAA 27 DRAFT LOTTERY — OFFICIAL ORDER\n`;
+  s += `Commissioner: ${commish.name}\n`;
   s += `Drawn ${new Date().toLocaleString()}\n`;
   s += `${"=".repeat(40)}\n`;
-  order.forEach((ti,i)=>{ s += `${String(i+1).padStart(2," ")}. ${teams[ti].name}\n`; });
+  order.forEach((ti,i)=>{ s += `${String(i+1).padStart(2," ")}. ${teams[ti].name}  (${(seasonOdds(ti)*100).toFixed(1)}%)\n`; });
   return s;
 }
 $("copyBtn").addEventListener("click", async ()=>{
@@ -811,6 +904,9 @@ function init(){
   recolor();
   renderBulk();
   renderTable();
+  loadCommish();
+  renderCommish();
+  bindCommish();
 }
 init();
 </script>
