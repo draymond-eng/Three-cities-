@@ -51,7 +51,7 @@
 
   /* segmented tabs */
   .segtabs{display:flex;gap:5px;background:var(--line2);border-radius:13px;padding:4px;margin-bottom:14px}
-  .segtabs button{flex:1;border-radius:10px;padding:10px;font-size:13.5px;font-weight:700;color:var(--muted)}
+  .segtabs button{flex:1;border-radius:10px;padding:9px 3px;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
   .segtabs button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
   /* recurring toggle */
   .tog2{position:relative;width:42px;height:24px;border-radius:999px;background:var(--good);flex:none;border:none}
@@ -299,9 +299,11 @@
     <button data-tab="home" class="on">🏠 Week</button>
     <button data-tab="recurring">🔁 Bills</button>
     <button data-tab="goals">🎯 Goals</button>
+    <button data-tab="trends">📊 Trends</button>
   </div>
 
   <div id="homeTab">
+  <div id="nightBanner"></div>
   <div class="weeknav">
     <button id="wPrev">‹</button>
     <div class="wlabel" id="wLabel">This week<span class="wsub" id="wSub">—</span></div>
@@ -360,6 +362,7 @@
 
   <div id="recurringTab" class="hidden"></div>
   <div id="goalsTab" class="hidden"></div>
+  <div id="trendsTab" class="hidden"></div>
 </div>
 
 <!-- ADD PULL SHEET -->
@@ -488,7 +491,7 @@ function baseState(){
     buckets:starterBuckets(), recurring:starterRecurring(), subs:starterSubs(), pulls:[],
     goals:[{id:"trip",name:"Family trip",emoji:"✈️",target:3000,saved:0,color:"#38BDF8"},
            {id:"car",name:"New car",emoji:"🚗",target:15000,saved:0,color:"#8267C9"}],
-    merchantRules:{}, whoRules:{},
+    closes:{}, merchantRules:{}, whoRules:{},
     ritual:{streak:0,lastCheckIn:null,badges:[],history:[]},
     viewWeek:weekKey(new Date()), setupDone:false
   };
@@ -631,6 +634,7 @@ function render(){
   });
   renderScoreboard();
   renderCloseCard();
+  renderNightBanner();
   save();
 }
 
@@ -646,8 +650,107 @@ function setTab(t){
   $("homeTab").classList.toggle("hidden",t!=="home");
   $("recurringTab").classList.toggle("hidden",t!=="recurring");
   $("goalsTab").classList.toggle("hidden",t!=="goals");
+  $("trendsTab").classList.toggle("hidden",t!=="trends");
   if(t==="recurring") renderRecurring();
   if(t==="goals") renderGoals();
+  if(t==="trends") renderTrends();
+}
+function refreshTab(){ if(activeTab==="recurring") renderRecurring(); else if(activeTab==="goals") renderGoals(); else if(activeTab==="trends") renderTrends(); }
+
+/* ---------- trends + searchable history ---------- */
+let trendCat="all", historyQuery="", historyWho="all";
+function monthShort(mk){ const p=mk.split("-"); return new Date(p[0],p[1]-1,1).toLocaleDateString("en-US",{month:"short"}); }
+function monthsBack(n){ const out=[]; let m=monthKey(new Date()); for(let i=0;i<n;i++){ out.unshift(m); m=addMonthKey(m,-1); } return out; }
+function spentAllMonth(mk,catId){ return S.pulls.filter(p=>monthKey(p.date)===mk && (catId==="all"||p.bucketId===catId)).reduce((t,p)=>t+(+p.amount||0),0); }
+function bktById(id){ return S.buckets.find(b=>b.id===id); }
+function renderTrends(){
+  const el=$("trendsTab");
+  const months=monthsBack(6);
+  const vals=months.map(m=>({m,v:spentAllMonth(m,trendCat)}));
+  const max=Math.max(1,...vals.map(x=>x.v));
+  const avg=vals.reduce((t,x)=>t+x.v,0)/vals.length;
+  const curM=monthKey(new Date());
+  el.innerHTML=`
+    <div class="sec" style="margin-top:2px"><h2>Spending trend</h2></div>
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px">
+      <select class="in" id="trendCat" style="margin-bottom:14px">
+        <option value="all" ${trendCat==="all"?"selected":""}>All spending</option>
+        ${S.buckets.map(b=>`<option value="${b.id}" ${trendCat===b.id?"selected":""}>${b.emoji} ${b.name}</option>`).join("")}
+      </select>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:135px">
+        ${vals.map(x=>{const h=Math.max(4,x.v/max*105);const cur=x.m===curM;return `
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;min-width:0">
+            <div style="font-size:9.5px;font-weight:800;color:var(--muted)">${x.v>0?money(x.v):""}</div>
+            <div style="width:66%;height:${h}px;border-radius:6px 6px 0 0;background:${cur?"linear-gradient(180deg,var(--good2),var(--good))":"#cdd6e6"}"></div>
+            <div style="font-size:10px;color:var(--muted)">${monthShort(x.m)}</div>
+          </div>`}).join("")}
+      </div>
+      <div class="qcap" style="margin-top:10px;text-align:center">6-month average: <b>${money(avg)}/mo</b></div>
+    </div>
+    <div class="sec" style="margin-top:20px"><h2>All transactions</h2><span class="tag" id="histCount"></span></div>
+    <input class="in" id="histSearch" placeholder="Search merchant or note…" value="${historyQuery.replace(/"/g,"&quot;")}" style="margin-bottom:10px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="ebadge" data-hw="all" style="cursor:pointer;padding:6px 11px;${historyWho==="all"?"background:var(--ink);color:#fff":""}">Everyone</button>
+      ${S.people.map(p=>`<button class="ebadge" data-hw="${p.id}" style="cursor:pointer;padding:6px 11px;${historyWho===p.id?"background:"+p.color+";color:#fff":""}">${p.short} ${p.name.split(" ")[0]}</button>`).join("")}
+    </div>
+    <div id="histList"></div>`;
+  $("trendCat").onchange=e=>{ trendCat=e.target.value; renderTrends(); };
+  $("histSearch").oninput=e=>{ historyQuery=e.target.value; renderHistList(); };
+  el.querySelectorAll("[data-hw]").forEach(b=>b.onclick=()=>{ historyWho=b.dataset.hw; renderTrends(); });
+  renderHistList();
+}
+function renderHistList(){
+  const q=historyQuery.trim().toLowerCase();
+  const tx=S.pulls.filter(p=>{
+    if(historyWho!=="all" && p.who!==historyWho) return false;
+    if(q){ const c=bktById(p.bucketId); const hay=((p.note||"")+" "+(c?c.name:"")).toLowerCase(); if(!hay.includes(q)) return false; }
+    return true;
+  }).sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.id>a.id?1:-1));
+  const box=$("histList"), cnt=$("histCount"); if(cnt) cnt.textContent=tx.length+" total";
+  if(!tx.length){ box.innerHTML=`<div class="qcap" style="text-align:center;padding:24px">No transactions match.</div>`; return; }
+  box.innerHTML=tx.slice(0,200).map(p=>{
+    const c=bktById(p.bucketId), who=S.people.find(x=>x.id===p.who);
+    return `<div class="setrow" data-editpull="${p.id}" style="cursor:pointer">
+      <span class="se">${c?c.emoji:"🧾"}</span>
+      <span class="sn">${p.note?escapeMerch(p.note):(c?c.name:"Charge")}<div class="sb">${p.date}${c?" · "+c.name:""}${who?" · "+who.name.split(" ")[0]:""}</div></span>
+      <span class="num" style="font-weight:800">${money(p.amount)}</span>
+    </div>`;
+  }).join("")+(tx.length>200?`<div class="qcap" style="text-align:center;padding:10px">Showing 200 of ${tx.length}</div>`:"");
+  box.querySelectorAll("[data-editpull]").forEach(row=>row.onclick=()=>{ const p=S.pulls.find(x=>x.id===row.dataset.editpull); if(p) openPull(null,p); });
+}
+
+/* ---------- Money Night reminder ---------- */
+function isMoneyNightDue(){
+  const last=S.ritual.lastCheckIn, today=new Date();
+  if(last && iso(new Date(last))===iso(today)) return false;
+  const dow=today.getDay();
+  const daysSince = last ? Math.floor((new Date(iso(today))-new Date(iso(new Date(last))))/86400000) : 999;
+  return dow===0 || daysSince>=7;
+}
+function downloadReminderICS(){
+  const p2=n=>String(n).padStart(2,"0");
+  const d=new Date(); const add=(7-d.getDay())%7; d.setDate(d.getDate()+(add===0?7:add));
+  const dt=`${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}T180000`;
+  const ics=[
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Klepcake//Money Night//EN","CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT","UID:klepcake-moneynight-"+dt+"@klepcake","DTSTAMP:"+dt,"DTSTART:"+dt,"DURATION:PT20M",
+    "RRULE:FREQ=WEEKLY;BYDAY=SU","SUMMARY:🍰 Money Night (Klepcake)",
+    "DESCRIPTION:Review this week's spending together in Klepcake.",
+    "BEGIN:VALARM","TRIGGER:-PT30M","ACTION:DISPLAY","DESCRIPTION:Money Night in 30 min","END:VALARM",
+    "END:VEVENT","END:VCALENDAR"
+  ].join("\r\n");
+  const blob=new Blob([ics],{type:"text/calendar"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="klepcake-money-night.ics"; a.click(); URL.revokeObjectURL(a.href);
+  toast("Opening your calendar…");
+}
+function renderNightBanner(){
+  const el=$("nightBanner"); if(!el) return;
+  if(!isMoneyNightDue()){ el.innerHTML=""; return; }
+  el.innerHTML=`<button class="importcard" id="nightBtn" style="background:linear-gradient(120deg,#0E7C6B,#12A08A);border:none;margin-bottom:12px">
+    <div class="ie" style="background:rgba(255,255,255,.22)">🎬</div>
+    <div class="it"><b style="color:#fff">It's Money Night</b><span style="color:rgba(255,255,255,.85)">Take 10 minutes to review this week together</span></div>
+    <div class="arrow" style="color:#fff">→</div></button>`;
+  el.querySelector("#nightBtn").onclick=openMoneyNight;
 }
 $("quest").style.cursor="pointer";
 $("quest").onclick=()=>setTab("goals");
@@ -901,10 +1004,10 @@ $("savePull").onclick=()=>{
   else { S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),...data}); }
   // jump view to the week of the pull so they see it drain
   S.viewWeek=weekKey(data.date);
-  closeSheets(); render(); toast(editingPull?"Pull updated":"Pulled "+money(amt));
+  closeSheets(); render(); refreshTab(); toast(editingPull?"Pull updated":"Pulled "+money(amt));
   editingPull=null;
 };
-$("deletePull").onclick=()=>{ if(editingPull){ S.pulls=S.pulls.filter(p=>p!==editingPull); editingPull=null; closeSheets(); render(); toast("Pull deleted"); } };
+$("deletePull").onclick=()=>{ if(editingPull){ S.pulls=S.pulls.filter(p=>p!==editingPull); editingPull=null; closeSheets(); render(); refreshTab(); toast("Pull deleted"); } };
 
 /* ============================================================
    MONEY NIGHT — guided weekly ritual
@@ -1064,9 +1167,14 @@ $("gearBtn").onclick=()=>{ renderSettings(); openSheet($("setSheet")); };
 function renderSettings(){
   const b=$("setBody"); const s=S.settings;
   b.innerHTML=`
-    <button class="importcard" id="openSyncBtn" style="margin-bottom:16px">
+    <button class="importcard" id="openSyncBtn" style="margin-bottom:12px">
       <div class="ie">☁️</div>
       <div class="it"><b id="syncTitle">Sync across devices</b><span id="syncSub">Sign in so you & Alexandria share one household</span></div>
+      <div class="arrow">→</div>
+    </button>
+    <button class="importcard" id="remindBtn" style="margin-bottom:16px">
+      <div class="ie">🔔</div>
+      <div class="it"><b>Money Night reminder</b><span>Add a weekly Sunday nudge to your calendar</span></div>
       <div class="arrow">→</div>
     </button>
     <div class="subhd">Income (take-home cash / month)</div>
@@ -1124,13 +1232,14 @@ function renderSettings(){
   b.querySelector("#importBtn").onclick=()=>b.querySelector("#fileIn").click();
   b.querySelector("#fileIn").addEventListener("change",e=>{
     const f=e.target.files[0]; if(!f)return; const r=new FileReader();
-    r.onload=()=>{ try{ const j=JSON.parse(r.result); if(!j.buckets)throw 0; if(!confirm("Replace all current data with this backup?"))return; S=j; if(!S.viewWeek)S.viewWeek=weekKey(new Date()); save(); closeSheets(); render(); toast("Backup imported"); }catch(err){ toast("Couldn't read that file"); } };
+    r.onload=()=>{ try{ const j=JSON.parse(r.result); if(!j.buckets)throw 0; if(!confirm("Replace all current data with this backup?"))return; S=ensureShape(j); save(); closeSheets(); render(); toast("Backup imported"); }catch(err){ toast("Couldn't read that file"); } };
     r.readAsText(f);
   });
-  b.querySelector("#resetBtn").onclick=()=>{ if(!confirm("Erase everything on this device?"))return; if(!confirm("Really sure? Export a backup first if unsure."))return; S=baseState(); save(); closeSheets(); render(); openOnboarding(); toast("Reset — let's set up fresh"); };
-  b.querySelector("#sampleBtn").onclick=()=>{ if(!confirm("Reload the sample data? Replaces current."))return; S=sampleState(); save(); closeSheets(); render(); toast("Sample loaded"); };
+  b.querySelector("#resetBtn").onclick=()=>{ if(!confirm("Erase everything on this device?"))return; if(!confirm("Really sure? Export a backup first if unsure."))return; S=ensureShape(baseState()); save(); closeSheets(); render(); openOnboarding(); toast("Reset — let's set up fresh"); };
+  b.querySelector("#sampleBtn").onclick=()=>{ if(!confirm("Reload the sample data? Replaces current."))return; S=ensureShape(sampleState()); save(); closeSheets(); render(); toast("Sample loaded"); };
   b.querySelector("#redoSetup").onclick=()=>{ closeSheets(); openOnboarding(); };
   b.querySelector("#openSyncBtn").onclick=openSync;
+  b.querySelector("#remindBtn").onclick=downloadReminderICS;
   updateSyncUI();
 }
 
