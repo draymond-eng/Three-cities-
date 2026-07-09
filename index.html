@@ -337,6 +337,7 @@
     <div class="qcap" id="questCap">—</div>
   </section>
 
+  <div id="closeCard"></div>
   <div id="scoreboard"></div>
 
   <button class="importcard" id="importOpen">
@@ -519,6 +520,7 @@ function ensureShape(s){
   if(!s.merchantRules) s.merchantRules={};
   if(!s.whoRules) s.whoRules={};
   if(!Array.isArray(s.goals)) s.goals=[];
+  if(!s.closes) s.closes={};
   if(!s.ritual) s.ritual={streak:0,lastCheckIn:null,badges:[],history:[]};
   if(!s.viewWeek) s.viewWeek=weekKey(new Date());
   // ensure the four attribution targets exist (older saves had 2)
@@ -546,7 +548,8 @@ function bucketAvailable(b,mk){
   let start=earliestMonth(); if(!start||start>mk) return b.monthly;
   let carry=0, m=start;
   while(m<mk){ const avail=b.monthly+carry; const spent=spentBucketMonth(b.id,m);
-    carry=Math.max(0,avail-spent); m=addMonthKey(m,1); if(m<start) break; }
+    const swept=(S.closes[m]&&S.closes[m][b.id])||0;
+    carry=Math.max(0,avail-spent-swept); m=addMonthKey(m,1); if(m<start) break; }
   return b.monthly+carry;
 }
 function bucketCarry(b,mk){ return bucketAvailable(b,mk)-b.monthly; }
@@ -627,6 +630,7 @@ function render(){
     wrap.appendChild(el);
   });
   renderScoreboard();
+  renderCloseCard();
   save();
 }
 
@@ -709,6 +713,64 @@ function editGoal(id){
   const target=parseFloat(prompt("Target amount:",g.target)); if(!isNaN(target)) g.target=target;
   const saved=parseFloat(prompt("Saved so far:",g.saved)); if(!isNaN(saved)) g.saved=saved;
   g.name=name.trim()||g.name; save(); renderGoals();
+}
+
+/* ---------- month-end sweep: roll over or allot leftovers to goals ---------- */
+function addToGoal(id,amt){ if(id==="cushion"){ S.settings.savings=(+S.settings.savings||0)+amt; } else { const g=S.goals.find(x=>x.id===id); if(g) g.saved=(+g.saved||0)+amt; } }
+function monthLeftover(b,m){ return Math.round((bucketAvailable(b,m)-spentBucketMonth(b.id,m))*100)/100; }
+function closeableMonth(){
+  const prev=addMonthKey(monthKey(new Date()),-1);
+  if(S.closes[prev]) return null;
+  return S.buckets.some(b=>monthLeftover(b,prev)>0) ? prev : null;
+}
+function renderCloseCard(){
+  const el=$("closeCard"); if(!el) return;
+  const m=closeableMonth();
+  if(!m){ el.innerHTML=""; return; }
+  const total=S.buckets.reduce((t,b)=>t+Math.max(0,monthLeftover(b,m)),0);
+  el.innerHTML=`<button class="importcard" id="closeMonthBtn" style="background:linear-gradient(120deg,#fff,#eef2fb);border-color:#cbd6ee">
+    <div class="ie" style="background:#e5ecfa">📆</div>
+    <div class="it"><b>Close out ${monthLabel(m)}</b><span>${money(total)} unspent — sweep it into your goals or roll it over</span></div>
+    <div class="arrow">→</div></button>`;
+  el.querySelector("#closeMonthBtn").onclick=()=>openClose(m);
+}
+function openClose(m){
+  const items=S.buckets.map(b=>({b,left:monthLeftover(b,m)})).filter(x=>x.left>0);
+  const dest={}; items.forEach(x=>dest[x.b.id]=x.b.sweepTo||"rollover");
+  const goals=allGoals();
+  const ov=document.createElement("div"); ov.className="scrim show"; ov.style.zIndex="85";
+  const box=document.createElement("div");
+  box.style.cssText="position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;max-height:88vh;overflow:auto;z-index:86";
+  document.body.appendChild(ov); document.body.appendChild(box);
+  const close=()=>{ ov.remove(); box.remove(); };
+  ov.onclick=close;
+  function draw(){
+    box.innerHTML=`
+      <div style="font-weight:800;font-size:18px">Close out ${monthLabel(m)}</div>
+      <div class="qcap" style="margin-bottom:10px">Where should each envelope's leftover go? “Roll over” keeps it in that envelope next month.</div>
+      <button class="ghostbtn" id="allCushion" style="margin:0 0 12px">🛟 Send everything to the cushion</button>
+      <div id="closeRows"></div>
+      <button class="primary money" id="doClose" style="margin-top:12px">Close the month</button>
+      <button class="ghostbtn" id="cancelClose">Not yet</button>`;
+    box.querySelector("#closeRows").innerHTML=items.map(x=>`
+      <div class="setrow"><span class="se">${x.b.emoji}</span>
+        <span class="sn">${x.b.name}<div class="sb">${money(x.left)} left</div></span>
+        <select class="in" data-dest="${x.b.id}" style="width:158px">
+          <option value="rollover" ${dest[x.b.id]==="rollover"?"selected":""}>↪ Roll over</option>
+          ${goals.map(g=>`<option value="${g.id}" ${dest[x.b.id]===g.id?"selected":""}>${g.emoji} ${g.name}</option>`).join("")}
+        </select></div>`).join("");
+    box.querySelectorAll("[data-dest]").forEach(sel=>sel.onchange=e=>{ dest[e.target.dataset.dest]=e.target.value; });
+    box.querySelector("#allCushion").onclick=()=>{ items.forEach(x=>dest[x.b.id]="cushion"); draw(); };
+    box.querySelector("#cancelClose").onclick=close;
+    box.querySelector("#doClose").onclick=()=>{
+      S.closes[m]={_closed:1}; let swept=0;
+      items.forEach(x=>{ const d=dest[x.b.id]; x.b.sweepTo = d==="rollover"?undefined:d;
+        if(d!=="rollover"){ addToGoal(d,x.left); S.closes[m][x.b.id]=x.left; swept+=x.left; } });
+      save(); close(); render(); if(activeTab==="goals") renderGoals();
+      if(swept>0){ burst(); toast(money(swept)+" swept into your goals 🎉"); } else toast("Month closed — leftovers rolled over");
+    };
+  }
+  draw();
 }
 
 /* ---------- scoreboard (who spent what) ---------- */
