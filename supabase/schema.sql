@@ -1,7 +1,6 @@
 -- ============================================================
--- Klepcake — Supabase schema
--- One household (the two of you) synced as a single JSON document.
--- Run this once in your Supabase project: SQL Editor → paste → Run.
+-- Klepcake — Supabase schema (safe to run multiple times)
+-- Run in your Supabase project: SQL Editor → paste → Run.
 -- ============================================================
 
 create extension if not exists pgcrypto;
@@ -28,14 +27,15 @@ create table if not exists household_members (
 alter table households        enable row level security;
 alter table household_members enable row level security;
 
--- Members can read + write only their own household.
+drop policy if exists "read own household" on households;
 create policy "read own household" on households for select
   using (id in (select household_id from household_members where user_id = auth.uid()));
 
+drop policy if exists "update own household" on households;
 create policy "update own household" on households for update
   using (id in (select household_id from household_members where user_id = auth.uid()));
 
--- Members can see their own membership rows.
+drop policy if exists "read own memberships" on household_members;
 create policy "read own memberships" on household_members for select
   using (user_id = auth.uid());
 
@@ -74,5 +74,8 @@ drop trigger if exists households_updated on households;
 create trigger households_updated before update on households
   for each row execute function bump_updated_at();
 
--- Live push to both phones when the household changes.
-alter publication supabase_realtime add table households;
+-- Live push to both phones when the household changes (ignore if already added).
+do $$ begin
+  alter publication supabase_realtime add table households;
+exception when duplicate_object then null;
+end $$;
