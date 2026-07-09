@@ -1,1152 +1,403 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Family Budget</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#FBF9F5">
+<title>The Washington Household — Money Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0f1a;
-    --bg2:#0e1626;
-    --panel:#131c2e;
-    --panel2:#1a2540;
-    --line:#26324f;
-    --line2:#334066;
-    --text:#eef3ff;
-    --muted:#93a1c4;
-    --faint:#63719a;
-    --accent:#34d399;      /* green — money in / good */
-    --accent-d:#10b981;
-    --accent2:#38bdf8;      /* sky */
-    --warn:#fbbf24;
-    --bad:#f87171;
-    --purple:#a78bfa;
-    --pink:#f472b6;
-    --shadow:0 12px 34px rgba(0,0,0,.45);
-    --radius:16px;
+    --paper:#FBF9F5; --card:#FFFFFF; --ink:#1B2430; --muted:#6E7683;
+    --line:#EAE4D9; --line2:#F1ECE2;
+    --good:#0E7C6B; --good-soft:#E2F1ED;
+    --warn:#C2543D; --warn-soft:#F7E7E1;
+    --hold:#B9852B;
+    --shadow:0 1px 2px rgba(27,36,48,.04),0 8px 24px rgba(27,36,48,.05);
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
-  body{
-    font-family:"Segoe UI",Roboto,Helvetica,Arial,system-ui,sans-serif;
-    background:radial-gradient(1300px 760px at 50% -12%,#152547 0%,var(--bg) 62%);
-    color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;
-  }
-  a{color:var(--accent2)}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;padding-bottom:64px}
+  .num{font-family:"Bricolage Grotesque",Inter,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .wrap{max-width:1080px;margin:0 auto;padding:20px 18px}
+  a{color:var(--good)}
   button{font-family:inherit;cursor:pointer}
-  .hidden{display:none !important}
-  .muted{color:var(--muted)}
-  .faint{color:var(--faint)}
-  .right{text-align:right}
+  input,select{font-family:inherit}
 
-  /* ---------- Header ---------- */
-  header{
-    display:flex;align-items:center;justify-content:space-between;gap:16px;
-    padding:16px 24px;border-bottom:1px solid var(--line);
-    background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);
-    position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
-  }
-  .brand{display:flex;align-items:center;gap:13px}
-  .logo{
-    width:44px;height:44px;border-radius:13px;flex:none;position:relative;
-    background:linear-gradient(150deg,var(--accent),var(--accent2));
-    box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;
-    font-size:24px;
-  }
-  .title h1{margin:0;font-size:19px;letter-spacing:.3px}
-  .title p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
-  .head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  /* header */
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px}
+  .brand .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .brand h1{font-family:"Bricolage Grotesque";font-weight:800;font-size:28px;margin:2px 0 0;letter-spacing:-.02em}
+  .monthpick{display:flex;align-items:center;gap:8px}
+  .monthpick select{appearance:none;background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:9px 30px 9px 12px;font-size:14px;font-weight:600;color:var(--ink);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236E7683' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center}
+  .ghost{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:600;color:var(--ink)}
+  .ghost:hover{border-color:var(--muted)}
 
-  .month-nav{display:flex;align-items:center;gap:6px;background:var(--panel2);
-    border:1px solid var(--line);border-radius:11px;padding:4px}
-  .month-nav button{border:none;background:transparent;color:var(--text);font-size:16px;
-    width:30px;height:30px;border-radius:8px;line-height:1}
-  .month-nav button:hover{background:#26324f}
-  .month-nav .mlabel{min-width:132px;text-align:center;font-weight:700;font-size:14px}
+  /* verdict strip — signature */
+  .verdict{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    padding:20px 22px;margin-bottom:16px}
+  .verdict .row1{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+  .verdict .label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .verdict .headline{font-size:34px;font-weight:800;margin-top:2px}
+  .verdict .headline small{font-size:15px;font-weight:600;color:var(--muted);margin-left:8px;letter-spacing:0}
+  .flow{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px}
+  .flow div{font-size:13px;color:var(--muted)}
+  .flow b{display:block;font-size:19px;color:var(--ink);margin-top:2px}
+  .bar{position:relative;height:14px;border-radius:8px;background:var(--line2);margin-top:16px;overflow:hidden}
+  .bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:8px;transition:width .5s ease}
+  .bar .mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink);opacity:.55}
+  .bar .mtag{position:absolute;top:-20px;transform:translateX(-50%);font-size:10px;color:var(--ink);white-space:nowrap;font-weight:600}
+  .runway{margin-top:14px;font-size:13px;color:var(--muted)}
+  .runway b{color:var(--ink);font-weight:700}
 
-  .btn{
-    border:1px solid var(--line);background:var(--panel2);color:var(--text);
-    padding:9px 15px;border-radius:10px;font-size:13.5px;font-weight:600;
-    transition:transform .05s ease, background .15s ease, border-color .15s;white-space:nowrap;
-  }
-  .btn:hover{background:#243056;border-color:var(--line2)}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#04231a;border-color:var(--accent-d);font-weight:700}
-  .btn.primary:hover{filter:brightness(1.06)}
-  .btn.ghost{background:transparent}
-  .btn.sm{padding:6px 11px;font-size:12.5px;border-radius:9px}
-  .btn.danger{color:var(--bad);border-color:#5b2b34}
-  .btn.danger:hover{background:#3a1b22}
-  .btn:disabled{opacity:.45;cursor:not-allowed}
+  /* 50/30/20 cards */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat .t{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .stat .big{font-size:26px;font-weight:800;margin:6px 0 2px}
+  .stat .sub{font-size:12.5px;color:var(--muted)}
+  .stat .track{height:8px;border-radius:6px;background:var(--line2);margin-top:10px;position:relative;overflow:hidden}
+  .stat .track .f{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+  .stat .track .target{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:2px}
+  .pill.ok{background:var(--good-soft);color:var(--good)}
+  .pill.over{background:var(--warn-soft);color:var(--warn)}
 
-  /* ---------- Layout ---------- */
-  main{padding:20px 24px 80px;max-width:1180px;margin:0 auto}
-  nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 20px}
-  nav.tabs button{
-    border:1px solid transparent;background:transparent;color:var(--muted);
-    padding:9px 16px;border-radius:11px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px;
-  }
-  nav.tabs button:hover{color:var(--text);background:var(--panel)}
-  nav.tabs button.active{color:var(--text);background:var(--panel);border-color:var(--line)}
+  /* panels */
+  .cols{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
+  .panel h2{font-family:"Bricolage Grotesque";font-weight:700;font-size:17px;margin:0 0 2px;letter-spacing:-.01em}
+  .panel .cap{font-size:12.5px;color:var(--muted);margin:0 0 14px}
 
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
-  .card h2{margin:0 0 3px;font-size:16px}
-  .card .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
-  .card + .card{margin-top:20px}
+  /* category table */
+  .cat{display:grid;grid-template-columns:1fr auto auto;gap:8px 12px;align-items:center}
+  .cat .grouphd{grid-column:1/-1;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    font-weight:700;margin:12px 0 2px;display:flex;justify-content:space-between}
+  .cat .grouphd:first-child{margin-top:0}
+  .cat .name{font-size:14px}
+  .cat .name .tgt{font-size:11.5px;color:var(--muted);margin-left:2px}
+  .cat input{width:92px;text-align:right;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;
+    font-variant-numeric:tabular-nums;color:var(--ink);background:var(--paper)}
+  .cat input:focus{outline:none;border-color:var(--good);background:#fff}
+  .cat .delta{font-size:12px;text-align:right;min-width:64px;font-variant-numeric:tabular-nums}
+  .delta.up{color:var(--warn)} .delta.down{color:var(--good)}
 
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  @media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+  /* subscriptions */
+  .sub{display:grid;grid-template-columns:1fr auto auto;gap:6px 10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line2)}
+  .sub:last-child{border-bottom:0}
+  .sub .sn{font-size:13.5px;display:flex;align-items:center;gap:7px}
+  .sub .amt{font-size:13.5px;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .flagdot{font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px}
+  .flagdot.dispute{background:var(--warn-soft);color:var(--warn)}
+  .flagdot.audit{background:#F3ECD9;color:var(--hold)}
+  .tog{position:relative;width:40px;height:23px;border-radius:999px;background:var(--good);border:none;transition:background .2s;flex:none}
+  .tog.off{background:#CBD0D6}
+  .tog::after{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;transition:left .2s}
+  .tog.off::after{left:19px}
+  .subfoot{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
+  .subfoot b{font-weight:700}
 
-  input,select,textarea{
-    width:100%;background:#0c1424;border:1px solid var(--line);color:var(--text);
-    border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;
-  }
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent2)}
-  label.fld{display:block;font-size:12px;color:var(--muted);margin:0 0 5px;font-weight:600;letter-spacing:.2px}
-  .field{margin-bottom:12px}
-  .inline{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
-  .inline > .field{flex:1;margin-bottom:0;min-width:120px}
+  /* trend */
+  .trend{display:flex;align-items:flex-end;gap:6px;height:110px;margin-top:6px}
+  .tcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;min-width:0}
+  .tbar{width:70%;border-radius:5px 5px 0 0;min-height:3px}
+  .tlab{font-size:10px;color:var(--muted);white-space:nowrap}
 
-  /* ---------- Stat tiles ---------- */
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
-  @media(max-width:860px){.stats{grid-template-columns:1fr 1fr}}
-  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
-  .stat .lab{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
-  .stat .val{font-size:26px;font-weight:800;margin-top:7px;letter-spacing:.2px}
-  .stat .hint{font-size:12px;color:var(--faint);margin-top:3px}
-  .stat .accent-bar{position:absolute;left:0;top:0;bottom:0;width:4px}
-  .val.good{color:var(--accent)} .val.bad{color:var(--bad)} .val.warn{color:var(--warn)}
-
-  /* ---------- Category / budget rows ---------- */
-  .catrow{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid rgba(38,50,79,.6)}
-  .catrow:last-child{border-bottom:none}
-  .cat-emoji{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;background:var(--panel2)}
-  .cat-main{flex:1;min-width:0}
-  .cat-name{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px}
-  .cat-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
-  .bar{height:9px;border-radius:6px;background:#0c1424;overflow:hidden;margin-top:8px;border:1px solid var(--line)}
-  .bar > i{display:block;height:100%;border-radius:6px;transition:width .4s ease}
-  .cat-amt{text-align:right;flex:none;min-width:132px}
-  .cat-amt .top{font-weight:800;font-size:15px}
-  .cat-amt .bot{font-size:12px;color:var(--muted);margin-top:2px}
-  .over{color:var(--bad)!important}
-
-  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line)}
-  .pill.tiny{font-size:10.5px;padding:2px 7px}
-
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:11px 10px;text-align:left;border-bottom:1px solid var(--line)}
-  th{color:var(--muted);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px}
-  tr:last-child td{border-bottom:none}
-  .txamt{font-weight:800;white-space:nowrap}
-  .icon-btn{background:transparent;border:none;color:var(--faint);font-size:15px;padding:5px 8px;border-radius:7px}
-  .icon-btn:hover{background:var(--panel2);color:var(--text)}
-  .icon-btn.del:hover{color:var(--bad)}
-
-  .empty{text-align:center;padding:38px 16px;color:var(--muted)}
-  .empty .big{font-size:34px;margin-bottom:8px}
-
-  .member-chip{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);padding:4px 11px 4px 4px;border-radius:22px;font-size:13px;font-weight:600}
-  .avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;font-weight:800;color:#04150f}
-
-  /* segmented emoji/color pickers */
-  .chipset{display:flex;gap:6px;flex-wrap:wrap}
-  .chipset button{border:1px solid var(--line);background:var(--panel2);border-radius:10px;width:40px;height:38px;font-size:19px;padding:0}
-  .chipset button.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(52,211,153,.28)}
-  .swatchset{display:flex;gap:8px;flex-wrap:wrap}
-  .swatchset button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;padding:0}
-  .swatchset button.on{border-color:#fff;transform:scale(1.12)}
-
-  /* donut */
-  .donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
-  .legend{flex:1;min-width:180px}
-  .legend .li{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:13.5px}
-  .legend .dot{width:12px;height:12px;border-radius:4px;flex:none}
-  .legend .lname{flex:1}
-  .legend .lamt{font-weight:700}
-
-  /* modal */
-  .modal-bg{position:fixed;inset:0;background:rgba(4,8,18,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:80;opacity:0;pointer-events:none;transition:opacity .18s}
-  .modal-bg.show{opacity:1;pointer-events:auto}
-  .modal{background:var(--panel);border:1px solid var(--line2);border-radius:18px;box-shadow:var(--shadow);width:100%;max-width:440px;padding:22px;transform:translateY(12px);transition:transform .18s}
-  .modal-bg.show .modal{transform:none}
-  .modal h3{margin:0 0 16px;font-size:17px}
-  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
-
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--panel2);border:1px solid var(--line2);padding:11px 18px;border-radius:11px;box-shadow:var(--shadow);opacity:0;transition:all .25s ease;z-index:90;font-size:14px;font-weight:600}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-  .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-  .section-head h2{margin:0;font-size:16px}
-
-  footer{color:var(--faint);text-align:center;font-size:12px;padding:30px}
-  .goal-card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px}
+  /* settings + save */
+  .settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .field label{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:4px}
+  .field input{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:14px;
+    font-variant-numeric:tabular-nums;background:var(--paper)}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .primary{background:var(--ink);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600}
+  .primary:hover{background:#0f1720}
+  .savedmsg{font-size:12.5px;color:var(--good);align-self:center;font-weight:600;opacity:0;transition:opacity .3s}
+  .note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
+  @media(max-width:820px){.cols{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">
-    <div class="logo">💰</div>
-    <div class="title">
-      <h1 id="appTitle">Family Budget</h1>
-      <p id="subline">Plan, track & save — together</p>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Household money dashboard</div>
+      <h1>The Washingtons</h1>
+    </div>
+    <div class="monthpick">
+      <select id="monthSel"></select>
+      <button class="ghost" id="addMonth">+ New month</button>
+    </div>
+  </header>
+
+  <!-- SIGNATURE: monthly verdict -->
+  <section class="verdict">
+    <div class="row1">
+      <div>
+        <div class="label" id="vLabel">This month</div>
+        <div class="headline num" id="vHead">—</div>
+      </div>
+      <div class="flow">
+        <div>Money in<b class="num" id="vIn">—</b></div>
+        <div>Money out<b class="num" id="vOut">—</b></div>
+        <div>Reset target out<b class="num" id="vTgt">—</b></div>
+      </div>
+    </div>
+    <div class="bar" id="vBar">
+      <div class="fill" id="vFill"></div>
+      <div class="mark" id="vMark"><span class="mtag">income</span></div>
+    </div>
+    <div class="runway" id="vRunway"></div>
+  </section>
+
+  <!-- 50/30/20 -->
+  <div class="grid3" id="ratioCards"></div>
+
+  <div class="cols">
+    <!-- category ledger -->
+    <section class="panel">
+      <h2>Where the money went</h2>
+      <p class="cap">Type this month's totals. Grey targets are the reset budget we set.</p>
+      <div class="cat" id="catTable"></div>
+    </section>
+
+    <div>
+      <!-- subscriptions -->
+      <section class="panel">
+        <h2>Subscriptions</h2>
+        <p class="cap">Toggle off to cancel. Flags need attention.</p>
+        <div id="subList"></div>
+        <div class="subfoot">
+          <span>Keeping <b class="num" id="subKeepCt">0</b> · <b class="num" id="subKeep">$0</b>/mo</span>
+          <span style="color:var(--good)">Cancelled saves <b class="num" id="subSave">$0</b>/yr</span>
+        </div>
+      </section>
+
+      <!-- trend -->
+      <section class="panel">
+        <h2>Monthly balance</h2>
+        <p class="cap">Green = you added to savings. Clay = you drew down.</p>
+        <div class="trend" id="trend"></div>
+      </section>
     </div>
   </div>
-  <div class="head-actions">
-    <div class="month-nav">
-      <button id="prevMonth" title="Previous month">‹</button>
-      <span class="mlabel" id="monthLabel">—</span>
-      <button id="nextMonth" title="Next month">›</button>
-    </div>
-    <button class="btn ghost sm" id="todayBtn" title="Jump to current month">Today</button>
-  </div>
-</header>
 
-<main>
-  <nav class="tabs" id="tabs">
-    <button data-tab="dashboard" class="active">📊 Dashboard</button>
-    <button data-tab="budget">🧮 Budget</button>
-    <button data-tab="transactions">🧾 Transactions</button>
-    <button data-tab="goals">🎯 Goals</button>
-    <button data-tab="family">👪 Family</button>
-    <button data-tab="settings">⚙️ Settings</button>
-  </nav>
-
-  <!-- ================= DASHBOARD ================= -->
-  <section id="tab-dashboard">
-    <div class="stats" id="statTiles"></div>
-    <div class="grid2">
-      <div class="card">
-        <div class="section-head">
-          <h2>Where the money's going</h2>
-          <span class="pill" id="spentPill">—</span>
-        </div>
-        <div id="donutBox"></div>
-      </div>
-      <div class="card">
-        <div class="section-head">
-          <h2>Budget vs. spent</h2>
-          <button class="btn sm ghost" data-goto="budget">Edit budget</button>
-        </div>
-        <div id="dashCats"></div>
-      </div>
+  <!-- settings -->
+  <section class="panel">
+    <h2>Income & runway</h2>
+    <p class="cap">Take-home cash that actually lands each month — not gross salary.</p>
+    <div class="settings">
+      <div class="field"><label>Salary — take-home / mo</label><input id="sSalary" inputmode="numeric"></div>
+      <div class="field"><label>Family gift / mo (50k ÷ 12)</label><input id="sGift" inputmode="numeric"></div>
+      <div class="field"><label>Other income / mo</label><input id="sOther" inputmode="numeric"></div>
+      <div class="field"><label>Liquid savings (checking + brokerage)</label><input id="sSavings" inputmode="numeric"></div>
     </div>
-    <div class="card">
-      <div class="section-head">
-        <h2>Recent activity</h2>
-        <button class="btn sm ghost" data-goto="transactions">See all</button>
-      </div>
-      <div id="recentTx"></div>
+    <div class="actions">
+      <button class="primary" id="saveBtn">Save this month</button>
+      <button class="ghost" id="exportBtn">Export backup</button>
+      <button class="ghost" id="importBtn">Import backup</button>
+      <input type="file" id="fileIn" accept="application/json" hidden>
+      <span class="savedmsg" id="savedMsg">Saved</span>
     </div>
+    <p class="note" id="footNote"></p>
   </section>
-
-  <!-- ================= BUDGET ================= -->
-  <section id="tab-budget" class="hidden">
-    <div class="grid2">
-      <div class="card">
-        <div class="section-head">
-          <h2>Income this month</h2>
-          <button class="btn sm primary" id="addIncomeBtn">＋ Add income</button>
-        </div>
-        <div id="incomeList"></div>
-      </div>
-      <div class="card">
-        <div class="section-head">
-          <h2>Budget categories</h2>
-          <button class="btn sm primary" id="addCatBtn">＋ Add category</button>
-        </div>
-        <p class="sub" id="budgetSummaryLine">Set how much you plan to spend or save in each category.</p>
-        <div id="budgetList"></div>
-        <div class="row" style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn ghost sm" id="copyPrevBtn">⧉ Copy last month's plan</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= TRANSACTIONS ================= -->
-  <section id="tab-transactions" class="hidden">
-    <div class="card">
-      <h2>Log a transaction</h2>
-      <p class="sub">Record spending or extra income for the selected month.</p>
-      <div class="inline">
-        <div class="field" style="flex:0 0 120px">
-          <label class="fld">Type</label>
-          <select id="txType">
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="fld">Amount</label>
-          <input id="txAmount" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal"/>
-        </div>
-        <div class="field">
-          <label class="fld">Category</label>
-          <select id="txCat"></select>
-        </div>
-        <div class="field">
-          <label class="fld">Who</label>
-          <select id="txMember"></select>
-        </div>
-        <div class="field">
-          <label class="fld">Date</label>
-          <input id="txDate" type="date"/>
-        </div>
-      </div>
-      <div class="inline" style="margin-top:12px">
-        <div class="field" style="flex:1">
-          <label class="fld">Note (optional)</label>
-          <input id="txNote" placeholder="e.g. Groceries at Costco"/>
-        </div>
-        <button class="btn primary" id="addTxBtn" style="height:40px">＋ Add</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-head">
-        <h2>Transactions</h2>
-        <select id="txFilter" style="width:auto">
-          <option value="all">All categories</option>
-        </select>
-      </div>
-      <div id="txTableWrap"></div>
-    </div>
-  </section>
-
-  <!-- ================= GOALS ================= -->
-  <section id="tab-goals" class="hidden">
-    <div class="card">
-      <div class="section-head">
-        <h2>Savings goals</h2>
-        <button class="btn sm primary" id="addGoalBtn">＋ New goal</button>
-      </div>
-      <p class="sub">Track the big things you're saving for as a family — a trip, a car, an emergency fund.</p>
-      <div id="goalsList"></div>
-    </div>
-  </section>
-
-  <!-- ================= FAMILY ================= -->
-  <section id="tab-family" class="hidden">
-    <div class="card">
-      <div class="section-head">
-        <h2>Family members</h2>
-        <button class="btn sm primary" id="addMemberBtn">＋ Add member</button>
-      </div>
-      <p class="sub">Add everyone who spends or earns, so you can see who's doing what.</p>
-      <div id="membersList"></div>
-    </div>
-    <div class="card">
-      <h2>Spending by person — this month</h2>
-      <div id="byMember"></div>
-    </div>
-  </section>
-
-  <!-- ================= SETTINGS ================= -->
-  <section id="tab-settings" class="hidden">
-    <div class="card">
-      <h2>Preferences</h2>
-      <div class="inline" style="margin-top:6px">
-        <div class="field" style="flex:0 0 200px">
-          <label class="fld">Household name</label>
-          <input id="setHouse" placeholder="The Smith Family"/>
-        </div>
-        <div class="field" style="flex:0 0 130px">
-          <label class="fld">Currency</label>
-          <select id="setCurrency">
-            <option value="$">$ USD</option>
-            <option value="£">£ GBP</option>
-            <option value="€">€ EUR</option>
-            <option value="R">R ZAR</option>
-            <option value="₹">₹ INR</option>
-            <option value="A$">A$ AUD</option>
-            <option value="C$">C$ CAD</option>
-            <option value="¥">¥ JPY</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Your data</h2>
-      <p class="sub">Everything lives only in this browser on this device. Back it up or move it to another device with export / import.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn" id="exportBtn">⬇ Export backup (.json)</button>
-        <button class="btn" id="importBtn">⬆ Import backup</button>
-        <input type="file" id="importInput" accept="application/json,.json" class="hidden"/>
-        <button class="btn danger" id="resetBtn">🗑 Reset everything</button>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Load sample data</h2>
-      <p class="sub">New here? Fill the app with an example family budget to explore.</p>
-      <button class="btn" id="sampleBtn">✨ Load sample family</button>
-    </div>
-  </section>
-</main>
-
-<footer id="footer">Family Budget · runs entirely in your browser · your data stays on this device</footer>
-
-<div class="modal-bg" id="modalBg">
-  <div class="modal" id="modal"></div>
 </div>
-<div class="toast" id="toast"></div>
 
 <script>
-"use strict";
-/* ============================================================
-   FAMILY BUDGET
-   Single-file, offline, localStorage. No accounts, no server.
-   ============================================================ */
-const $ = id => document.getElementById(id);
-const LS_KEY = "family-budget-v1";
+/* ---------- persistence: localStorage first (real devices + hosting),
+   then artifact window.storage, then in-memory as last resort ---------- */
+const KEY='washington:household:v1';
+const mem={};
+async function store(v){
+  const s=JSON.stringify(v);
+  try{ localStorage.setItem(KEY,s); return; }catch(e){}
+  try{ if(window.storage){ await window.storage.set(KEY,s); return; } }catch(e){}
+  mem[KEY]=s;
+}
+async function load(){
+  try{ const r=localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){}
+  try{ if(window.storage){ const r=await window.storage.get(KEY); if(r&&r.value) return JSON.parse(r.value); } }catch(e){}
+  return mem[KEY]?JSON.parse(mem[KEY]):null;
+}
 
-const EMOJIS = ["🛒","🍽️","🏠","💡","🚗","⛽","🩺","🎓","🎉","👕","📱","🎮","✈️","🐶","💊","💇","🎁","☕","💳","💰","🏦","📦","🧾","🔧"];
-const COLORS = ["#34d399","#38bdf8","#a78bfa","#f472b6","#fbbf24","#f87171","#60a5fa","#4ade80","#fb923c","#22d3ee","#c084fc","#facc15"];
-const MEMBER_COLORS = ["#34d399","#38bdf8","#a78bfa","#f472b6","#fbbf24","#fb923c","#22d3ee","#f87171"];
+/* ---------- model: the Washingtons' real baseline ---------- */
+const NEEDS=[
+  ['Mortgage','mortgage',3350,3350],['HOA','hoa',240,240],['Childcare (nanny)','nanny',3800,3800],
+  ['Utilities','utilities',280,280],['Groceries','groceries',1471,1300],['Car payment (Mach-E)','car',579,579],
+  ['Insurance','insurance',200,200],['Medical & health','medical',1000,750]
+];
+const WANTS=[
+  ['Dining & takeout','dining',2641,1200],['Shopping & retail','shopping',2570,1500],
+  ['Salon & personal','salon',500,300],['Travel','travel',1626,800],
+  ['Entertainment','entertain',950,500],['Subscriptions','subs',1350,650],
+  ['Hobbies (golf/boat/gaming)','hobbies',950,600],['Rideshare & parking','rideshare',693,450]
+];
+const CATS=[...NEEDS.map(c=>['need',...c]),...WANTS.map(c=>['want',...c])];
 
-// ---------- state ----------
-let state = null;
-let currentMonth = null; // "YYYY-MM"
-let activeTab = "dashboard";
+const SUBS=[
+  ['Apple (App Store / iCloud)',229,true,'audit'],['Nuuly',155,true,null],
+  ['GMACST.com',50,true,'dispute'],['GMRSHV.com',50,true,'dispute'],
+  ['FordPass / BlueCruise',50,true,null],['YouTube TV',75,true,null],
+  ['Amazon Prime Video channels',45,true,null],['ESPN+',43,true,null],
+  ['SimpliSafe',33,true,null],['NY Times',26,true,null],['HBO Max',25,true,null],
+  ['Spotify',23,true,null],['Perplexity',23,true,null],['Fathom',23,true,null],
+  ['Kindle Unlimited',20,true,null],['ClassPass',19,true,null],['Calendly',16,true,null],
+  ['Oura',15,true,null],['Uber One',15,true,null],['Washington Post',14,true,null],
+  ['Crain’s Chicago',13,true,null],['Peacock',12,true,null],['TuneIn',11,true,null],
+  ['Amazon Prime',9,true,null],['X / Twitter',8,true,null],
+  ['Rocket Money',6,true,'audit'],['Google One',2,true,null]
+];
 
-function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
-function monthKeyFromDate(d){ return d.toISOString().slice(0,7); }
-function nowMonthKey(){ return monthKeyFromDate(new Date()); }
-function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
-
-function defaultState(){
+function fresh(){
+  const spend={}; CATS.forEach(c=>spend[c[2]]=c[3]);
+  const mkey='2026-07';
   return {
-    house: "Our Family",
-    currency: "$",
-    members: [
-      { id: uid(), name: "Me", color: MEMBER_COLORS[0], emoji:"🙂" }
-    ],
-    goals: [],
-    months: {} // key -> { income:[], categories:[], transactions:[] }
+    settings:{salary:11700,gift:4167,other:0,savings:33000},
+    subs:SUBS.map(s=>({name:s[0],cost:s[1],keep:s[2],flag:s[3]})),
+    months:{[mkey]:{spend}},
+    current:mkey
   };
 }
+let S=null;
 
-function blankMonth(){ return { income: [], categories: [], transactions: [] }; }
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const money=n=>(n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString();
+const monthName=k=>{const[y,m]=k.split('-');return new Date(y,m-1,1).toLocaleString('en-US',{month:'long',year:'numeric'});};
+function income(){const s=S.settings;return (+s.salary||0)+(+s.gift||0)+(+s.other||0);}
+function monthSpend(k){const sp=S.months[k].spend;return CATS.reduce((t,c)=>t+(+sp[c[2]]||0),0);}
+function bucket(k,which){return CATS.filter(c=>c[0]===which).reduce((t,c)=>t+(+S.months[k].spend[c[2]]||0),0);}
+function targetOut(){return CATS.reduce((t,c)=>t+c[4],0);}
 
-function load(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw){ const j = JSON.parse(raw); if(j && j.months) return j; }
-  }catch(e){}
-  return defaultState();
-}
-function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("Couldn't save — storage may be full."); } }
+/* ---------- render ---------- */
+function render(){
+  const k=S.current, inc=income(), out=monthSpend(k), gap=inc-out;
+  // month select
+  const sel=$('monthSel'); sel.innerHTML='';
+  Object.keys(S.months).sort().reverse().forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=monthName(m);if(m===k)o.selected=true;sel.appendChild(o);});
 
-function month(key){
-  key = key || currentMonth;
-  if(!state.months[key]) state.months[key] = blankMonth();
-  return state.months[key];
-}
+  // verdict
+  $('vLabel').textContent=monthName(k);
+  const draw=gap<0;
+  $('vHead').innerHTML=(draw?'Drew down ':'Added ')+'<span class="num">'+money(Math.abs(gap))+'</span>'+
+     '<small>'+(draw?'more spent than came in':'saved this month')+'</small>';
+  $('vHead').style.color=draw?'var(--warn)':'var(--good)';
+  $('vIn').textContent=money(inc); $('vOut').textContent=money(out); $('vTgt').textContent=money(targetOut());
+  // bar: scale to max(out,inc,target)*1.05, fill=out, mark=income
+  const scale=Math.max(out,inc,targetOut())*1.06;
+  $('vFill').style.width=Math.min(100,out/scale*100)+'%';
+  $('vFill').style.background=draw?'var(--warn)':'var(--good)';
+  const mk=$('vMark'); mk.style.left=(inc/scale*100)+'%';
+  // runway
+  const rn=$('vRunway');
+  if(draw){const months=S.settings.savings/Math.abs(gap);
+    rn.innerHTML='At this pace, your <b>'+money(S.settings.savings)+'</b> liquid cushion lasts <b>'+months.toFixed(1)+' months</b>. '+
+      'Hit the reset target ('+money(targetOut())+' out) and the gap shrinks to <b>'+money(Math.abs(inc-targetOut()))+'/mo</b>.';
+  } else { rn.innerHTML='You lived inside your means this month. Route the surplus to savings or the Three Cities runway.'; }
 
-// ---------- formatting ----------
-function fmt(n){
-  const cur = state.currency || "$";
-  const neg = n < 0;
-  const v = Math.abs(Number(n)||0);
-  const s = v.toLocaleString(undefined,{minimumFractionDigits: v % 1 === 0 ? 0 : 2, maximumFractionDigits:2});
-  return (neg?"-":"") + cur + s;
-}
-function monthName(key){
-  const [y,m] = key.split("-").map(Number);
-  return new Date(y, m-1, 1).toLocaleDateString(undefined,{month:"long", year:"numeric"});
-}
-function shiftMonth(key, delta){
-  let [y,m] = key.split("-").map(Number);
-  m += delta; while(m<1){m+=12;y--;} while(m>12){m-=12;y++;}
-  return `${y}-${String(m).padStart(2,"0")}`;
-}
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+  // 50/30/20 cards
+  const cards=[['Needs',bucket(k,'need'),.50,'#3b6ea5'],['Wants',bucket(k,'want'),.30,'var(--warn)'],
+    ['Savings',Math.max(0,gap),.20,'var(--good)']];
+  $('ratioCards').innerHTML=cards.map(([t,val,tp,col])=>{
+    const pct=inc>0?val/inc*100:0, tpct=tp*100, over=pct>tpct+0.5&&t!=='Savings', under=t==='Savings'&&pct<tpct-0.5;
+    const badge=t==='Savings'?(pct>=tpct?'<span class="pill ok">on target</span>':'<span class="pill over">below 20%</span>')
+      :(over?'<span class="pill over">over '+Math.round(tpct)+'%</span>':'<span class="pill ok">under '+Math.round(tpct)+'%</span>');
+    return '<div class="stat"><div class="t">'+t+' <span style="color:var(--muted)">· target '+Math.round(tpct)+'%</span></div>'+
+      '<div class="big num" style="color:'+col+'">'+pct.toFixed(0)+'%'+badge+'</div>'+
+      '<div class="sub num">'+money(val)+' of '+money(inc)+'</div>'+
+      '<div class="track"><div class="f" style="width:'+Math.min(100,pct)+'%;background:'+col+'"></div>'+
+      '<div class="target" style="left:'+tpct+'%"></div></div></div>';
+  }).join('');
 
-// ---------- computations ----------
-function memberById(id){ return state.members.find(m=>m.id===id) || null; }
-function catById(key, id){ return month(key).categories.find(c=>c.id===id) || null; }
-function totalIncome(key){
-  const M = month(key);
-  const base = M.income.reduce((s,i)=>s+(Number(i.amount)||0),0);
-  const extra = M.transactions.filter(t=>t.type==="income").reduce((s,t)=>s+(Number(t.amount)||0),0);
-  return base + extra;
-}
-function totalPlanned(key){ return month(key).categories.reduce((s,c)=>s+(Number(c.planned)||0),0); }
-function spentByCat(key, catId){
-  return month(key).transactions.filter(t=>t.type==="expense" && t.catId===catId)
-    .reduce((s,t)=>s+(Number(t.amount)||0),0);
-}
-function totalSpent(key){
-  return month(key).transactions.filter(t=>t.type==="expense").reduce((s,t)=>s+(Number(t.amount)||0),0);
-}
-
-// ===========================================================
-//  RENDERING
-// ===========================================================
-function renderAll(){
-  $("appTitle").textContent = state.house || "Family Budget";
-  $("monthLabel").textContent = monthName(currentMonth);
-  $("footer").textContent = `${state.house || "Family Budget"} · runs entirely in your browser · your data stays on this device`;
-  renderDashboard();
-  renderBudget();
-  renderTransactions();
-  renderGoals();
-  renderFamily();
-  renderSettings();
-}
-
-/* ---------- Dashboard ---------- */
-function renderDashboard(){
-  const inc = totalIncome(), planned = totalPlanned(), spent = totalSpent();
-  const leftToBudget = inc - planned;
-  const remaining = inc - spent;
-  const tiles = [
-    { lab:"Income", val:fmt(inc), cls:"good", color:"var(--accent)", hint:"money in this month" },
-    { lab:"Spent", val:fmt(spent), cls: spent>inc?"bad":"", color:"var(--accent2)", hint: inc>0? `${Math.round(spent/inc*100)}% of income` : "so far" },
-    { lab:"Remaining", val:fmt(remaining), cls: remaining<0?"bad":"good", color:"var(--purple)", hint:"income minus spending" },
-    { lab:"Left to budget", val:fmt(leftToBudget), cls: leftToBudget<0?"warn":"", color:"var(--warn)", hint: leftToBudget<0?"over-allocated":"unassigned income" },
-  ];
-  $("statTiles").innerHTML = tiles.map(t=>`
-    <div class="stat">
-      <div class="accent-bar" style="background:${t.color}"></div>
-      <div class="lab">${t.lab}</div>
-      <div class="val ${t.cls}">${t.val}</div>
-      <div class="hint">${t.hint}</div>
-    </div>`).join("");
-
-  // donut by spending category
-  const cats = month().categories.map(c=>({ ...c, spent: spentByCat(currentMonth, c.id) })).filter(c=>c.spent>0);
-  cats.sort((a,b)=>b.spent-a.spent);
-  $("spentPill").textContent = fmt(spent) + " spent";
-  if(!cats.length){
-    $("donutBox").innerHTML = emptyBox("🧮","No spending logged yet","Add a transaction to see the breakdown.");
-  } else {
-    $("donutBox").innerHTML = donutHTML(cats, spent);
-  }
-
-  // budget vs spent (top categories)
-  const bcats = month().categories.slice().sort((a,b)=> (Number(b.planned)||0)-(Number(a.planned)||0));
-  if(!bcats.length){
-    $("dashCats").innerHTML = emptyBox("📝","No categories yet",'Head to the Budget tab to add some.');
-  } else {
-    $("dashCats").innerHTML = bcats.map(c=>catRowHTML(c,false)).join("");
-  }
-
-  // recent activity
-  const tx = month().transactions.slice().sort((a,b)=> (b.date||"").localeCompare(a.date||"") || b.id.localeCompare(a.id)).slice(0,6);
-  $("recentTx").innerHTML = tx.length ? txTableHTML(tx,false) : emptyBox("🧾","Nothing logged yet","Your latest transactions show up here.");
-}
-
-function emptyBox(icon, title, sub){
-  return `<div class="empty"><div class="big">${icon}</div><div style="font-weight:700;color:var(--text)">${title}</div><div style="margin-top:4px">${sub}</div></div>`;
-}
-
-function catRowHTML(c, editable){
-  const spent = spentByCat(currentMonth, c.id);
-  const planned = Number(c.planned)||0;
-  const pct = planned>0 ? Math.min(100, spent/planned*100) : (spent>0?100:0);
-  const over = planned>0 && spent>planned;
-  const isSaving = c.type==="saving";
-  const remaining = planned - spent;
-  const barColor = over ? "var(--bad)" : (isSaving ? "var(--purple)" : c.color || "var(--accent)");
-  return `
-    <div class="catrow">
-      <div class="cat-emoji" style="background:${(c.color||'#26324f')}22">${c.emoji||"📦"}</div>
-      <div class="cat-main">
-        <div class="cat-name">${escapeHtml(c.name)} ${isSaving?'<span class="pill tiny">💜 saving</span>':''}</div>
-        <div class="cat-sub">${fmt(spent)} of ${fmt(planned)} ${over?'':''}</div>
-        <div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>
-      </div>
-      <div class="cat-amt">
-        <div class="top ${over?'over':''}">${remaining<0?'-':''}${fmt(Math.abs(remaining))}</div>
-        <div class="bot">${over? 'over budget' : (remaining===0?'right on target':'left')}</div>
-      </div>
-    </div>`;
-}
-
-/* ---------- Donut (conic-gradient) ---------- */
-function donutHTML(cats, total){
-  let acc = 0, stops = [], legend = "";
-  cats.forEach(c=>{
-    const frac = total>0 ? c.spent/total : 0;
-    const start = acc*360, end = (acc+frac)*360;
-    stops.push(`${c.color||'#38bdf8'} ${start}deg ${end}deg`);
-    acc += frac;
-    legend += `<div class="li"><span class="dot" style="background:${c.color||'#38bdf8'}"></span>
-      <span class="lname">${c.emoji||''} ${escapeHtml(c.name)}</span>
-      <span class="lamt">${fmt(c.spent)}</span>
-      <span class="muted" style="width:44px;text-align:right">${Math.round((total>0?c.spent/total:0)*100)}%</span></div>`;
+  // category ledger
+  const sp=S.months[k].spend; let html='';
+  const groups=[['Needs','need'],['Wants','want']];
+  groups.forEach(([gl,gk])=>{
+    const gcur=bucket(k,gk), gtgt=CATS.filter(c=>c[0]===gk).reduce((t,c)=>t+c[4],0);
+    html+='<div class="grouphd"><span>'+gl+'</span><span class="num">'+money(gcur)+' / '+money(gtgt)+' target</span></div>';
+    CATS.filter(c=>c[0]===gk).forEach(c=>{
+      const key=c[2], cur=+sp[key]||0, d=cur-c[4];
+      html+='<div class="name">'+c[1]+' <span class="tgt num">·'+money(c[4])+'</span></div>'+
+        '<input data-k="'+key+'" value="'+cur+'" inputmode="numeric">'+
+        '<div class="delta '+(d>0?'up':'down')+' num">'+(d>0?'+':'')+money(d)+'</div>';
+    });
   });
-  return `<div class="donut-wrap">
-    <div style="width:150px;height:150px;border-radius:50%;flex:none;background:conic-gradient(${stops.join(",")});
-        display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line)">
-      <div style="width:96px;height:96px;border-radius:50%;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Spent</div>
-        <div style="font-weight:800;font-size:16px">${fmt(total)}</div>
-      </div>
-    </div>
-    <div class="legend">${legend}</div>
-  </div>`;
-}
-
-/* ---------- Budget tab ---------- */
-function renderBudget(){
-  // income
-  const M = month();
-  const incBox = $("incomeList");
-  if(!M.income.length){
-    incBox.innerHTML = emptyBox("💵","No income set","Add your paychecks or other regular income.");
-  } else {
-    incBox.innerHTML = M.income.map(i=>{
-      const who = memberById(i.member);
-      return `<div class="catrow">
-        <div class="cat-emoji" style="background:#34d39922">💵</div>
-        <div class="cat-main">
-          <div class="cat-name">${escapeHtml(i.source||"Income")}</div>
-          <div class="cat-sub">${who?('<span class="member-chip" style="padding:2px 9px 2px 2px"><span class="avatar" style="width:20px;height:20px;font-size:11px;background:'+who.color+'">'+escapeHtml(who.emoji||who.name[0])+'</span>'+escapeHtml(who.name)+'</span>'):'Household'}</div>
-        </div>
-        <div class="cat-amt"><div class="top" style="color:var(--accent)">${fmt(i.amount)}</div></div>
-        <div style="display:flex;gap:2px">
-          <button class="icon-btn" data-editincome="${i.id}">✎</button>
-          <button class="icon-btn del" data-delincome="${i.id}">🗑</button>
-        </div>
-      </div>`;
-    }).join("");
-    incBox.innerHTML += `<div class="catrow" style="border-top:2px solid var(--line)"><div class="cat-main"><div class="cat-name">Total income</div></div><div class="cat-amt"><div class="top" style="color:var(--accent)">${fmt(totalIncome())}</div></div><div style="width:60px"></div></div>`;
-  }
-
-  // categories
-  const box = $("budgetList");
-  if(!M.categories.length){
-    box.innerHTML = emptyBox("🗂️","No categories yet",'Add categories like Groceries, Rent, Fun money…');
-  } else {
-    box.innerHTML = M.categories.map(c=>{
-      const spent = spentByCat(currentMonth,c.id);
-      const planned = Number(c.planned)||0;
-      const pct = planned>0?Math.min(100,spent/planned*100):(spent>0?100:0);
-      const over = planned>0 && spent>planned;
-      return `<div class="catrow">
-        <div class="cat-emoji" style="background:${(c.color||'#26324f')}22">${c.emoji||"📦"}</div>
-        <div class="cat-main">
-          <div class="cat-name">${escapeHtml(c.name)} ${c.type==="saving"?'<span class="pill tiny">💜 saving</span>':''}</div>
-          <div class="cat-sub">${fmt(spent)} spent · ${fmt(planned)} planned</div>
-          <div class="bar"><i style="width:${pct}%;background:${over?'var(--bad)':(c.color||'var(--accent)')}"></i></div>
-        </div>
-        <div class="cat-amt"><div class="top">${fmt(planned)}</div><div class="bot ${over?'over':''}">${over?'over':fmt(planned-spent)+' left'}</div></div>
-        <div style="display:flex;gap:2px">
-          <button class="icon-btn" data-editcat="${c.id}">✎</button>
-          <button class="icon-btn del" data-delcat="${c.id}">🗑</button>
-        </div>
-      </div>`;
-    }).join("");
-  }
-  const planned = totalPlanned(), inc = totalIncome();
-  const left = inc - planned;
-  $("budgetSummaryLine").innerHTML = `Planned <b>${fmt(planned)}</b> of <b>${fmt(inc)}</b> income · <span style="color:${left<0?'var(--bad)':'var(--accent)'}">${left<0?fmt(-left)+' over-allocated':fmt(left)+' still unassigned'}</span>`;
-}
-
-/* ---------- Transactions ---------- */
-function renderTransactions(){
-  // populate selects
-  const cats = month().categories;
-  const catSel = $("txCat");
-  const cur = catSel.value;
-  catSel.innerHTML = cats.map(c=>`<option value="${c.id}">${c.emoji||''} ${escapeHtml(c.name)}</option>`).join("") || `<option value="">— add a category first —</option>`;
-  if(cur && cats.some(c=>c.id===cur)) catSel.value = cur;
-
-  const memSel = $("txMember");
-  const curM = memSel.value;
-  memSel.innerHTML = state.members.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join("");
-  if(curM && state.members.some(m=>m.id===curM)) memSel.value = curM;
-
-  const filt = $("txFilter");
-  const curF = filt.value;
-  filt.innerHTML = `<option value="all">All categories</option>` + cats.map(c=>`<option value="${c.id}">${c.emoji||''} ${escapeHtml(c.name)}</option>`).join("");
-  if(curF) filt.value = curF;
-
-  let tx = month().transactions.slice().sort((a,b)=> (b.date||"").localeCompare(a.date||"") || b.id.localeCompare(a.id));
-  if(filt.value!=="all") tx = tx.filter(t=>t.catId===filt.value);
-  $("txTableWrap").innerHTML = tx.length ? txTableHTML(tx,true) : emptyBox("🧾","No transactions","Log spending or income above.");
-}
-
-function txTableHTML(tx, withActions){
-  const rows = tx.map(t=>{
-    const c = t.type==="income" ? null : catById(currentMonth, t.catId);
-    const who = memberById(t.memberId);
-    const isInc = t.type==="income";
-    return `<tr>
-      <td style="white-space:nowrap;color:var(--muted)">${t.date||""}</td>
-      <td><span style="font-size:16px">${isInc?'💵':(c?c.emoji||'📦':'📦')}</span> ${isInc?'Income':(c?escapeHtml(c.name):'<span class="muted">Uncategorized</span>')}${t.note?` <span class="muted">· ${escapeHtml(t.note)}</span>`:''}</td>
-      <td>${who?`<span class="member-chip" style="padding:2px 9px 2px 2px"><span class="avatar" style="width:20px;height:20px;font-size:11px;background:${who.color}">${escapeHtml(who.emoji||who.name[0])}</span>${escapeHtml(who.name)}</span>`:'<span class="muted">—</span>'}</td>
-      <td class="right txamt" style="color:${isInc?'var(--accent)':'var(--text)'}">${isInc?'+':''}${fmt(t.amount)}</td>
-      ${withActions?`<td class="right" style="white-space:nowrap"><button class="icon-btn" data-edittx="${t.id}">✎</button><button class="icon-btn del" data-deltx="${t.id}">🗑</button></td>`:''}
-    </tr>`;
-  }).join("");
-  return `<div style="overflow-x:auto"><table>
-    <thead><tr><th>Date</th><th>Category</th><th>Who</th><th class="right">Amount</th>${withActions?'<th></th>':''}</tr></thead>
-    <tbody>${rows}</tbody></table></div>`;
-}
-
-/* ---------- Goals ---------- */
-function renderGoals(){
-  const box = $("goalsList");
-  if(!state.goals.length){
-    box.innerHTML = emptyBox("🎯","No goals yet","Create a savings goal to start tracking progress.");
-    return;
-  }
-  box.innerHTML = `<div class="grid2">` + state.goals.map(g=>{
-    const target = Number(g.target)||0, saved = Number(g.saved)||0;
-    const pct = target>0?Math.min(100,saved/target*100):0;
-    const done = target>0 && saved>=target;
-    return `<div class="goal-card">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-        <div class="cat-emoji" style="background:${(g.color||'#a78bfa')}22;font-size:24px">${g.emoji||"🎯"}</div>
-        <div style="flex:1">
-          <div style="font-weight:800;font-size:15px">${escapeHtml(g.name)} ${done?'<span class="pill tiny">✅ reached!</span>':''}</div>
-          <div class="muted" style="font-size:12.5px">${fmt(saved)} of ${fmt(target)}</div>
-        </div>
-        <div style="display:flex;gap:2px">
-          <button class="icon-btn" data-editgoal="${g.id}">✎</button>
-          <button class="icon-btn del" data-delgoal="${g.id}">🗑</button>
-        </div>
-      </div>
-      <div class="bar" style="height:11px"><i style="width:${pct}%;background:${done?'var(--accent)':(g.color||'var(--purple)')}"></i></div>
-      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12.5px" class="muted">
-        <span>${Math.round(pct)}%</span><span>${fmt(Math.max(0,target-saved))} to go</span>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn sm ghost" data-addgoal="${g.id}">＋ Add funds</button>
-      </div>
-    </div>`;
-  }).join("") + `</div>`;
-}
-
-/* ---------- Family ---------- */
-function renderFamily(){
-  const box = $("membersList");
-  box.innerHTML = state.members.map(m=>`
-    <div class="catrow">
-      <div class="avatar" style="width:42px;height:42px;font-size:19px;background:${m.color}">${escapeHtml(m.emoji||m.name[0]||'🙂')}</div>
-      <div class="cat-main"><div class="cat-name">${escapeHtml(m.name)}</div></div>
-      <div style="display:flex;gap:2px">
-        <button class="icon-btn" data-editmember="${m.id}">✎</button>
-        ${state.members.length>1?`<button class="icon-btn del" data-delmember="${m.id}">🗑</button>`:''}
-      </div>
-    </div>`).join("");
-
-  // spending by member this month
-  const M = month();
-  const totals = {};
-  state.members.forEach(m=>totals[m.id]=0);
-  M.transactions.filter(t=>t.type==="expense").forEach(t=>{ if(t.memberId!=null){ totals[t.memberId]=(totals[t.memberId]||0)+(Number(t.amount)||0); } });
-  const arr = state.members.map(m=>({m, amt:totals[m.id]||0})).sort((a,b)=>b.amt-a.amt);
-  const max = Math.max(1, ...arr.map(a=>a.amt));
-  const any = arr.some(a=>a.amt>0);
-  $("byMember").innerHTML = any ? arr.map(({m,amt})=>`
-    <div class="catrow">
-      <div class="avatar" style="background:${m.color}">${escapeHtml(m.emoji||m.name[0])}</div>
-      <div class="cat-main">
-        <div class="cat-name">${escapeHtml(m.name)}</div>
-        <div class="bar"><i style="width:${amt/max*100}%;background:${m.color}"></i></div>
-      </div>
-      <div class="cat-amt"><div class="top">${fmt(amt)}</div></div>
-    </div>`).join("") : emptyBox("👛","No spending yet","Logged expenses tagged to a person show here.");
-}
-
-/* ---------- Settings ---------- */
-function renderSettings(){
-  $("setHouse").value = state.house || "";
-  $("setCurrency").value = state.currency || "$";
-}
-
-// ===========================================================
-//  MODAL FRAMEWORK
-// ===========================================================
-function openModal(html){
-  $("modal").innerHTML = html;
-  $("modalBg").classList.add("show");
-}
-function closeModal(){ $("modalBg").classList.remove("show"); }
-$("modalBg").addEventListener("click", e=>{ if(e.target===$("modalBg")) closeModal(); });
-document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
-
-function emojiPicker(selected, list){
-  return `<div class="chipset" data-picker="emoji">` + list.map(e=>`<button type="button" data-emoji="${e}" class="${e===selected?'on':''}">${e}</button>`).join("") + `</div>`;
-}
-function colorPicker(selected, list){
-  return `<div class="swatchset" data-picker="color">` + list.map(c=>`<button type="button" data-color="${c}" class="${c===selected?'on':''}" style="background:${c}"></button>`).join("") + `</div>`;
-}
-function wirePickers(scope){
-  scope.querySelectorAll('[data-picker="emoji"] button').forEach(b=>b.addEventListener("click",()=>{
-    b.parentElement.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  $('catTable').innerHTML=html;
+  document.querySelectorAll('#catTable input').forEach(i=>i.addEventListener('input',e=>{
+    S.months[k].spend[e.target.dataset.k]=parseFloat(e.target.value.replace(/[^0-9.]/g,''))||0; render();
   }));
-  scope.querySelectorAll('[data-picker="color"] button').forEach(b=>b.addEventListener("click",()=>{
-    b.parentElement.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
-  }));
-}
-function pickedEmoji(scope){ const el=scope.querySelector('[data-picker="emoji"] button.on'); return el?el.dataset.emoji:null; }
-function pickedColor(scope){ const el=scope.querySelector('[data-picker="color"] button.on'); return el?el.dataset.color:null; }
 
-// ---------- Category modal ----------
-function catModal(cat){
-  const editing = !!cat;
-  cat = cat || { name:"", planned:"", emoji:EMOJIS[0], color:COLORS[0], type:"expense" };
-  openModal(`
-    <h3>${editing?"Edit category":"New category"}</h3>
-    <div class="field"><label class="fld">Name</label><input id="m_name" value="${escapeHtml(cat.name)}" placeholder="e.g. Groceries"/></div>
-    <div class="inline">
-      <div class="field" style="flex:1"><label class="fld">Planned amount / month</label><input id="m_planned" type="number" min="0" step="0.01" value="${cat.planned}" placeholder="0.00" inputmode="decimal"/></div>
-      <div class="field" style="flex:0 0 140px"><label class="fld">Type</label>
-        <select id="m_type"><option value="expense" ${cat.type!=="saving"?"selected":""}>Expense</option><option value="saving" ${cat.type==="saving"?"selected":""}>Saving</option></select>
-      </div>
-    </div>
-    <div class="field"><label class="fld">Icon</label>${emojiPicker(cat.emoji, EMOJIS)}</div>
-    <div class="field"><label class="fld">Color</label>${colorPicker(cat.color, COLORS)}</div>
-    <div class="modal-actions">
-      <button class="btn ghost" id="m_cancel">Cancel</button>
-      <button class="btn primary" id="m_save">${editing?"Save":"Add category"}</button>
-    </div>`);
-  const m = $("modal"); wirePickers(m);
-  $("m_cancel").onclick = closeModal;
-  $("m_save").onclick = ()=>{
-    const name = $("m_name").value.trim();
-    if(!name){ toast("Give the category a name."); return; }
-    const data = {
-      name, planned: Math.max(0, Number($("m_planned").value)||0),
-      type: $("m_type").value, emoji: pickedEmoji(m)||EMOJIS[0], color: pickedColor(m)||COLORS[0]
-    };
-    if(editing){ Object.assign(cat, data); }
-    else { month().categories.push({ id:uid(), ...data }); }
-    save(); renderAll(); closeModal();
-  };
-}
-
-// ---------- Income modal ----------
-function incomeModal(inc){
-  const editing = !!inc;
-  inc = inc || { source:"", amount:"", member: state.members[0]?.id || null };
-  openModal(`
-    <h3>${editing?"Edit income":"Add income"}</h3>
-    <div class="field"><label class="fld">Source</label><input id="i_src" value="${escapeHtml(inc.source)}" placeholder="e.g. Salary, Side gig"/></div>
-    <div class="inline">
-      <div class="field" style="flex:1"><label class="fld">Amount / month</label><input id="i_amt" type="number" min="0" step="0.01" value="${inc.amount}" placeholder="0.00" inputmode="decimal"/></div>
-      <div class="field" style="flex:1"><label class="fld">Who earns it</label>
-        <select id="i_mem">${state.members.map(mm=>`<option value="${mm.id}" ${mm.id===inc.member?"selected":""}>${escapeHtml(mm.name)}</option>`).join("")}</select>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn ghost" id="i_cancel">Cancel</button>
-      <button class="btn primary" id="i_save">${editing?"Save":"Add"}</button>
-    </div>`);
-  $("i_cancel").onclick = closeModal;
-  $("i_save").onclick = ()=>{
-    const source = $("i_src").value.trim() || "Income";
-    const amount = Math.max(0, Number($("i_amt").value)||0);
-    const member = $("i_mem").value;
-    if(editing){ Object.assign(inc, {source, amount, member}); }
-    else { month().income.push({ id:uid(), source, amount, member }); }
-    save(); renderAll(); closeModal();
-  };
-}
-
-// ---------- Transaction edit modal ----------
-function txModal(tx){
-  const cats = month().categories;
-  openModal(`
-    <h3>Edit transaction</h3>
-    <div class="inline">
-      <div class="field" style="flex:0 0 110px"><label class="fld">Type</label>
-        <select id="t_type"><option value="expense" ${tx.type!=="income"?"selected":""}>Expense</option><option value="income" ${tx.type==="income"?"selected":""}>Income</option></select></div>
-      <div class="field" style="flex:1"><label class="fld">Amount</label><input id="t_amt" type="number" min="0" step="0.01" value="${tx.amount}" inputmode="decimal"/></div>
-    </div>
-    <div class="inline">
-      <div class="field" style="flex:1" id="t_catwrap"><label class="fld">Category</label>
-        <select id="t_cat">${cats.map(c=>`<option value="${c.id}" ${c.id===tx.catId?"selected":""}>${c.emoji||''} ${escapeHtml(c.name)}</option>`).join("")}</select></div>
-      <div class="field" style="flex:1"><label class="fld">Who</label>
-        <select id="t_mem">${state.members.map(mm=>`<option value="${mm.id}" ${mm.id===tx.memberId?"selected":""}>${escapeHtml(mm.name)}</option>`).join("")}</select></div>
-    </div>
-    <div class="inline">
-      <div class="field" style="flex:0 0 150px"><label class="fld">Date</label><input id="t_date" type="date" value="${tx.date||todayISO()}"/></div>
-      <div class="field" style="flex:1"><label class="fld">Note</label><input id="t_note" value="${escapeHtml(tx.note||'')}"/></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn ghost" id="t_cancel">Cancel</button>
-      <button class="btn primary" id="t_save">Save</button>
-    </div>`);
-  const syncCat = ()=>{ $("t_catwrap").style.display = $("t_type").value==="income"?"none":"block"; };
-  $("t_type").onchange = syncCat; syncCat();
-  $("t_cancel").onclick = closeModal;
-  $("t_save").onclick = ()=>{
-    tx.type = $("t_type").value;
-    tx.amount = Math.max(0, Number($("t_amt").value)||0);
-    tx.catId = tx.type==="income" ? null : $("t_cat").value;
-    tx.memberId = $("t_mem").value;
-    tx.date = $("t_date").value || todayISO();
-    tx.note = $("t_note").value.trim();
-    save(); renderAll(); closeModal();
-  };
-}
-
-// ---------- Goal modal ----------
-function goalModal(goal){
-  const editing = !!goal;
-  goal = goal || { name:"", target:"", saved:0, emoji:"🎯", color:COLORS[2] };
-  openModal(`
-    <h3>${editing?"Edit goal":"New savings goal"}</h3>
-    <div class="field"><label class="fld">What are you saving for?</label><input id="g_name" value="${escapeHtml(goal.name)}" placeholder="e.g. Family trip to Disney"/></div>
-    <div class="inline">
-      <div class="field" style="flex:1"><label class="fld">Target amount</label><input id="g_target" type="number" min="0" step="0.01" value="${goal.target}" inputmode="decimal"/></div>
-      <div class="field" style="flex:1"><label class="fld">Saved so far</label><input id="g_saved" type="number" min="0" step="0.01" value="${goal.saved}" inputmode="decimal"/></div>
-    </div>
-    <div class="field"><label class="fld">Icon</label>${emojiPicker(goal.emoji, ["🎯","✈️","🏖️","🚗","🏠","🎓","💍","🎄","🛟","💻","🎸","👶"])}</div>
-    <div class="field"><label class="fld">Color</label>${colorPicker(goal.color, COLORS)}</div>
-    <div class="modal-actions">
-      <button class="btn ghost" id="g_cancel">Cancel</button>
-      <button class="btn primary" id="g_save">${editing?"Save":"Create goal"}</button>
-    </div>`);
-  const m=$("modal"); wirePickers(m);
-  $("g_cancel").onclick = closeModal;
-  $("g_save").onclick = ()=>{
-    const name = $("g_name").value.trim();
-    if(!name){ toast("Give the goal a name."); return; }
-    const data = { name, target:Math.max(0,Number($("g_target").value)||0), saved:Math.max(0,Number($("g_saved").value)||0), emoji:pickedEmoji(m)||"🎯", color:pickedColor(m)||COLORS[2] };
-    if(editing){ Object.assign(goal, data); } else { state.goals.push({ id:uid(), ...data }); }
-    save(); renderAll(); closeModal();
-  };
-}
-function addFundsModal(goal){
-  openModal(`
-    <h3>Add funds to “${escapeHtml(goal.name)}”</h3>
-    <div class="field"><label class="fld">Amount to add</label><input id="af_amt" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal"/></div>
-    <p class="sub">Currently ${fmt(goal.saved)} of ${fmt(goal.target)}.</p>
-    <div class="modal-actions"><button class="btn ghost" id="af_cancel">Cancel</button><button class="btn primary" id="af_save">Add</button></div>`);
-  $("af_amt").focus();
-  $("af_cancel").onclick = closeModal;
-  $("af_save").onclick = ()=>{
-    const add = Number($("af_amt").value)||0;
-    goal.saved = Math.max(0,(Number(goal.saved)||0)+add);
-    save(); renderAll(); closeModal();
-    if((Number(goal.target)||0)>0 && goal.saved>=goal.target) toast("🎉 Goal reached!");
-  };
-}
-
-// ---------- Member modal ----------
-function memberModal(mem){
-  const editing = !!mem;
-  const usedColors = state.members.map(m=>m.color);
-  const defColor = MEMBER_COLORS.find(c=>!usedColors.includes(c)) || MEMBER_COLORS[0];
-  mem = mem || { name:"", color:defColor, emoji:"🙂" };
-  openModal(`
-    <h3>${editing?"Edit member":"Add family member"}</h3>
-    <div class="field"><label class="fld">Name</label><input id="mm_name" value="${escapeHtml(mem.name)}" placeholder="e.g. Alex"/></div>
-    <div class="field"><label class="fld">Emoji / initial</label>${emojiPicker(mem.emoji, ["🙂","😎","👩","👨","👧","👦","🧑","👵","👴","🐶","🐱","⭐"])}</div>
-    <div class="field"><label class="fld">Color</label>${colorPicker(mem.color, MEMBER_COLORS)}</div>
-    <div class="modal-actions"><button class="btn ghost" id="mm_cancel">Cancel</button><button class="btn primary" id="mm_save">${editing?"Save":"Add"}</button></div>`);
-  const m=$("modal"); wirePickers(m);
-  $("mm_cancel").onclick = closeModal;
-  $("mm_save").onclick = ()=>{
-    const name = $("mm_name").value.trim();
-    if(!name){ toast("Give the member a name."); return; }
-    const data = { name, emoji:pickedEmoji(m)||"🙂", color:pickedColor(m)||MEMBER_COLORS[0] };
-    if(editing){ Object.assign(mem, data); } else { state.members.push({ id:uid(), ...data }); }
-    save(); renderAll(); closeModal();
-  };
-}
-
-// ===========================================================
-//  EVENT WIRING
-// ===========================================================
-// tabs
-$("tabs").addEventListener("click", e=>{
-  const b = e.target.closest("button[data-tab]"); if(!b) return;
-  setTab(b.dataset.tab);
-});
-document.addEventListener("click", e=>{
-  const g = e.target.closest("[data-goto]"); if(g){ setTab(g.dataset.goto); }
-});
-function setTab(tab){
-  activeTab = tab;
-  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
-  ["dashboard","budget","transactions","goals","family","settings"].forEach(t=>{
-    $("tab-"+t).classList.toggle("hidden", t!==tab);
+  // subscriptions
+  let keep=0,keepct=0,save=0,sub='';
+  S.subs.forEach((s,i)=>{
+    if(s.keep){keep+=s.cost;keepct++;} else {save+=s.cost*12;}
+    const fl=s.flag==='dispute'?'<span class="flagdot dispute">dispute</span>':s.flag==='audit'?'<span class="flagdot audit">review</span>':'';
+    sub+='<div class="sub"><div class="sn">'+s.name+fl+'</div><div class="amt num">$'+s.cost+'</div>'+
+      '<button class="tog'+(s.keep?'':' off')+'" data-i="'+i+'"></button></div>';
   });
+  $('subList').innerHTML=sub;
+  $('subKeep').textContent=money(keep);$('subKeepCt').textContent=keepct;$('subSave').textContent=money(save);
+  document.querySelectorAll('.tog').forEach(t=>t.addEventListener('click',e=>{
+    const i=+e.target.dataset.i; S.subs[i].keep=!S.subs[i].keep; render();
+  }));
+
+  // trend
+  const keys=Object.keys(S.months).sort();
+  const bals=keys.map(m=>({m,bal:income()-monthSpend(m)}));
+  const mx=Math.max(1,...bals.map(b=>Math.abs(b.bal)));
+  $('trend').innerHTML=bals.map(b=>{
+    const h=Math.max(3,Math.abs(b.bal)/mx*90);
+    return '<div class="tcol"><div class="tbar" style="height:'+h+'px;background:'+(b.bal<0?'var(--warn)':'var(--good)')+
+      '" title="'+money(b.bal)+'"></div><div class="tlab">'+b.m.split('-')[1]+'/'+b.m.slice(2,4)+'</div></div>';
+  }).join('');
+
+  // settings fields
+  $('sSalary').value=S.settings.salary;$('sGift').value=S.settings.gift;
+  $('sOther').value=S.settings.other;$('sSavings').value=S.settings.savings;
+
+  // footnote
+  const subTotalNow=S.subs.filter(s=>s.keep).reduce((t,s)=>t+s.cost,0);
+  $('footNote').innerHTML='Reset math: cutting Wants from '+money(bucket(k,'want'))+
+    ' to '+money(CATS.filter(c=>c[0]==='want').reduce((t,c)=>t+c[4],0))+
+    '/mo closes almost the whole gap without touching a single Need. '+
+    'The two <b style="color:var(--warn)">dispute</b> subscriptions (GMACST / GMRSHV, $100/mo) are unrecognized — call Chase first.';
 }
 
-// month nav
-$("prevMonth").onclick = ()=>{ currentMonth = shiftMonth(currentMonth,-1); month(); renderAll(); };
-$("nextMonth").onclick = ()=>{ currentMonth = shiftMonth(currentMonth, 1); month(); renderAll(); };
-$("todayBtn").onclick = ()=>{ currentMonth = nowMonthKey(); month(); renderAll(); };
-
-// budget buttons
-$("addCatBtn").onclick = ()=> catModal(null);
-$("addIncomeBtn").onclick = ()=>{ if(!state.members.length){ toast("Add a family member first."); return; } incomeModal(null); };
-$("copyPrevBtn").onclick = ()=>{
-  const prev = shiftMonth(currentMonth,-1);
-  const P = state.months[prev];
-  if(!P || (!P.categories.length && !P.income.length)){ toast("Nothing to copy from last month."); return; }
-  const M = month();
-  if(M.categories.length || M.income.length){
-    if(!confirm("This replaces this month's income & categories with last month's plan (your logged transactions stay). Continue?")) return;
-  }
-  M.categories = P.categories.map(c=>({ ...c, id:uid() }));
-  M.income = P.income.map(i=>({ ...i, id:uid() }));
-  save(); renderAll(); toast("Copied last month's plan.");
-};
-
-$("tab-budget").addEventListener("click", e=>{
-  const ec=e.target.closest("[data-editcat]"); if(ec){ catModal(catById(currentMonth, ec.dataset.editcat)); return; }
-  const dc=e.target.closest("[data-delcat]"); if(dc){
-    const c=catById(currentMonth,dc.dataset.delcat);
-    const n=spentByCat(currentMonth,dc.dataset.delcat);
-    if(n>0 && !confirm(`“${c.name}” has logged spending. Delete the category anyway? (Transactions stay but become uncategorized.)`)) return;
-    month().categories = month().categories.filter(x=>x.id!==dc.dataset.delcat);
-    save(); renderAll(); return;
-  }
-  const ei=e.target.closest("[data-editincome]"); if(ei){ incomeModal(month().income.find(i=>i.id===ei.dataset.editincome)); return; }
-  const di=e.target.closest("[data-delincome]"); if(di){ month().income=month().income.filter(i=>i.id!==di.dataset.delincome); save(); renderAll(); return; }
+/* ---------- events ---------- */
+['sSalary','sGift','sOther','sSavings'].forEach(id=>{
+  const map={sSalary:'salary',sGift:'gift',sOther:'other',sSavings:'savings'};
+  $(id).addEventListener('input',e=>{S.settings[map[id]]=parseFloat(e.target.value.replace(/[^0-9.]/g,''))||0;render();});
+});
+$('monthSel').addEventListener('change',e=>{S.current=e.target.value;render();});
+$('addMonth').addEventListener('click',()=>{
+  const keys=Object.keys(S.months).sort(); const last=keys[keys.length-1];
+  const[y,m]=last.split('-').map(Number); const nd=new Date(y,m,1); // next month
+  const nk=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0');
+  if(!S.months[nk]){const spend={};CATS.forEach(c=>spend[c[2]]=S.months[last].spend[c[2]]||c[3]);S.months[nk]={spend};}
+  S.current=nk; save(); render();
+});
+async function save(){await store(S);const m=$('savedMsg');m.style.opacity=1;setTimeout(()=>m.style.opacity=0,1400);}
+$('saveBtn').addEventListener('click',save);
+$('exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='washington-household-'+S.current+'.json';a.click();
+});
+$('importBtn').addEventListener('click',()=>$('fileIn').click());
+$('fileIn').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{S=JSON.parse(r.result);save();render();}catch(err){alert('That file could not be read.');}};
+  r.readAsText(f);
 });
 
-// transactions
-$("addTxBtn").onclick = ()=>{
-  const type = $("txType").value;
-  const amount = Number($("txAmount").value)||0;
-  if(amount<=0){ toast("Enter an amount greater than 0."); return; }
-  if(type==="expense" && !month().categories.length){ toast("Add a budget category first."); setTab("budget"); return; }
-  const tx = {
-    id: uid(), type,
-    amount, catId: type==="income"? null : $("txCat").value,
-    memberId: $("txMember").value || (state.members[0]&&state.members[0].id),
-    date: $("txDate").value || todayISO(),
-    note: $("txNote").value.trim()
-  };
-  month().transactions.push(tx);
-  save();
-  $("txAmount").value=""; $("txNote").value="";
-  renderAll();
-  toast(type==="income"?"Income added.":"Expense logged.");
-};
-$("txType").onchange = ()=>{ $("txCat").parentElement.style.display = $("txType").value==="income"?"none":"block"; };
-$("txFilter").onchange = renderTransactions;
-$("tab-transactions").addEventListener("click", e=>{
-  const et=e.target.closest("[data-edittx]"); if(et){ txModal(month().transactions.find(t=>t.id===et.dataset.edittx)); return; }
-  const dt=e.target.closest("[data-deltx]"); if(dt){
-    if(!confirm("Delete this transaction?")) return;
-    month().transactions = month().transactions.filter(t=>t.id!==dt.dataset.deltx); save(); renderAll(); return;
-  }
-});
-
-// goals
-$("addGoalBtn").onclick = ()=> goalModal(null);
-$("tab-goals").addEventListener("click", e=>{
-  const eg=e.target.closest("[data-editgoal]"); if(eg){ goalModal(state.goals.find(g=>g.id===eg.dataset.editgoal)); return; }
-  const dg=e.target.closest("[data-delgoal]"); if(dg){ if(!confirm("Delete this goal?"))return; state.goals=state.goals.filter(g=>g.id!==dg.dataset.delgoal); save(); renderAll(); return; }
-  const ag=e.target.closest("[data-addgoal]"); if(ag){ addFundsModal(state.goals.find(g=>g.id===ag.dataset.addgoal)); return; }
-});
-
-// family
-$("addMemberBtn").onclick = ()=> memberModal(null);
-$("tab-family").addEventListener("click", e=>{
-  const em=e.target.closest("[data-editmember]"); if(em){ memberModal(memberById(em.dataset.editmember)); return; }
-  const dm=e.target.closest("[data-delmember]"); if(dm){
-    if(state.members.length<=1){ toast("Keep at least one member."); return; }
-    if(!confirm("Remove this member? Their past transactions stay but show as unassigned.")) return;
-    state.members = state.members.filter(m=>m.id!==dm.dataset.delmember); save(); renderAll(); return;
-  }
-});
-
-// settings
-$("setHouse").addEventListener("input", ()=>{ state.house = $("setHouse").value; save(); $("appTitle").textContent = state.house||"Family Budget"; });
-$("setCurrency").addEventListener("change", ()=>{ state.currency = $("setCurrency").value; save(); renderAll(); });
-$("exportBtn").onclick = ()=>{
-  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download=`family-budget-backup-${todayISO()}.json`; a.click(); URL.revokeObjectURL(a.href);
-  toast("Backup downloaded.");
-};
-$("importBtn").onclick = ()=> $("importInput").click();
-$("importInput").addEventListener("change", e=>{
-  const f=e.target.files&&e.target.files[0]; if(!f) return;
-  const rd=new FileReader();
-  rd.onload=()=>{
-    try{
-      const j=JSON.parse(rd.result);
-      if(!j || !j.months || !Array.isArray(j.members)) throw new Error("bad");
-      if(!confirm("Importing replaces all current data. Continue?")) return;
-      state=j; currentMonth = state.months[nowMonthKey()]?nowMonthKey():(Object.keys(state.months).sort().pop()||nowMonthKey());
-      month(); save(); renderAll(); toast("Backup imported.");
-    }catch(err){ toast("That file isn't a valid backup."); }
-    e.target.value="";
-  };
-  rd.readAsText(f);
-});
-$("resetBtn").onclick = ()=>{
-  if(!confirm("Erase ALL budget data on this device? This can't be undone.")) return;
-  if(!confirm("Really sure? Consider exporting a backup first.")) return;
-  state = defaultState(); currentMonth = nowMonthKey(); month(); save(); renderAll(); setTab("dashboard"); toast("Everything reset.");
-};
-$("sampleBtn").onclick = ()=>{
-  if((month().categories.length || state.goals.length) && !confirm("Load sample data over your current setup?")) return;
-  loadSample(); save(); renderAll(); setTab("dashboard"); toast("Sample family loaded.");
-};
-
-// ===========================================================
-//  SAMPLE DATA
-// ===========================================================
-function loadSample(){
-  const mom = { id:uid(), name:"Jordan", color:MEMBER_COLORS[0], emoji:"👩" };
-  const dad = { id:uid(), name:"Sam", color:MEMBER_COLORS[1], emoji:"👨" };
-  const kid = { id:uid(), name:"Riley", color:MEMBER_COLORS[3], emoji:"👧" };
-  state.members = [mom, dad, kid];
-  state.house = "Our Family";
-  const mk = nowMonthKey(); currentMonth = mk;
-  const cats = [
-    { id:uid(), name:"Groceries", planned:800, type:"expense", emoji:"🛒", color:COLORS[0] },
-    { id:uid(), name:"Rent / Mortgage", planned:1900, type:"expense", emoji:"🏠", color:COLORS[1] },
-    { id:uid(), name:"Utilities", planned:280, type:"expense", emoji:"💡", color:COLORS[4] },
-    { id:uid(), name:"Transport", planned:320, type:"expense", emoji:"🚗", color:COLORS[6] },
-    { id:uid(), name:"Kids & School", planned:250, type:"expense", emoji:"🎓", color:COLORS[3] },
-    { id:uid(), name:"Fun & Dining", planned:400, type:"expense", emoji:"🎉", color:COLORS[8] },
-    { id:uid(), name:"Emergency Fund", planned:500, type:"saving", emoji:"🏦", color:COLORS[10] },
-  ];
-  const income = [
-    { id:uid(), source:"Jordan — Salary", amount:3600, member:mom.id },
-    { id:uid(), source:"Sam — Salary", amount:3100, member:dad.id },
-  ];
-  const day = n => `${mk}-${String(n).padStart(2,"0")}`;
-  const tx = [
-    { id:uid(), type:"expense", amount:132.40, catId:cats[0].id, memberId:mom.id, date:day(3), note:"Costco run" },
-    { id:uid(), type:"expense", amount:1900, catId:cats[1].id, memberId:dad.id, date:day(1), note:"Rent" },
-    { id:uid(), type:"expense", amount:88.15, catId:cats[2].id, memberId:dad.id, date:day(5), note:"Electric" },
-    { id:uid(), type:"expense", amount:54.00, catId:cats[3].id, memberId:mom.id, date:day(6), note:"Gas" },
-    { id:uid(), type:"expense", amount:64.99, catId:cats[5].id, memberId:kid.id, date:day(7), note:"Pizza night" },
-    { id:uid(), type:"expense", amount:210, catId:cats[0].id, memberId:mom.id, date:day(10), note:"Weekly groceries" },
-    { id:uid(), type:"expense", amount:45, catId:cats[4].id, memberId:dad.id, date:day(8), note:"School supplies" },
-  ];
-  state.months = {}; state.months[mk] = { income, categories:cats, transactions:tx };
-  state.goals = [
-    { id:uid(), name:"Summer Trip", target:4000, saved:1250, emoji:"✈️", color:COLORS[1] },
-    { id:uid(), name:"New Car Fund", target:12000, saved:3400, emoji:"🚗", color:COLORS[6] },
-    { id:uid(), name:"Emergency Fund", target:10000, saved:6500, emoji:"🛟", color:COLORS[0] },
-  ];
-}
-
-// ===========================================================
-//  TOAST + INIT
-// ===========================================================
-let toastT=null;
-function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2300); }
-
-function init(){
-  state = load();
-  currentMonth = state.months[nowMonthKey()] ? nowMonthKey() : (Object.keys(state.months).sort().pop() || nowMonthKey());
-  month();
-  $("txDate").value = todayISO();
-  save();
-  renderAll();
-}
-init();
+/* ---------- boot ---------- */
+(async()=>{ S=await load(); if(!S||!S.months){S=fresh();await store(S);} render(); })();
 </script>
 </body>
 </html>
