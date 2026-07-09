@@ -1430,33 +1430,30 @@ function renderSyncSheet(){
     $("signOutBtn").onclick=cloudSignOut;
     return;
   }
-  // signed out
+  // signed out — email + password (works great in an installed app, no emails)
+  const partner=S.people[1]?S.people[1].name.split(" ")[0]:"your partner";
   b.innerHTML=`
-    <p class="mnp">Sign in with your email to sync Klepcake across your phones. We'll email you a 6-digit code.</p>
+    <p class="mnp">Sync Klepcake across your phones. You and ${partner} each make your own login, then share one household.</p>
     <label class="fld">Email</label>
-    <input class="in" id="syncEmail" type="email" inputmode="email" placeholder="you@email.com" value="${syncEmail}">
-    <button class="primary money" id="sendCode">Email me a code</button>
-    <div id="codeWrap" class="${syncSent?"":"hidden"}">
-      <label class="fld">Enter the 6-digit code from your email</label>
-      <input class="in" id="otp" inputmode="numeric" placeholder="123456" style="letter-spacing:6px;text-align:center;font-size:22px">
-      <button class="primary" id="verifyCode">Verify & sign in</button>
-    </div>
-    <div id="syncMsg" class="qcap" style="text-align:center;margin-top:10px"></div>`;
-  $("sendCode").onclick=async()=>{
-    const em=$("syncEmail").value.trim(); if(!em){toast("Enter your email");return;} syncEmail=em;
-    $("sendCode").textContent="Sending…";
-    const { error }=await CLOUD.sb.auth.signInWithOtp({ email:em, options:{ shouldCreateUser:true, emailRedirectTo:location.href.split("#")[0] } });
-    $("sendCode").textContent="Email me a code";
-    if(error){ $("syncMsg").textContent=error.message; return; }
-    syncSent=true; $("codeWrap").classList.remove("hidden"); $("syncMsg").textContent="Check your email — enter the code (or tap the link).";
+    <input class="in" id="syncEmail" type="email" inputmode="email" autocomplete="username" placeholder="you@email.com" value="${syncEmail}">
+    <label class="fld">Password</label>
+    <input class="in" id="syncPass" type="password" autocomplete="current-password" placeholder="at least 6 characters">
+    <button class="primary money" id="signInBtn">Sign in</button>
+    <button class="ghostbtn" id="createAcctBtn">Create a new account</button>
+    <div id="syncMsg" class="qcap" style="text-align:center;margin-top:10px;line-height:1.5"></div>`;
+  const em=()=>$("syncEmail").value.trim(), pw=()=>$("syncPass").value;
+  $("signInBtn").onclick=async()=>{
+    if(!em()||!pw()){ toast("Enter email + password"); return; } syncEmail=em();
+    $("syncMsg").textContent="Signing in…";
+    const { error }=await CLOUD.sb.auth.signInWithPassword({ email:em(), password:pw() });
+    if(error) $("syncMsg").textContent=error.message;
   };
-  $("verifyCode").onclick=async()=>{
-    const token=$("otp").value.trim(); if(!token){toast("Enter the code");return;}
-    $("verifyCode").textContent="Verifying…";
-    const { error }=await CLOUD.sb.auth.verifyOtp({ email:syncEmail, token, type:"email" });
-    $("verifyCode").textContent="Verify & sign in";
+  $("createAcctBtn").onclick=async()=>{
+    if(!em()||pw().length<6){ toast("Password needs 6+ characters"); return; } syncEmail=em();
+    $("syncMsg").textContent="Creating account…";
+    const { data, error }=await CLOUD.sb.auth.signUp({ email:em(), password:pw() });
     if(error){ $("syncMsg").textContent=error.message; return; }
-    // onAuthStateChange -> onSignedIn will refresh the sheet
+    if(!data.session) $("syncMsg").innerHTML="Account created — but email confirmation is on. Turn off “Confirm email” in Supabase → Authentication → Sign In/Providers → Email, then tap Sign in.";
   };
 }
 
