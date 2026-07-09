@@ -296,8 +296,9 @@
   </header>
 
   <div class="segtabs" id="tabs">
-    <button data-tab="home" class="on">🏠 This week</button>
-    <button data-tab="recurring">🔁 Recurring</button>
+    <button data-tab="home" class="on">🏠 Week</button>
+    <button data-tab="recurring">🔁 Bills</button>
+    <button data-tab="goals">🎯 Goals</button>
   </div>
 
   <div id="homeTab">
@@ -336,6 +337,8 @@
     <div class="qcap" id="questCap">—</div>
   </section>
 
+  <div id="scoreboard"></div>
+
   <button class="importcard" id="importOpen">
     <div class="ie">📄</div>
     <div class="it"><b>Import this week's card</b><span id="importSub">Drop in your Chase statement — swipe who spent what</span></div>
@@ -355,6 +358,7 @@
   </div><!-- /homeTab -->
 
   <div id="recurringTab" class="hidden"></div>
+  <div id="goalsTab" class="hidden"></div>
 </div>
 
 <!-- ADD PULL SHEET -->
@@ -481,6 +485,8 @@ function baseState(){
     ],
     settings:{salary:0,gift:0,other:0,savings:0,goal:10000},
     buckets:starterBuckets(), recurring:starterRecurring(), subs:starterSubs(), pulls:[],
+    goals:[{id:"trip",name:"Family trip",emoji:"✈️",target:3000,saved:0,color:"#38BDF8"},
+           {id:"car",name:"New car",emoji:"🚗",target:15000,saved:0,color:"#8267C9"}],
     merchantRules:{}, whoRules:{},
     ritual:{streak:0,lastCheckIn:null,badges:[],history:[]},
     viewWeek:weekKey(new Date()), setupDone:false
@@ -512,6 +518,7 @@ function ensureShape(s){
   if(!Array.isArray(s.pulls)) s.pulls=[];
   if(!s.merchantRules) s.merchantRules={};
   if(!s.whoRules) s.whoRules={};
+  if(!Array.isArray(s.goals)) s.goals=[];
   if(!s.ritual) s.ritual={streak:0,lastCheckIn:null,badges:[],history:[]};
   if(!s.viewWeek) s.viewWeek=weekKey(new Date());
   // ensure the four attribution targets exist (older saves had 2)
@@ -619,6 +626,7 @@ function render(){
       <div class="whopull">${whoBar}</div>`;
     wrap.appendChild(el);
   });
+  renderScoreboard();
   save();
 }
 
@@ -633,7 +641,93 @@ function setTab(t){
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
   $("homeTab").classList.toggle("hidden",t!=="home");
   $("recurringTab").classList.toggle("hidden",t!=="recurring");
+  $("goalsTab").classList.toggle("hidden",t!=="goals");
   if(t==="recurring") renderRecurring();
+  if(t==="goals") renderGoals();
+}
+$("quest").style.cursor="pointer";
+$("quest").onclick=()=>setTab("goals");
+
+/* ---------- goals ---------- */
+function goalPct(saved,target){ return target>0?Math.max(0,Math.min(100,saved/target*100)):0; }
+function allGoals(){
+  const cushion={id:"cushion",name:"Emergency cushion",emoji:"🛟",saved:+S.settings.savings||0,target:+S.settings.goal||0,color:"#0E7C6B",fixed:true};
+  return [cushion,...S.goals];
+}
+function renderGoals(){
+  const el=$("goalsTab"); const all=allGoals();
+  const totalSaved=all.reduce((t,g)=>t+(+g.saved||0),0);
+  el.innerHTML=`
+    <section class="hero" style="background:linear-gradient(160deg,#243b6b,#3f6ad1)">
+      <div class="glow"></div>
+      <div class="label">Saved toward your goals</div>
+      <div class="verdict" style="font-size:30px">${money(totalSaved)}</div>
+      <div class="vsub">${all.length} goal${all.length===1?"":"s"} in progress · money you don't spend feeds these</div>
+    </section>
+    <div id="goalCards"></div>
+    <button class="linkbtn" id="addGoal" style="margin:8px 2px 24px">＋ New goal</button>`;
+  el.querySelector("#goalCards").innerHTML=all.map(g=>{
+    const saved=+g.saved||0, target=+g.target||0, pct=goalPct(saved,target), done=target>0&&saved>=target;
+    return `<div class="quest" style="margin-bottom:12px">
+      <div class="qtop"><div class="qname">${g.emoji} ${g.name}${done?' <span class="ebadge" style="background:var(--good-soft);color:var(--good)">reached!</span>':''}</div>
+        <div class="qval">${money(saved)} / ${money(target)}</div></div>
+      <div class="qtrack"><div class="qfill" style="width:${pct}%;background:${done?'linear-gradient(90deg,var(--good2),var(--good))':g.color}"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+        <span class="qcap">${done?'🎉 Goal reached':money(Math.max(0,target-saved))+' to go · '+Math.round(pct)+'%'}</span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <button data-addfunds="${g.id}" style="padding:6px 12px;border:1px solid var(--line);border-radius:9px;font-size:12.5px;font-weight:700;background:var(--card);color:var(--ink)">＋ Add funds</button>
+          ${g.fixed?'':`<button class="pdel" data-editgoal="${g.id}" style="color:var(--faint)">✎</button><button class="pdel" data-delgoal="${g.id}" style="color:var(--bad)">🗑</button>`}
+        </span>
+      </div></div>`;
+  }).join("");
+  el.querySelectorAll("[data-addfunds]").forEach(b=>b.onclick=()=>addFunds(b.dataset.addfunds));
+  el.querySelectorAll("[data-editgoal]").forEach(b=>b.onclick=()=>editGoal(b.dataset.editgoal));
+  el.querySelectorAll("[data-delgoal]").forEach(b=>b.onclick=()=>{ if(confirm("Delete this goal?")){ S.goals=S.goals.filter(x=>x.id!==b.dataset.delgoal); save(); renderGoals(); } });
+  el.querySelector("#addGoal").onclick=newGoal;
+}
+function goalById(id){ return id==="cushion" ? {get saved(){return +S.settings.savings||0}, get target(){return +S.settings.goal||0}} : S.goals.find(x=>x.id===id); }
+function addFunds(id){
+  const amt=parseFloat(prompt("Add how much to this goal?","")); if(!amt||amt<=0) return;
+  if(id==="cushion"){ S.settings.savings=(+S.settings.savings||0)+amt; }
+  else { const g=S.goals.find(x=>x.id===id); if(g) g.saved=(+g.saved||0)+amt; }
+  save(); renderGoals(); render();
+  const saved=id==="cushion"?(+S.settings.savings||0):((S.goals.find(x=>x.id===id)||{}).saved||0);
+  const target=id==="cushion"?(+S.settings.goal||0):((S.goals.find(x=>x.id===id)||{}).target||0);
+  if(target>0 && saved>=target){ burst(); toast("🎉 Goal reached!"); }
+}
+function newGoal(){
+  const name=prompt("What are you saving for? (e.g. Family trip)"); if(!name) return;
+  const target=parseFloat(prompt("Target amount:","1000"))||0;
+  const emoji=prompt("An emoji for it:","🎯")||"🎯";
+  const colors=["#38BDF8","#8267C9","#E8A22E","#C2547E","#16B091","#F4736A"];
+  S.goals.push({id:"g"+Date.now(),name:name.trim(),emoji:emoji.trim().slice(0,2),target,saved:0,color:colors[S.goals.length%colors.length]});
+  save(); renderGoals();
+}
+function editGoal(id){
+  const g=S.goals.find(x=>x.id===id); if(!g) return;
+  const name=prompt("Goal name:",g.name); if(name===null) return;
+  const target=parseFloat(prompt("Target amount:",g.target)); if(!isNaN(target)) g.target=target;
+  const saved=parseFloat(prompt("Saved so far:",g.saved)); if(!isNaN(saved)) g.saved=saved;
+  g.name=name.trim()||g.name; save(); renderGoals();
+}
+
+/* ---------- scoreboard (who spent what) ---------- */
+function renderScoreboard(){
+  const el=$("scoreboard"); if(!el) return;
+  const totals={};
+  S.pulls.filter(p=>weekKey(p.date)===viewWeek).forEach(p=>{ totals[p.who]=(totals[p.who]||0)+(+p.amount||0); });
+  const rows=S.people.map(p=>({p,amt:totals[p.id]||0})).filter(r=>r.amt>0).sort((a,b)=>b.amt-a.amt);
+  if(!rows.length){ el.innerHTML=""; return; }
+  const max=Math.max(...rows.map(r=>r.amt));
+  el.innerHTML=`<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:15px 16px;margin-bottom:14px">
+    <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:15px;margin-bottom:12px">Who spent what · this week</div>
+    ${rows.map(({p,amt})=>`<div style="display:flex;align-items:center;gap:10px;margin:9px 0">
+      <span style="width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;background:${p.color};font-size:13px">${p.short}</span>
+      <span style="width:80px;font-size:13px;font-weight:600">${p.name.split(" ")[0]}</span>
+      <span style="flex:1;height:9px;border-radius:6px;background:var(--line2);overflow:hidden"><i style="display:block;height:100%;width:${amt/max*100}%;background:${p.color};border-radius:6px"></i></span>
+      <span class="num" style="font-weight:800;font-size:14px;min-width:60px;text-align:right">${money(amt)}</span>
+    </div>`).join("")}
+  </div>`;
 }
 $("tabs").addEventListener("click",e=>{ const b=e.target.closest("button[data-tab]"); if(b) setTab(b.dataset.tab); });
 
