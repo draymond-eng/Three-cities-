@@ -3,910 +3,1148 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NCAA 27 Draft Lottery</title>
+<title>Family Budget</title>
 <style>
   :root{
-    --bg:#0a0e1a;
-    --bg2:#111933;
-    --panel:#151d36;
-    --panel2:#1b2546;
-    --line:#283255;
-    --text:#eef2ff;
-    --muted:#94a0c4;
-    --accent:#ffce3a;
-    --accent2:#3aa0ff;
-    --good:#39d98a;
-    --bad:#ff5d6c;
-    --comm:#2fd06b;
-    --shadow:0 10px 30px rgba(0,0,0,.45);
+    --bg:#0a0f1a;
+    --bg2:#0e1626;
+    --panel:#131c2e;
+    --panel2:#1a2540;
+    --line:#26324f;
+    --line2:#334066;
+    --text:#eef3ff;
+    --muted:#93a1c4;
+    --faint:#63719a;
+    --accent:#34d399;      /* green — money in / good */
+    --accent-d:#10b981;
+    --accent2:#38bdf8;      /* sky */
+    --warn:#fbbf24;
+    --bad:#f87171;
+    --purple:#a78bfa;
+    --pink:#f472b6;
+    --shadow:0 12px 34px rgba(0,0,0,.45);
+    --radius:16px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
   body{
-    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:radial-gradient(1200px 700px at 50% -10%,#1a2750 0%,var(--bg) 60%);
-    color:var(--text);
-    min-height:100vh;
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,system-ui,sans-serif;
+    background:radial-gradient(1300px 760px at 50% -12%,#152547 0%,var(--bg) 62%);
+    color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;
   }
   a{color:var(--accent2)}
   button{font-family:inherit;cursor:pointer}
   .hidden{display:none !important}
+  .muted{color:var(--muted)}
+  .faint{color:var(--faint)}
+  .right{text-align:right}
 
   /* ---------- Header ---------- */
   header{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:16px;padding:18px 26px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:16px 24px;border-bottom:1px solid var(--line);
     background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);
+    position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);
   }
-  .brand{display:flex;align-items:center;gap:14px}
+  .brand{display:flex;align-items:center;gap:13px}
   .logo{
-    width:46px;height:46px;border-radius:50%;
-    background:
-      radial-gradient(circle at 32% 30%, #fff, #fff 30%, transparent 31%),
-      conic-gradient(from 0deg, var(--accent), #ff8a3a, var(--accent2), var(--accent));
-    box-shadow:inset 0 -6px 12px rgba(0,0,0,.35), var(--shadow);
-    position:relative;flex:none;
+    width:44px;height:44px;border-radius:13px;flex:none;position:relative;
+    background:linear-gradient(150deg,var(--accent),var(--accent2));
+    box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;
+    font-size:24px;
   }
-  .logo::after{content:"";position:absolute;inset:34% 6px auto 6px;height:2px;border-radius:2px;background:rgba(0,0,0,.25)}
-  .title h1{margin:0;font-size:20px;letter-spacing:.5px}
+  .title h1{margin:0;font-size:19px;letter-spacing:.3px}
   .title p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
-  .head-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+  .month-nav{display:flex;align-items:center;gap:6px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:11px;padding:4px}
+  .month-nav button{border:none;background:transparent;color:var(--text);font-size:16px;
+    width:30px;height:30px;border-radius:8px;line-height:1}
+  .month-nav button:hover{background:#26324f}
+  .month-nav .mlabel{min-width:132px;text-align:center;font-weight:700;font-size:14px}
 
   .btn{
     border:1px solid var(--line);background:var(--panel2);color:var(--text);
-    padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;
-    transition:transform .06s ease, background .15s ease, border-color .15s;
+    padding:9px 15px;border-radius:10px;font-size:13.5px;font-weight:600;
+    transition:transform .05s ease, background .15s ease, border-color .15s;white-space:nowrap;
   }
-  .btn:hover{background:#243056;border-color:#3a4677}
+  .btn:hover{background:#243056;border-color:var(--line2)}
   .btn:active{transform:translateY(1px)}
-  .btn.primary{background:linear-gradient(180deg,#ffd84d,#ffb800);color:#1a1300;border-color:#d99e00}
-  .btn.primary:hover{filter:brightness(1.05)}
+  .btn.primary{background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#04231a;border-color:var(--accent-d);font-weight:700}
+  .btn.primary:hover{filter:brightness(1.06)}
   .btn.ghost{background:transparent}
-  .btn.big{padding:16px 28px;font-size:18px;border-radius:14px}
+  .btn.sm{padding:6px 11px;font-size:12.5px;border-radius:9px}
+  .btn.danger{color:var(--bad);border-color:#5b2b34}
+  .btn.danger:hover{background:#3a1b22}
   .btn:disabled{opacity:.45;cursor:not-allowed}
 
-  main{padding:22px 26px 60px;max-width:1280px;margin:0 auto}
-
-  /* ---------- Setup ---------- */
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  @media(max-width:900px){.grid{grid-template-columns:1fr}}
-  .card{
-    background:var(--panel);border:1px solid var(--line);border-radius:16px;
-    padding:20px;box-shadow:var(--shadow);
+  /* ---------- Layout ---------- */
+  main{padding:20px 24px 80px;max-width:1180px;margin:0 auto}
+  nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 20px}
+  nav.tabs button{
+    border:1px solid transparent;background:transparent;color:var(--muted);
+    padding:9px 16px;border-radius:11px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px;
   }
-  .card h2{margin:0 0 4px;font-size:16px}
-  .card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
-  textarea,input,select{
-    width:100%;background:#0e1530;border:1px solid var(--line);color:var(--text);
+  nav.tabs button:hover{color:var(--text);background:var(--panel)}
+  nav.tabs button.active{color:var(--text);background:var(--panel);border-color:var(--line)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 3px;font-size:16px}
+  .card .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .card + .card{margin-top:20px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+
+  input,select,textarea{
+    width:100%;background:#0c1424;border:1px solid var(--line);color:var(--text);
     border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;
   }
-  textarea{min-height:230px;resize:vertical;line-height:1.5;font-family:ui-monospace,Menlo,Consolas,monospace}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
-  .muted{color:var(--muted);font-size:12.5px}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent2)}
+  label.fld{display:block;font-size:12px;color:var(--muted);margin:0 0 5px;font-weight:600;letter-spacing:.2px}
+  .field{margin-bottom:12px}
+  .inline{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .inline > .field{flex:1;margin-bottom:0;min-width:120px}
+
+  /* ---------- Stat tiles ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+  @media(max-width:860px){.stats{grid-template-columns:1fr 1fr}}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+  .stat .lab{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+  .stat .val{font-size:26px;font-weight:800;margin-top:7px;letter-spacing:.2px}
+  .stat .hint{font-size:12px;color:var(--faint);margin-top:3px}
+  .stat .accent-bar{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .val.good{color:var(--accent)} .val.bad{color:var(--bad)} .val.warn{color:var(--warn)}
+
+  /* ---------- Category / budget rows ---------- */
+  .catrow{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid rgba(38,50,79,.6)}
+  .catrow:last-child{border-bottom:none}
+  .cat-emoji{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;background:var(--panel2)}
+  .cat-main{flex:1;min-width:0}
+  .cat-name{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .cat-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .bar{height:9px;border-radius:6px;background:#0c1424;overflow:hidden;margin-top:8px;border:1px solid var(--line)}
+  .bar > i{display:block;height:100%;border-radius:6px;transition:width .4s ease}
+  .cat-amt{text-align:right;flex:none;min-width:132px}
+  .cat-amt .top{font-weight:800;font-size:15px}
+  .cat-amt .bot{font-size:12px;color:var(--muted);margin-top:2px}
+  .over{color:var(--bad)!important}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line)}
+  .pill.tiny{font-size:10.5px;padding:2px 7px}
 
   table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:8px 8px;text-align:left;border-bottom:1px solid var(--line)}
-  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
-  td input{padding:7px 9px}
-  .tname{width:auto}
-  .twt{width:90px;text-align:right}
-  .pct{color:var(--accent);font-weight:700;white-space:nowrap}
-  .swatch{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:inline-block;vertical-align:middle}
-  .del{color:var(--bad);background:transparent;border:none;font-size:16px;padding:4px 8px}
-  .tablewrap{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:12px}
-  .totrow td{font-weight:700;border-top:2px solid var(--line)}
+  th,td{padding:11px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px}
+  tr:last-child td{border-bottom:none}
+  .txamt{font-weight:800;white-space:nowrap}
+  .icon-btn{background:transparent;border:none;color:var(--faint);font-size:15px;padding:5px 8px;border-radius:7px}
+  .icon-btn:hover{background:var(--panel2);color:var(--text)}
+  .icon-btn.del:hover{color:var(--bad)}
 
-  /* ---------- Lottery ---------- */
-  .lottery-grid{display:grid;grid-template-columns:1.45fr 1fr;gap:22px;align-items:start}
-  @media(max-width:1000px){.lottery-grid{grid-template-columns:1fr}}
+  .empty{text-align:center;padding:38px 16px;color:var(--muted)}
+  .empty .big{font-size:34px;margin-bottom:8px}
 
-  .machine-wrap{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
-  #machine{width:100%;display:block;border-radius:14px;background:radial-gradient(circle at 50% 20%,#13204a,#0a1124)}
-  .controls{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:16px}
-  .status{font-size:15px;color:var(--muted);min-height:22px;text-align:center}
-  .draw-btn{min-width:280px}
+  .member-chip{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);padding:4px 11px 4px 4px;border-radius:22px;font-size:13px;font-weight:600}
+  .avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;font-weight:800;color:#04150f}
 
-  .reveal{
-    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:18px;background:rgba(6,9,20,.72);backdrop-filter:blur(3px);border-radius:16px;opacity:0;pointer-events:none;
-    transition:opacity .3s ease;
-  }
-  .reveal.show{opacity:1;pointer-events:auto}
-  .reveal .ball{
-    width:150px;height:150px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-weight:800;color:#10131f;position:relative;box-shadow:inset 0 -18px 30px rgba(0,0,0,.35),0 14px 40px rgba(0,0,0,.5);
-    transform:scale(.2);animation:pop .5s cubic-bezier(.2,1.4,.4,1) forwards;
-  }
-  .reveal .ball::before{content:"";position:absolute;top:16%;left:20%;width:34%;height:24%;border-radius:50%;background:rgba(255,255,255,.55);filter:blur(2px)}
-  @keyframes pop{to{transform:scale(1)}}
-  .reveal .pickno{font-size:15px;letter-spacing:3px;text-transform:uppercase;color:var(--accent)}
-  .reveal .team{font-size:34px;font-weight:800;text-align:center;padding:0 16px}
-  .reveal .small{color:var(--muted);font-size:13px}
+  /* segmented emoji/color pickers */
+  .chipset{display:flex;gap:6px;flex-wrap:wrap}
+  .chipset button{border:1px solid var(--line);background:var(--panel2);border-radius:10px;width:40px;height:38px;font-size:19px;padding:0}
+  .chipset button.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(52,211,153,.28)}
+  .swatchset{display:flex;gap:8px;flex-wrap:wrap}
+  .swatchset button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;padding:0}
+  .swatchset button.on{border-color:#fff;transform:scale(1.12)}
 
-  /* ---------- Board ---------- */
-  .board{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
-  .board h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:16px;display:flex;justify-content:space-between;align-items:center}
-  .board .list{max-height:560px;overflow:auto}
-  .pick{
-    display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(40,50,85,.6);
-  }
-  .pick .num{width:34px;height:34px;border-radius:8px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted);flex:none}
-  .pick.filled .num{background:var(--accent);color:#1a1300}
-  .pick.first .num{background:linear-gradient(180deg,#ffd84d,#ff9e00);color:#1a1300;box-shadow:0 0 0 2px rgba(255,206,58,.3)}
-  .pick .nm{font-weight:600;flex:1}
-  .pick .nm.empty{color:var(--muted);font-weight:400;font-style:italic}
-  .pick .od{font-size:12px;color:var(--muted)}
-  .pick.justfilled{animation:flash 1.1s ease}
-  @keyframes flash{0%{background:rgba(255,206,58,.28)}100%{background:transparent}}
+  /* donut */
+  .donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+  .legend{flex:1;min-width:180px}
+  .legend .li{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:13.5px}
+  .legend .dot{width:12px;height:12px;border-radius:4px;flex:none}
+  .legend .lname{flex:1}
+  .legend .lamt{font-weight:700}
 
-  .remaining{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);margin-top:22px}
-  .remaining h2{margin:0;padding:14px 18px;border-bottom:1px solid var(--line);font-size:15px}
-  .rem-list{padding:6px 8px;max-height:230px;overflow:auto}
-  .rem-item{display:flex;align-items:center;gap:10px;padding:7px 10px;font-size:13.5px}
-  .rem-item .bar{flex:1;height:8px;border-radius:5px;background:#0e1530;overflow:hidden}
-  .rem-item .bar > i{display:block;height:100%;border-radius:5px}
-  .rem-item .rp{width:54px;text-align:right;color:var(--accent);font-weight:700}
+  /* modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(4,8,18,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:80;opacity:0;pointer-events:none;transition:opacity .18s}
+  .modal-bg.show{opacity:1;pointer-events:auto}
+  .modal{background:var(--panel);border:1px solid var(--line2);border-radius:18px;box-shadow:var(--shadow);width:100%;max-width:440px;padding:22px;transform:translateY(12px);transition:transform .18s}
+  .modal-bg.show .modal{transform:none}
+  .modal h3{margin:0 0 16px;font-size:17px}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 
-  .finished-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
-
-  /* ---------- Commissioner ---------- */
-  .comm-chip{display:flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);
-    padding:5px 12px 5px 5px;border-radius:30px}
-  .comm-avatar{width:34px;height:34px;border-radius:50%;flex:none;object-fit:cover;
-    background:linear-gradient(180deg,#1c8a3f,#0c5a26);display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:13px;color:#eafff0;border:2px solid #2fd06b;overflow:hidden}
-  .comm-chip .cc-text{line-height:1.1}
-  .comm-chip .cc-role{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--comm)}
-  .comm-chip .cc-name{font-size:14px;font-weight:700}
-
-  .booth{display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,rgba(47,208,107,.10),rgba(0,0,0,0));
-    border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
-  .booth .b-avatar{width:64px;height:64px;border-radius:50%;flex:none;object-fit:cover;
-    background:linear-gradient(180deg,#1c8a3f,#0c5a26);display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:22px;color:#eafff0;border:3px solid #2fd06b;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.4)}
-  .booth .b-info{flex:1}
-  .booth .b-role{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--comm);font-weight:700}
-  .booth .b-name{font-size:20px;font-weight:800;margin:2px 0}
-  .booth .b-sub{font-size:12.5px;color:var(--muted)}
-  .booth .b-actions{display:flex;flex-direction:column;gap:6px}
-  .booth .b-actions .btn{padding:7px 12px;font-size:12.5px}
-
-  /* confetti canvas */
-  #confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
-
-  .toast{
-    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(40px);
-    background:var(--panel2);border:1px solid var(--line);padding:11px 18px;border-radius:10px;
-    box-shadow:var(--shadow);opacity:0;transition:all .25s ease;z-index:60;font-size:14px;
-  }
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--panel2);border:1px solid var(--line2);padding:11px 18px;border-radius:11px;box-shadow:var(--shadow);opacity:0;transition:all .25s ease;z-index:90;font-size:14px;font-weight:600}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  footer{color:var(--muted);text-align:center;font-size:12px;padding:26px}
+
+  .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .section-head h2{margin:0;font-size:16px}
+
+  footer{color:var(--faint);text-align:center;font-size:12px;padding:30px}
+  .goal-card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px}
 </style>
 </head>
 <body>
 
 <header>
   <div class="brand">
-    <div class="logo"></div>
+    <div class="logo">💰</div>
     <div class="title">
-      <h1>NCAA 27 Draft Lottery</h1>
-      <p id="subline">Commissioner control room</p>
+      <h1 id="appTitle">Family Budget</h1>
+      <p id="subline">Plan, track & save — together</p>
     </div>
   </div>
   <div class="head-actions">
-    <div class="comm-chip" id="commChip" title="League Commissioner">
-      <span class="comm-avatar" id="commChipAvatar">DC</span>
-      <span class="cc-text">
-        <span class="cc-role">Commissioner</span><br>
-        <span class="cc-name" id="commChipName">d_cape15</span>
-      </span>
+    <div class="month-nav">
+      <button id="prevMonth" title="Previous month">‹</button>
+      <span class="mlabel" id="monthLabel">—</span>
+      <button id="nextMonth" title="Next month">›</button>
     </div>
-    <button class="btn ghost" id="soundToggle" title="Toggle sound">🔊 Sound: On</button>
-    <button class="btn ghost hidden" id="backToSetup">⚙️ Edit Teams</button>
+    <button class="btn ghost sm" id="todayBtn" title="Jump to current month">Today</button>
   </div>
 </header>
 
 <main>
-  <!-- ===================== SETUP ===================== -->
-  <section id="setupView">
-    <div class="grid">
-      <div class="card">
-        <h2>1 · Paste your teams &amp; odds</h2>
-        <p class="sub">One team per line, as <code>Team Name, weight</code>. Weights can be percentages or any numbers — they're auto-normalized into ping-pong balls.</p>
-        <textarea id="bulk" spellcheck="false"></textarea>
-        <div class="row">
-          <button class="btn" id="parseBtn">↻ Load into table</button>
-          <button class="btn ghost" id="sampleBtn">Fill sample (21 teams)</button>
-          <span class="muted">Tip: column 2 can be % chance at #1, or raw weight.</span>
-        </div>
-      </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="dashboard" class="active">📊 Dashboard</button>
+    <button data-tab="budget">🧮 Budget</button>
+    <button data-tab="transactions">🧾 Transactions</button>
+    <button data-tab="goals">🎯 Goals</button>
+    <button data-tab="family">👪 Family</button>
+    <button data-tab="settings">⚙️ Settings</button>
+  </nav>
 
+  <!-- ================= DASHBOARD ================= -->
+  <section id="tab-dashboard">
+    <div class="stats" id="statTiles"></div>
+    <div class="grid2">
       <div class="card">
-        <h2>2 · Review the field</h2>
-        <p class="sub">Edit names &amp; weights inline. The % is each team's lottery odds (chance at the <em>#1</em> pick).</p>
-        <div class="tablewrap">
-          <table id="teamTable">
-            <thead>
-              <tr><th>#</th><th></th><th>Team</th><th class="twt">Weight</th><th>Odds</th><th></th></tr>
-            </thead>
-            <tbody id="teamBody"></tbody>
-            <tfoot>
-              <tr class="totrow"><td></td><td></td><td>Total</td><td class="twt" id="totWeight">0</td><td class="pct">100%</td><td></td></tr>
-            </tfoot>
-          </table>
+        <div class="section-head">
+          <h2>Where the money's going</h2>
+          <span class="pill" id="spentPill">—</span>
         </div>
-        <div class="row">
-          <button class="btn" id="addTeam">＋ Add team</button>
-          <button class="btn ghost" id="clearTeams">Clear all</button>
-          <span class="muted" id="countNote"></span>
+        <div id="donutBox"></div>
+      </div>
+      <div class="card">
+        <div class="section-head">
+          <h2>Budget vs. spent</h2>
+          <button class="btn sm ghost" data-goto="budget">Edit budget</button>
         </div>
-        <div class="row" style="margin-top:18px;justify-content:flex-end">
-          <button class="btn primary big" id="startBtn">🎱 Start the Lottery →</button>
+        <div id="dashCats"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-head">
+        <h2>Recent activity</h2>
+        <button class="btn sm ghost" data-goto="transactions">See all</button>
+      </div>
+      <div id="recentTx"></div>
+    </div>
+  </section>
+
+  <!-- ================= BUDGET ================= -->
+  <section id="tab-budget" class="hidden">
+    <div class="grid2">
+      <div class="card">
+        <div class="section-head">
+          <h2>Income this month</h2>
+          <button class="btn sm primary" id="addIncomeBtn">＋ Add income</button>
+        </div>
+        <div id="incomeList"></div>
+      </div>
+      <div class="card">
+        <div class="section-head">
+          <h2>Budget categories</h2>
+          <button class="btn sm primary" id="addCatBtn">＋ Add category</button>
+        </div>
+        <p class="sub" id="budgetSummaryLine">Set how much you plan to spend or save in each category.</p>
+        <div id="budgetList"></div>
+        <div class="row" style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn ghost sm" id="copyPrevBtn">⧉ Copy last month's plan</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===================== LOTTERY ===================== -->
-  <section id="lotteryView" class="hidden">
-    <div class="lottery-grid">
-      <div>
-        <div class="booth">
-          <span class="b-avatar" id="boothAvatar">DC</span>
-          <div class="b-info">
-            <div class="b-role">On the Clock · Commissioner</div>
-            <div class="b-name" id="boothName">d_cape15</div>
-            <div class="b-sub">Til The Wheels Fall Off · presiding over the NCAA 27 lottery</div>
-          </div>
-          <div class="b-actions">
-            <button class="btn" id="commPhotoBtn">📷 Photo</button>
-            <button class="btn ghost" id="commNameBtn">✎ Name</button>
-          </div>
+  <!-- ================= TRANSACTIONS ================= -->
+  <section id="tab-transactions" class="hidden">
+    <div class="card">
+      <h2>Log a transaction</h2>
+      <p class="sub">Record spending or extra income for the selected month.</p>
+      <div class="inline">
+        <div class="field" style="flex:0 0 120px">
+          <label class="fld">Type</label>
+          <select id="txType">
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+          </select>
         </div>
-        <input type="file" id="commPhotoInput" accept="image/*" class="hidden" />
-        <div class="machine-wrap">
-          <canvas id="machine" width="720" height="460"></canvas>
-          <div class="reveal" id="reveal">
-            <div class="pickno" id="revealPickNo">Pick</div>
-            <div class="ball" id="revealBall">?</div>
-            <div class="team" id="revealTeam"></div>
-            <div class="small" id="revealOdds"></div>
-            <button class="btn primary" id="revealContinue">Continue ▶</button>
-          </div>
+        <div class="field">
+          <label class="fld">Amount</label>
+          <input id="txAmount" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal"/>
         </div>
-        <div class="controls">
-          <div class="status" id="status">All 21 balls are in the hopper. Commissioner, you're up.</div>
-          <button class="btn primary big draw-btn" id="drawBtn">🎬 Draw Pick #1</button>
-          <div class="finished-actions hidden" id="finishedActions">
-            <button class="btn" id="copyBtn">📋 Copy results</button>
-            <button class="btn" id="exportBtn">⬇ Download .txt</button>
-            <button class="btn ghost" id="restartBtn">↺ Run again</button>
-          </div>
+        <div class="field">
+          <label class="fld">Category</label>
+          <select id="txCat"></select>
         </div>
-
-        <div class="remaining">
-          <h2 id="remTitle">Still in the hopper — who's left for the top picks</h2>
-          <div class="rem-list" id="remList"></div>
+        <div class="field">
+          <label class="fld">Who</label>
+          <select id="txMember"></select>
+        </div>
+        <div class="field">
+          <label class="fld">Date</label>
+          <input id="txDate" type="date"/>
         </div>
       </div>
-
-      <div class="board" id="board">
-        <h2><span>Draft Order</span><span class="muted" id="boardCount"></span></h2>
-        <div class="list" id="pickList"></div>
+      <div class="inline" style="margin-top:12px">
+        <div class="field" style="flex:1">
+          <label class="fld">Note (optional)</label>
+          <input id="txNote" placeholder="e.g. Groceries at Costco"/>
+        </div>
+        <button class="btn primary" id="addTxBtn" style="height:40px">＋ Add</button>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="section-head">
+        <h2>Transactions</h2>
+        <select id="txFilter" style="width:auto">
+          <option value="all">All categories</option>
+        </select>
+      </div>
+      <div id="txTableWrap"></div>
+    </div>
+  </section>
+
+  <!-- ================= GOALS ================= -->
+  <section id="tab-goals" class="hidden">
+    <div class="card">
+      <div class="section-head">
+        <h2>Savings goals</h2>
+        <button class="btn sm primary" id="addGoalBtn">＋ New goal</button>
+      </div>
+      <p class="sub">Track the big things you're saving for as a family — a trip, a car, an emergency fund.</p>
+      <div id="goalsList"></div>
+    </div>
+  </section>
+
+  <!-- ================= FAMILY ================= -->
+  <section id="tab-family" class="hidden">
+    <div class="card">
+      <div class="section-head">
+        <h2>Family members</h2>
+        <button class="btn sm primary" id="addMemberBtn">＋ Add member</button>
+      </div>
+      <p class="sub">Add everyone who spends or earns, so you can see who's doing what.</p>
+      <div id="membersList"></div>
+    </div>
+    <div class="card">
+      <h2>Spending by person — this month</h2>
+      <div id="byMember"></div>
+    </div>
+  </section>
+
+  <!-- ================= SETTINGS ================= -->
+  <section id="tab-settings" class="hidden">
+    <div class="card">
+      <h2>Preferences</h2>
+      <div class="inline" style="margin-top:6px">
+        <div class="field" style="flex:0 0 200px">
+          <label class="fld">Household name</label>
+          <input id="setHouse" placeholder="The Smith Family"/>
+        </div>
+        <div class="field" style="flex:0 0 130px">
+          <label class="fld">Currency</label>
+          <select id="setCurrency">
+            <option value="$">$ USD</option>
+            <option value="£">£ GBP</option>
+            <option value="€">€ EUR</option>
+            <option value="R">R ZAR</option>
+            <option value="₹">₹ INR</option>
+            <option value="A$">A$ AUD</option>
+            <option value="C$">C$ CAD</option>
+            <option value="¥">¥ JPY</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Your data</h2>
+      <p class="sub">Everything lives only in this browser on this device. Back it up or move it to another device with export / import.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="exportBtn">⬇ Export backup (.json)</button>
+        <button class="btn" id="importBtn">⬆ Import backup</button>
+        <input type="file" id="importInput" accept="application/json,.json" class="hidden"/>
+        <button class="btn danger" id="resetBtn">🗑 Reset everything</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Load sample data</h2>
+      <p class="sub">New here? Fill the app with an example family budget to explore.</p>
+      <button class="btn" id="sampleBtn">✨ Load sample family</button>
     </div>
   </section>
 </main>
 
-<footer>NCAA 27 Draft Lottery · runs entirely in your browser · your teams are saved locally on this device</footer>
+<footer id="footer">Family Budget · runs entirely in your browser · your data stays on this device</footer>
 
-<canvas id="confetti"></canvas>
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal"></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
 "use strict";
 /* ============================================================
-   NCAA 27 Draft Lottery
-   - Weighted ping-pong-ball draw, all picks decided by lottery
-   - Commissioner pulls each pick; physics ball machine on canvas
+   FAMILY BUDGET
+   Single-file, offline, localStorage. No accounts, no server.
    ============================================================ */
-
-const LS_KEY = "ncaa27-lottery-teams-v1";
-const LS_COMM = "ncaa27-lottery-commish-v1";
 const $ = id => document.getElementById(id);
+const LS_KEY = "family-budget-v1";
 
-// ---------- color palette (distinct, evenly spread) ----------
-function colorFor(i, n){
-  const hue = Math.round((i * 360 / Math.max(n,1) + i*47) % 360);
-  const sat = 70 + (i % 3) * 8;
-  const lig = 55 + (i % 2) * 6;
-  return `hsl(${hue} ${sat}% ${lig}%)`;
-}
+const EMOJIS = ["🛒","🍽️","🏠","💡","🚗","⛽","🩺","🎓","🎉","👕","📱","🎮","✈️","🐶","💊","💇","🎁","☕","💳","💰","🏦","📦","🧾","🔧"];
+const COLORS = ["#34d399","#38bdf8","#a78bfa","#f472b6","#fbbf24","#f87171","#60a5fa","#4ade80","#fb923c","#22d3ee","#c084fc","#facc15"];
+const MEMBER_COLORS = ["#34d399","#38bdf8","#a78bfa","#f472b6","#fbbf24","#fb923c","#22d3ee","#f87171"];
 
 // ---------- state ----------
-let teams = [];           // {name, weight, color}
-let order = [];           // FULL precomputed order: order[0]=pick #1 ... order[N-1]=last pick
-let revealed = [];        // slot indices already revealed (true/false per slot)
-let revealSlot = -1;      // next slot to reveal (counts DOWN: last pick first)
-let drawing = false;
-let finished = false;
-let soundOn = true;
+let state = null;
+let currentMonth = null; // "YYYY-MM"
+let activeTab = "dashboard";
 
-// ---------- commissioner ----------
-let commish = { name:"d_cape15", photo:null };
-function loadCommish(){
-  try{ const j = JSON.parse(localStorage.getItem(LS_COMM)); if(j && j.name) commish = j; }catch(e){}
-}
-function saveCommish(){ try{ localStorage.setItem(LS_COMM, JSON.stringify(commish)); }catch(e){} }
-function commInitials(){
-  const p = commish.name.replace(/[^a-zA-Z ]/g," ").trim().split(/\s+/).filter(Boolean);
-  if(!p.length) return "DC";
-  if(p.length===1) return p[0].slice(0,2).toUpperCase();
-  return (p[0][0]+p[1][0]).toUpperCase();
-}
-function renderCommish(){
-  const name = commish.name || "Commissioner";
-  $("commChipName").textContent = name;
-  $("boothName").textContent = name;
-  [["commChipAvatar"],["boothAvatar"]].forEach(([id])=>{
-    const el = $(id);
-    if(commish.photo){ el.innerHTML = `<img src="${commish.photo}" style="width:100%;height:100%;object-fit:cover" alt="">`; }
-    else { el.textContent = commInitials(); }
-  });
-}
-function bindCommish(){
-  $("commPhotoBtn").addEventListener("click", ()=> $("commPhotoInput").click());
-  $("commPhotoInput").addEventListener("change", e=>{
-    const f = e.target.files && e.target.files[0]; if(!f) return;
-    const rd = new FileReader();
-    rd.onload = ()=>{ commish.photo = rd.result; saveCommish(); renderCommish(); toast("Commissioner photo set."); };
-    rd.readAsDataURL(f);
-  });
-  $("commNameBtn").addEventListener("click", ()=>{
-    const n = prompt("Commissioner name:", commish.name);
-    if(n && n.trim()){ commish.name = n.trim(); saveCommish(); renderCommish(); }
-  });
-}
+function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function monthKeyFromDate(d){ return d.toISOString().slice(0,7); }
+function nowMonthKey(){ return monthKeyFromDate(new Date()); }
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
 
-// ===========================================================
-//  SETUP
-// ===========================================================
-const SAMPLE = [
- ["Marcus",80],["Dray",75],["T",67],["DC",50],["Justin",45],
- ["Rashaan",40],["AK",33],["Trent",25],["Curtis",20],["Ron",15],
- ["Dwayne",12],["Ralph",10],["Dee",8],["Alex",5],["Blake",3],
- ["Jeff",2.5],["Tev",2],["Perk",1.5],["Twone",1],["Ian",0.9],["James",0.9]
-];
-
-function loadTeams(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw){ const j = JSON.parse(raw); if(Array.isArray(j) && j.length){ return j; } }
-  }catch(e){}
-  return SAMPLE.map(([name,weight])=>({name,weight}));
-}
-function saveTeams(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(teams.map(t=>({name:t.name,weight:t.weight})))); }catch(e){}
-}
-
-function recolor(){ teams.forEach((t,i)=> t.color = colorFor(i, teams.length)); }
-
-function renderBulk(){
-  $("bulk").value = teams.map(t=>`${t.name}, ${t.weight}`).join("\n");
-}
-
-function renderTable(){
-  const tb = $("teamBody");
-  tb.innerHTML = "";
-  const total = teams.reduce((s,t)=> s + (Number(t.weight)||0), 0);
-  teams.forEach((t,i)=>{
-    const pct = total>0 ? (100*(Number(t.weight)||0)/total) : 0;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="muted">${i+1}</td>
-      <td><span class="swatch" style="background:${t.color}"></span></td>
-      <td><input class="tname" data-i="${i}" data-f="name" value="${escapeHtml(t.name)}"/></td>
-      <td><input class="twt" data-i="${i}" data-f="weight" type="number" min="0" step="any" value="${t.weight}"/></td>
-      <td class="pct">${pct.toFixed(1)}%</td>
-      <td><button class="del" data-del="${i}" title="Remove">✕</button></td>`;
-    tb.appendChild(tr);
-  });
-  $("totWeight").textContent = total.toLocaleString();
-  $("countNote").textContent = `${teams.length} team${teams.length===1?"":"s"} in the field`;
-}
-
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-
-function refreshSetup(){ recolor(); renderTable(); saveTeams(); }
-
-// table edits
-$("teamBody").addEventListener("input", e=>{
-  const el = e.target; if(el.dataset.i===undefined) return;
-  const i = +el.dataset.i, f = el.dataset.f;
-  if(f==="name") teams[i].name = el.value;
-  else teams[i].weight = Math.max(0, Number(el.value)||0);
-  // light refresh: only recompute percentages/total without rebuilding inputs
-  const total = teams.reduce((s,t)=> s + (Number(t.weight)||0), 0);
-  $("totWeight").textContent = total.toLocaleString();
-  [...$("teamBody").querySelectorAll("tr")].forEach((tr,idx)=>{
-    const pct = total>0 ? (100*(Number(teams[idx].weight)||0)/total) : 0;
-    tr.querySelector(".pct").textContent = pct.toFixed(1)+"%";
-  });
-  saveTeams();
-});
-$("teamBody").addEventListener("click", e=>{
-  const d = e.target.dataset.del;
-  if(d!==undefined){ teams.splice(+d,1); refreshSetup(); renderBulk(); }
-});
-
-$("addTeam").addEventListener("click", ()=>{
-  teams.push({name:`Team ${teams.length+1}`, weight:10});
-  refreshSetup(); renderBulk();
-});
-$("clearTeams").addEventListener("click", ()=>{
-  if(!confirm("Remove all teams?")) return;
-  teams = []; refreshSetup(); renderBulk();
-});
-$("sampleBtn").addEventListener("click", ()=>{
-  teams = SAMPLE.map(([name,weight])=>({name,weight}));
-  refreshSetup(); renderBulk();
-});
-$("parseBtn").addEventListener("click", ()=>{
-  const lines = $("bulk").value.split(/\n/).map(l=>l.trim()).filter(Boolean);
-  const out = [];
-  for(const line of lines){
-    // split on last comma or tab so team names may contain commas
-    let m = line.match(/^(.*)[,\t]\s*([-\d.]+)\s*%?$/);
-    if(m){ out.push({name:m[1].trim().replace(/,$/,""), weight:Math.max(0,Number(m[2])||0)}); }
-    else { out.push({name:line, weight:10}); }
-  }
-  if(!out.length){ toast("Nothing to load."); return; }
-  teams = out; refreshSetup();
-  toast(`Loaded ${out.length} teams.`);
-});
-
-$("startBtn").addEventListener("click", ()=>{
-  const valid = teams.filter(t=> t.name.trim() && (Number(t.weight)||0) > 0);
-  if(valid.length < 2){ toast("Add at least 2 teams with a weight above 0."); return; }
-  if(valid.length !== teams.length){
-    teams = valid; refreshSetup(); renderBulk();
-  }
-  startLottery();
-});
-
-// ===========================================================
-//  LOTTERY ENGINE
-// ===========================================================
-function totalWeight(){ return teams.reduce((s,t)=> s + t.weight, 0); }
-function seasonOdds(teamIdx){ const tot = totalWeight(); return tot>0 ? teams[teamIdx].weight/tot : 0; }
-
-// Lock in the full draft order up front with a correct sequential weighted
-// draw (so team with most weight is most likely to land pick #1). We then
-// REVEAL bottom-up: last pick first, building suspense toward #1.
-function computeOrder(){
-  const pool = teams.map((_,i)=>i);
-  const result = [];
-  while(pool.length){
-    const total = pool.reduce((s,i)=> s + teams[i].weight, 0);
-    let r = Math.random()*total, k=0;
-    for(; k<pool.length; k++){ r -= teams[pool[k]].weight; if(r<=0) break; }
-    if(k>=pool.length) k = pool.length-1;
-    result.push(pool[k]);
-    pool.splice(k,1);
-  }
-  return result; // result[0] = pick #1
-}
-
-function startLottery(){
-  recolor();
-  order = computeOrder();
-  revealed = teams.map(()=>false);
-  revealSlot = teams.length - 1;   // reveal the LAST pick first
-  finished = false;
-  drawing = false;
-  $("setupView").classList.add("hidden");
-  $("lotteryView").classList.remove("hidden");
-  $("backToSetup").classList.remove("hidden");
-  $("finishedActions").classList.add("hidden");
-  $("subline").textContent = `${teams.length} teams · reverse reveal · Commissioner ${commish.name}`;
-  buildBalls();
-  renderBoard();
-  renderRemaining();
-  startAnim();
-  updateDrawBtn();
-  $("status").textContent = `All ${teams.length} balls are in the hopper. Commissioner ${commish.name}, the floor is yours.`;
-}
-
-function updateDrawBtn(){
-  const btn = $("drawBtn");
-  if(finished){ btn.classList.add("hidden"); return; }
-  btn.classList.remove("hidden");
-  btn.disabled = drawing;
-  const pickNo = revealSlot + 1;
-  btn.textContent = drawing ? "🎱 Drawing…" :
-    (pickNo === 1 ? "🏆 Reveal the #1 PICK" : `🎬 Reveal Pick #${pickNo}`);
-}
-
-// ---- the commissioner draw (reveals one pick, bottom-up) ----
-$("drawBtn").addEventListener("click", ()=>{
-  if(drawing || finished || revealSlot < 0) return;
-  drawing = true; updateDrawBtn();
-  $("status").textContent = "The balls are tumbling…";
-  churn(2.6);
-  startDrumroll();
-
-  const slot = revealSlot;
-  const teamIdx = order[slot];
-
-  setTimeout(()=>{
-    ejectBall(teamIdx, ()=>{
-      stopDrumroll();
-      ding();
-      revealed[slot] = true;
-      // clear that team's remaining balls from the hopper
-      balls = balls.filter(b => b.team !== teamIdx);
-      showReveal(slot+1, teamIdx, seasonOdds(teamIdx));
-      renderBoard();
-      renderRemaining();
-    });
-  }, 2600);
-});
-
-function showReveal(pickNo, teamIdx, odds){
-  const t = teams[teamIdx];
-  $("revealPickNo").textContent = (pickNo===1 ? "🏆 " : "") + ordinal(pickNo) + " Overall Pick";
-  const ball = $("revealBall");
-  ball.style.background = t.color;
-  ball.textContent = initials(t.name);
-  ball.style.animation = "none"; void ball.offsetWidth; ball.style.animation = "";
-  $("revealTeam").textContent = t.name;
-  $("revealOdds").textContent = `${(odds*100).toFixed(1)}% lottery odds`;
-  $("reveal").classList.add("show");
-  if(pickNo === 1) burstConfetti();
-}
-
-$("revealContinue").addEventListener("click", ()=>{
-  $("reveal").classList.remove("show");
-  drawing = false;
-  revealSlot--;
-  if(revealSlot < 0){ finish(); }
-  else {
-    updateDrawBtn();
-    $("status").textContent = revealSlot === 0
-      ? `Down to the final ball. Who's the #1 pick?`
-      : `${revealSlot+1} balls left. Next up: pick #${revealSlot+1}.`;
-  }
-});
-
-function finish(){
-  finished = true;
-  updateDrawBtn();
-  $("status").textContent = `🏆 The draft order is set! ${teams[order[0]].name} lands the #1 pick.`;
-  $("finishedActions").classList.remove("hidden");
-  burstConfetti();
-}
-
-function ordinal(n){
-  const s=["th","st","nd","rd"], v=n%100;
-  return n + (s[(v-20)%10] || s[v] || s[0]);
-}
-function initials(name){
-  const parts = name.trim().split(/\s+/);
-  if(parts.length===1) return parts[0].slice(0,3).toUpperCase();
-  return parts.slice(0,2).map(p=>p[0]).join("").toUpperCase();
-}
-
-// ===========================================================
-//  BOARD + LIVE ODDS
-// ===========================================================
-function renderBoard(){
-  const list = $("pickList");
-  list.innerHTML = "";
-  const N = teams.length;
-  let count = 0;
-  for(let i=0;i<N;i++){
-    const isRevealed = revealed[i];
-    if(isRevealed) count++;
-    const justNow = isRevealed && i === revealSlot; // the slot just revealed
-    const div = document.createElement("div");
-    div.className = "pick" + (isRevealed ? " filled" : "") + (i===0 && isRevealed ? " first":"") +
-                    (justNow ? " justfilled":"");
-    let nm, od="";
-    if(isRevealed){
-      const t = teams[order[i]];
-      nm = `<span class="swatch" style="background:${t.color};margin-right:8px"></span>${escapeHtml(t.name)}`;
-      od = `${(seasonOdds(order[i])*100).toFixed(1)}%`;
-    } else {
-      nm = `<span class="nm empty">${i===0 ? "the #1 pick…" : "on the board…"}</span>`;
-    }
-    div.innerHTML = `<div class="num">${i+1}</div><div class="nm">${nm}</div><div class="od">${od}</div>`;
-    list.appendChild(div);
-  }
-  $("boardCount").textContent = `${count} / ${N} revealed`;
-}
-
-function renderRemaining(){
-  const wrap = $("remList");
-  wrap.innerHTML = "";
-  // teams still hidden = those whose slot hasn't been revealed yet (the better picks)
-  const hidden = order.filter((_,i)=> !revealed[i]);
-  if(!hidden.length){ wrap.innerHTML = `<div class="rem-item muted" style="padding:14px">All picks revealed.</div>`; return; }
-  const sorted = [...hidden].sort((a,b)=> teams[b].weight - teams[a].weight);
-  const max = seasonOdds(sorted[0]) || 1;
-  for(const idx of sorted){
-    const t = teams[idx];
-    const p = seasonOdds(idx);
-    const div = document.createElement("div");
-    div.className = "rem-item";
-    div.innerHTML = `
-      <span class="swatch" style="background:${t.color}"></span>
-      <span style="width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(t.name)}</span>
-      <span class="bar"><i style="width:${(p/max*100).toFixed(1)}%;background:${t.color}"></i></span>
-      <span class="rp">${(p*100).toFixed(1)}%</span>`;
-    wrap.appendChild(div);
-  }
-}
-
-// ===========================================================
-//  CANVAS BALL MACHINE  (lightweight physics)
-// ===========================================================
-const cv = $("machine"), ctx = cv.getContext("2d");
-let balls = [];         // {x,y,vx,vy,r,team}
-let churnUntil = 0;
-let ejecting = null;    // {ball, phase, cb}
-const GRAV = 0.32, DAMP = 0.86, AIR = 0.012;
-
-function fitCanvas(){
-  const w = cv.clientWidth || 720;
-  const ratio = 460/720;
-  cv.width = Math.round(w);
-  cv.height = Math.round(w*ratio);
-}
-window.addEventListener("resize", ()=>{ fitCanvas(); });
-
-function buildBalls(){
-  fitCanvas();
-  balls = [];
-  const total = teams.reduce((s,t)=>s+t.weight,0) || 1;
-  // distribute ~target balls proportional to weight, min 1 each
-  const TARGET = Math.min(220, Math.max(80, teams.length*7));
-  teams.forEach((t,ti)=>{
-    let n = Math.max(1, Math.round(t.weight/total * TARGET));
-    for(let k=0;k<n;k++){
-      balls.push(makeBall(ti));
-    }
-  });
-}
-function makeBall(team){
-  const r = Math.max(7, Math.min(13, cv.width/70));
+function defaultState(){
   return {
-    x: 20 + Math.random()*(cv.width-40),
-    y: 20 + Math.random()*(cv.height-120),
-    vx:(Math.random()-.5)*4, vy:(Math.random()-.5)*4,
-    r, team
+    house: "Our Family",
+    currency: "$",
+    members: [
+      { id: uid(), name: "Me", color: MEMBER_COLORS[0], emoji:"🙂" }
+    ],
+    goals: [],
+    months: {} // key -> { income:[], categories:[], transactions:[] }
   };
 }
 
-function churn(seconds){ churnUntil = performance.now() + seconds*1000; }
+function blankMonth(){ return { income: [], categories: [], transactions: [] }; }
 
-function ejectBall(teamIdx, cb){
-  // pick a random ball of that team to fly out the top
-  const pool = balls.filter(b=>b.team===teamIdx);
-  const chosen = pool.length ? pool[Math.floor(Math.random()*pool.length)] : null;
-  ejecting = { ball: chosen, cb, started: performance.now() };
-  if(chosen){ chosen.eject = true; }
-  // safety: ensure callback fires even if no ball
-  if(!chosen){ setTimeout(cb, 400); ejecting=null; }
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){ const j = JSON.parse(raw); if(j && j.months) return j; }
+  }catch(e){}
+  return defaultState();
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast("Couldn't save — storage may be full."); } }
+
+function month(key){
+  key = key || currentMonth;
+  if(!state.months[key]) state.months[key] = blankMonth();
+  return state.months[key];
 }
 
-function physics(now){
-  const churning = now < churnUntil;
-  const floor = cv.height - 10;
-  for(const b of balls){
-    if(b.eject){
-      // fly up to the top tube
-      b.vy -= 1.4; b.vx *= 0.92;
-      b.x += b.vx; b.y += b.vy;
-      if(b.y < -30){ // gone
-        b.dead = true;
-      }
-      continue;
-    }
-    b.vy += GRAV;
-    if(churning){
-      // random upward gusts like a blower
-      b.vy -= AIR* (cv.height) * (0.6+Math.random()*0.8) / 30;
-      b.vx += (Math.random()-.5)*1.6;
-    }
-    b.vx *= 0.995; b.vy *= 0.999;
-    b.x += b.vx; b.y += b.vy;
-    // walls
-    if(b.x < b.r){ b.x=b.r; b.vx=Math.abs(b.vx)*DAMP; }
-    if(b.x > cv.width-b.r){ b.x=cv.width-b.r; b.vx=-Math.abs(b.vx)*DAMP; }
-    if(b.y > floor-b.r){ b.y=floor-b.r; b.vy=-Math.abs(b.vy)*DAMP; if(churning) b.vy-=Math.random()*6; }
-    if(b.y < b.r){ b.y=b.r; b.vy=Math.abs(b.vy)*DAMP; }
-  }
-  // light pairwise separation (sampled, to stay cheap)
-  for(let i=0;i<balls.length;i++){
-    const a=balls[i]; if(a.eject) continue;
-    for(let j=i+1;j<Math.min(i+6,balls.length);j++){
-      const c=balls[j]; if(c.eject) continue;
-      const dx=c.x-a.x, dy=c.y-a.y; const d2=dx*dx+dy*dy; const rr=a.r+c.r;
-      if(d2 < rr*rr && d2>0.01){
-        const d=Math.sqrt(d2); const ov=(rr-d)/2; const nx=dx/d, ny=dy/d;
-        a.x-=nx*ov; a.y-=ny*ov; c.x+=nx*ov; c.y+=ny*ov;
-        const p=(a.vx*nx+a.vy*ny - (c.vx*nx+c.vy*ny));
-        a.vx-=p*nx*0.5; a.vy-=p*ny*0.5; c.vx+=p*nx*0.5; c.vy+=p*ny*0.5;
-      }
-    }
-  }
-  // remove dead ejected balls + finish ejection
-  if(ejecting){
-    if(!ejecting.ball || ejecting.ball.dead || now-ejecting.started>1500){
-      balls = balls.filter(b=>!b.dead);
-      const cb = ejecting.cb; ejecting=null; cb && cb();
-    }
-  }
+// ---------- formatting ----------
+function fmt(n){
+  const cur = state.currency || "$";
+  const neg = n < 0;
+  const v = Math.abs(Number(n)||0);
+  const s = v.toLocaleString(undefined,{minimumFractionDigits: v % 1 === 0 ? 0 : 2, maximumFractionDigits:2});
+  return (neg?"-":"") + cur + s;
 }
-
-function draw(){
-  ctx.clearRect(0,0,cv.width,cv.height);
-  // hopper glass
-  ctx.fillStyle = "rgba(255,255,255,0.02)";
-  ctx.fillRect(0,0,cv.width,cv.height);
-  // base tray
-  ctx.fillStyle="rgba(255,255,255,0.04)";
-  ctx.fillRect(0,cv.height-12,cv.width,12);
-  // top tube hint
-  ctx.fillStyle="rgba(255,255,255,0.05)";
-  ctx.fillRect(cv.width/2-22,0,44,16);
-
-  for(const b of balls){
-    const grd = ctx.createRadialGradient(b.x-b.r*0.35,b.y-b.r*0.4,b.r*0.2, b.x,b.y,b.r);
-    const col = teams[b.team] ? teams[b.team].color : "#ccc";
-    grd.addColorStop(0,"rgba(255,255,255,0.95)");
-    grd.addColorStop(0.25,col);
-    grd.addColorStop(1, shade(col,-18));
-    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-    ctx.fillStyle=grd; ctx.fill();
-    // tiny highlight
-    ctx.beginPath(); ctx.arc(b.x-b.r*0.35,b.y-b.r*0.4,b.r*0.22,0,Math.PI*2);
-    ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.fill();
-  }
+function monthName(key){
+  const [y,m] = key.split("-").map(Number);
+  return new Date(y, m-1, 1).toLocaleDateString(undefined,{month:"long", year:"numeric"});
 }
-
-function shade(hsl, amt){
-  // hsl(h s% l%) -> adjust lightness
-  const m = hsl.match(/hsl\(([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\)/);
-  if(!m) return hsl;
-  let l = Math.max(0,Math.min(100, parseFloat(m[3])+amt));
-  return `hsl(${m[1]} ${m[2]}% ${l}%)`;
+function shiftMonth(key, delta){
+  let [y,m] = key.split("-").map(Number);
+  m += delta; while(m<1){m+=12;y--;} while(m>12){m-=12;y++;}
+  return `${y}-${String(m).padStart(2,"0")}`;
 }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
-let animId=null;
-function loop(now){
-  physics(now||performance.now());
-  draw();
-  animId = requestAnimationFrame(loop);
+// ---------- computations ----------
+function memberById(id){ return state.members.find(m=>m.id===id) || null; }
+function catById(key, id){ return month(key).categories.find(c=>c.id===id) || null; }
+function totalIncome(key){
+  const M = month(key);
+  const base = M.income.reduce((s,i)=>s+(Number(i.amount)||0),0);
+  const extra = M.transactions.filter(t=>t.type==="income").reduce((s,t)=>s+(Number(t.amount)||0),0);
+  return base + extra;
 }
-function startAnim(){ if(!animId) animId=requestAnimationFrame(loop); }
+function totalPlanned(key){ return month(key).categories.reduce((s,c)=>s+(Number(c.planned)||0),0); }
+function spentByCat(key, catId){
+  return month(key).transactions.filter(t=>t.type==="expense" && t.catId===catId)
+    .reduce((s,t)=>s+(Number(t.amount)||0),0);
+}
+function totalSpent(key){
+  return month(key).transactions.filter(t=>t.type==="expense").reduce((s,t)=>s+(Number(t.amount)||0),0);
+}
 
 // ===========================================================
-//  SOUND (WebAudio, no assets)
+//  RENDERING
 // ===========================================================
-let actx=null, drumNode=null;
-function audio(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
-function startDrumroll(){
-  if(!soundOn) return; const ac=audio(); if(!ac) return;
-  stopDrumroll();
-  const o=ac.createOscillator(), g=ac.createGain();
-  o.type="triangle"; o.frequency.value=70;
-  const lfo=ac.createOscillator(), lg=ac.createGain();
-  lfo.frequency.value=18; lg.gain.value=40; lfo.connect(lg).connect(o.frequency);
-  g.gain.value=0.0; o.connect(g).connect(ac.destination);
-  o.start(); lfo.start();
-  g.gain.linearRampToValueAtTime(0.06, ac.currentTime+0.3);
-  drumNode={o,g,lfo};
+function renderAll(){
+  $("appTitle").textContent = state.house || "Family Budget";
+  $("monthLabel").textContent = monthName(currentMonth);
+  $("footer").textContent = `${state.house || "Family Budget"} · runs entirely in your browser · your data stays on this device`;
+  renderDashboard();
+  renderBudget();
+  renderTransactions();
+  renderGoals();
+  renderFamily();
+  renderSettings();
 }
-function stopDrumroll(){
-  if(drumNode){ try{ const ac=audio(); drumNode.g.gain.linearRampToValueAtTime(0,ac.currentTime+0.1);
-    drumNode.o.stop(ac.currentTime+0.15); drumNode.lfo.stop(ac.currentTime+0.15);}catch(e){} drumNode=null; }
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  const inc = totalIncome(), planned = totalPlanned(), spent = totalSpent();
+  const leftToBudget = inc - planned;
+  const remaining = inc - spent;
+  const tiles = [
+    { lab:"Income", val:fmt(inc), cls:"good", color:"var(--accent)", hint:"money in this month" },
+    { lab:"Spent", val:fmt(spent), cls: spent>inc?"bad":"", color:"var(--accent2)", hint: inc>0? `${Math.round(spent/inc*100)}% of income` : "so far" },
+    { lab:"Remaining", val:fmt(remaining), cls: remaining<0?"bad":"good", color:"var(--purple)", hint:"income minus spending" },
+    { lab:"Left to budget", val:fmt(leftToBudget), cls: leftToBudget<0?"warn":"", color:"var(--warn)", hint: leftToBudget<0?"over-allocated":"unassigned income" },
+  ];
+  $("statTiles").innerHTML = tiles.map(t=>`
+    <div class="stat">
+      <div class="accent-bar" style="background:${t.color}"></div>
+      <div class="lab">${t.lab}</div>
+      <div class="val ${t.cls}">${t.val}</div>
+      <div class="hint">${t.hint}</div>
+    </div>`).join("");
+
+  // donut by spending category
+  const cats = month().categories.map(c=>({ ...c, spent: spentByCat(currentMonth, c.id) })).filter(c=>c.spent>0);
+  cats.sort((a,b)=>b.spent-a.spent);
+  $("spentPill").textContent = fmt(spent) + " spent";
+  if(!cats.length){
+    $("donutBox").innerHTML = emptyBox("🧮","No spending logged yet","Add a transaction to see the breakdown.");
+  } else {
+    $("donutBox").innerHTML = donutHTML(cats, spent);
+  }
+
+  // budget vs spent (top categories)
+  const bcats = month().categories.slice().sort((a,b)=> (Number(b.planned)||0)-(Number(a.planned)||0));
+  if(!bcats.length){
+    $("dashCats").innerHTML = emptyBox("📝","No categories yet",'Head to the Budget tab to add some.');
+  } else {
+    $("dashCats").innerHTML = bcats.map(c=>catRowHTML(c,false)).join("");
+  }
+
+  // recent activity
+  const tx = month().transactions.slice().sort((a,b)=> (b.date||"").localeCompare(a.date||"") || b.id.localeCompare(a.id)).slice(0,6);
+  $("recentTx").innerHTML = tx.length ? txTableHTML(tx,false) : emptyBox("🧾","Nothing logged yet","Your latest transactions show up here.");
 }
-function ding(){
-  if(!soundOn) return; const ac=audio(); if(!ac) return;
-  [880,1320].forEach((f,i)=>{
-    const o=ac.createOscillator(), g=ac.createGain();
-    o.type="sine"; o.frequency.value=f;
-    o.connect(g).connect(ac.destination);
-    g.gain.setValueAtTime(0.0001, ac.currentTime+i*0.08);
-    g.gain.exponentialRampToValueAtTime(0.25, ac.currentTime+i*0.08+0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+i*0.08+0.5);
-    o.start(ac.currentTime+i*0.08); o.stop(ac.currentTime+i*0.08+0.55);
+
+function emptyBox(icon, title, sub){
+  return `<div class="empty"><div class="big">${icon}</div><div style="font-weight:700;color:var(--text)">${title}</div><div style="margin-top:4px">${sub}</div></div>`;
+}
+
+function catRowHTML(c, editable){
+  const spent = spentByCat(currentMonth, c.id);
+  const planned = Number(c.planned)||0;
+  const pct = planned>0 ? Math.min(100, spent/planned*100) : (spent>0?100:0);
+  const over = planned>0 && spent>planned;
+  const isSaving = c.type==="saving";
+  const remaining = planned - spent;
+  const barColor = over ? "var(--bad)" : (isSaving ? "var(--purple)" : c.color || "var(--accent)");
+  return `
+    <div class="catrow">
+      <div class="cat-emoji" style="background:${(c.color||'#26324f')}22">${c.emoji||"📦"}</div>
+      <div class="cat-main">
+        <div class="cat-name">${escapeHtml(c.name)} ${isSaving?'<span class="pill tiny">💜 saving</span>':''}</div>
+        <div class="cat-sub">${fmt(spent)} of ${fmt(planned)} ${over?'':''}</div>
+        <div class="bar"><i style="width:${pct}%;background:${barColor}"></i></div>
+      </div>
+      <div class="cat-amt">
+        <div class="top ${over?'over':''}">${remaining<0?'-':''}${fmt(Math.abs(remaining))}</div>
+        <div class="bot">${over? 'over budget' : (remaining===0?'right on target':'left')}</div>
+      </div>
+    </div>`;
+}
+
+/* ---------- Donut (conic-gradient) ---------- */
+function donutHTML(cats, total){
+  let acc = 0, stops = [], legend = "";
+  cats.forEach(c=>{
+    const frac = total>0 ? c.spent/total : 0;
+    const start = acc*360, end = (acc+frac)*360;
+    stops.push(`${c.color||'#38bdf8'} ${start}deg ${end}deg`);
+    acc += frac;
+    legend += `<div class="li"><span class="dot" style="background:${c.color||'#38bdf8'}"></span>
+      <span class="lname">${c.emoji||''} ${escapeHtml(c.name)}</span>
+      <span class="lamt">${fmt(c.spent)}</span>
+      <span class="muted" style="width:44px;text-align:right">${Math.round((total>0?c.spent/total:0)*100)}%</span></div>`;
+  });
+  return `<div class="donut-wrap">
+    <div style="width:150px;height:150px;border-radius:50%;flex:none;background:conic-gradient(${stops.join(",")});
+        display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line)">
+      <div style="width:96px;height:96px;border-radius:50%;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Spent</div>
+        <div style="font-weight:800;font-size:16px">${fmt(total)}</div>
+      </div>
+    </div>
+    <div class="legend">${legend}</div>
+  </div>`;
+}
+
+/* ---------- Budget tab ---------- */
+function renderBudget(){
+  // income
+  const M = month();
+  const incBox = $("incomeList");
+  if(!M.income.length){
+    incBox.innerHTML = emptyBox("💵","No income set","Add your paychecks or other regular income.");
+  } else {
+    incBox.innerHTML = M.income.map(i=>{
+      const who = memberById(i.member);
+      return `<div class="catrow">
+        <div class="cat-emoji" style="background:#34d39922">💵</div>
+        <div class="cat-main">
+          <div class="cat-name">${escapeHtml(i.source||"Income")}</div>
+          <div class="cat-sub">${who?('<span class="member-chip" style="padding:2px 9px 2px 2px"><span class="avatar" style="width:20px;height:20px;font-size:11px;background:'+who.color+'">'+escapeHtml(who.emoji||who.name[0])+'</span>'+escapeHtml(who.name)+'</span>'):'Household'}</div>
+        </div>
+        <div class="cat-amt"><div class="top" style="color:var(--accent)">${fmt(i.amount)}</div></div>
+        <div style="display:flex;gap:2px">
+          <button class="icon-btn" data-editincome="${i.id}">✎</button>
+          <button class="icon-btn del" data-delincome="${i.id}">🗑</button>
+        </div>
+      </div>`;
+    }).join("");
+    incBox.innerHTML += `<div class="catrow" style="border-top:2px solid var(--line)"><div class="cat-main"><div class="cat-name">Total income</div></div><div class="cat-amt"><div class="top" style="color:var(--accent)">${fmt(totalIncome())}</div></div><div style="width:60px"></div></div>`;
+  }
+
+  // categories
+  const box = $("budgetList");
+  if(!M.categories.length){
+    box.innerHTML = emptyBox("🗂️","No categories yet",'Add categories like Groceries, Rent, Fun money…');
+  } else {
+    box.innerHTML = M.categories.map(c=>{
+      const spent = spentByCat(currentMonth,c.id);
+      const planned = Number(c.planned)||0;
+      const pct = planned>0?Math.min(100,spent/planned*100):(spent>0?100:0);
+      const over = planned>0 && spent>planned;
+      return `<div class="catrow">
+        <div class="cat-emoji" style="background:${(c.color||'#26324f')}22">${c.emoji||"📦"}</div>
+        <div class="cat-main">
+          <div class="cat-name">${escapeHtml(c.name)} ${c.type==="saving"?'<span class="pill tiny">💜 saving</span>':''}</div>
+          <div class="cat-sub">${fmt(spent)} spent · ${fmt(planned)} planned</div>
+          <div class="bar"><i style="width:${pct}%;background:${over?'var(--bad)':(c.color||'var(--accent)')}"></i></div>
+        </div>
+        <div class="cat-amt"><div class="top">${fmt(planned)}</div><div class="bot ${over?'over':''}">${over?'over':fmt(planned-spent)+' left'}</div></div>
+        <div style="display:flex;gap:2px">
+          <button class="icon-btn" data-editcat="${c.id}">✎</button>
+          <button class="icon-btn del" data-delcat="${c.id}">🗑</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  const planned = totalPlanned(), inc = totalIncome();
+  const left = inc - planned;
+  $("budgetSummaryLine").innerHTML = `Planned <b>${fmt(planned)}</b> of <b>${fmt(inc)}</b> income · <span style="color:${left<0?'var(--bad)':'var(--accent)'}">${left<0?fmt(-left)+' over-allocated':fmt(left)+' still unassigned'}</span>`;
+}
+
+/* ---------- Transactions ---------- */
+function renderTransactions(){
+  // populate selects
+  const cats = month().categories;
+  const catSel = $("txCat");
+  const cur = catSel.value;
+  catSel.innerHTML = cats.map(c=>`<option value="${c.id}">${c.emoji||''} ${escapeHtml(c.name)}</option>`).join("") || `<option value="">— add a category first —</option>`;
+  if(cur && cats.some(c=>c.id===cur)) catSel.value = cur;
+
+  const memSel = $("txMember");
+  const curM = memSel.value;
+  memSel.innerHTML = state.members.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join("");
+  if(curM && state.members.some(m=>m.id===curM)) memSel.value = curM;
+
+  const filt = $("txFilter");
+  const curF = filt.value;
+  filt.innerHTML = `<option value="all">All categories</option>` + cats.map(c=>`<option value="${c.id}">${c.emoji||''} ${escapeHtml(c.name)}</option>`).join("");
+  if(curF) filt.value = curF;
+
+  let tx = month().transactions.slice().sort((a,b)=> (b.date||"").localeCompare(a.date||"") || b.id.localeCompare(a.id));
+  if(filt.value!=="all") tx = tx.filter(t=>t.catId===filt.value);
+  $("txTableWrap").innerHTML = tx.length ? txTableHTML(tx,true) : emptyBox("🧾","No transactions","Log spending or income above.");
+}
+
+function txTableHTML(tx, withActions){
+  const rows = tx.map(t=>{
+    const c = t.type==="income" ? null : catById(currentMonth, t.catId);
+    const who = memberById(t.memberId);
+    const isInc = t.type==="income";
+    return `<tr>
+      <td style="white-space:nowrap;color:var(--muted)">${t.date||""}</td>
+      <td><span style="font-size:16px">${isInc?'💵':(c?c.emoji||'📦':'📦')}</span> ${isInc?'Income':(c?escapeHtml(c.name):'<span class="muted">Uncategorized</span>')}${t.note?` <span class="muted">· ${escapeHtml(t.note)}</span>`:''}</td>
+      <td>${who?`<span class="member-chip" style="padding:2px 9px 2px 2px"><span class="avatar" style="width:20px;height:20px;font-size:11px;background:${who.color}">${escapeHtml(who.emoji||who.name[0])}</span>${escapeHtml(who.name)}</span>`:'<span class="muted">—</span>'}</td>
+      <td class="right txamt" style="color:${isInc?'var(--accent)':'var(--text)'}">${isInc?'+':''}${fmt(t.amount)}</td>
+      ${withActions?`<td class="right" style="white-space:nowrap"><button class="icon-btn" data-edittx="${t.id}">✎</button><button class="icon-btn del" data-deltx="${t.id}">🗑</button></td>`:''}
+    </tr>`;
+  }).join("");
+  return `<div style="overflow-x:auto"><table>
+    <thead><tr><th>Date</th><th>Category</th><th>Who</th><th class="right">Amount</th>${withActions?'<th></th>':''}</tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+
+/* ---------- Goals ---------- */
+function renderGoals(){
+  const box = $("goalsList");
+  if(!state.goals.length){
+    box.innerHTML = emptyBox("🎯","No goals yet","Create a savings goal to start tracking progress.");
+    return;
+  }
+  box.innerHTML = `<div class="grid2">` + state.goals.map(g=>{
+    const target = Number(g.target)||0, saved = Number(g.saved)||0;
+    const pct = target>0?Math.min(100,saved/target*100):0;
+    const done = target>0 && saved>=target;
+    return `<div class="goal-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div class="cat-emoji" style="background:${(g.color||'#a78bfa')}22;font-size:24px">${g.emoji||"🎯"}</div>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:15px">${escapeHtml(g.name)} ${done?'<span class="pill tiny">✅ reached!</span>':''}</div>
+          <div class="muted" style="font-size:12.5px">${fmt(saved)} of ${fmt(target)}</div>
+        </div>
+        <div style="display:flex;gap:2px">
+          <button class="icon-btn" data-editgoal="${g.id}">✎</button>
+          <button class="icon-btn del" data-delgoal="${g.id}">🗑</button>
+        </div>
+      </div>
+      <div class="bar" style="height:11px"><i style="width:${pct}%;background:${done?'var(--accent)':(g.color||'var(--purple)')}"></i></div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12.5px" class="muted">
+        <span>${Math.round(pct)}%</span><span>${fmt(Math.max(0,target-saved))} to go</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn sm ghost" data-addgoal="${g.id}">＋ Add funds</button>
+      </div>
+    </div>`;
+  }).join("") + `</div>`;
+}
+
+/* ---------- Family ---------- */
+function renderFamily(){
+  const box = $("membersList");
+  box.innerHTML = state.members.map(m=>`
+    <div class="catrow">
+      <div class="avatar" style="width:42px;height:42px;font-size:19px;background:${m.color}">${escapeHtml(m.emoji||m.name[0]||'🙂')}</div>
+      <div class="cat-main"><div class="cat-name">${escapeHtml(m.name)}</div></div>
+      <div style="display:flex;gap:2px">
+        <button class="icon-btn" data-editmember="${m.id}">✎</button>
+        ${state.members.length>1?`<button class="icon-btn del" data-delmember="${m.id}">🗑</button>`:''}
+      </div>
+    </div>`).join("");
+
+  // spending by member this month
+  const M = month();
+  const totals = {};
+  state.members.forEach(m=>totals[m.id]=0);
+  M.transactions.filter(t=>t.type==="expense").forEach(t=>{ if(t.memberId!=null){ totals[t.memberId]=(totals[t.memberId]||0)+(Number(t.amount)||0); } });
+  const arr = state.members.map(m=>({m, amt:totals[m.id]||0})).sort((a,b)=>b.amt-a.amt);
+  const max = Math.max(1, ...arr.map(a=>a.amt));
+  const any = arr.some(a=>a.amt>0);
+  $("byMember").innerHTML = any ? arr.map(({m,amt})=>`
+    <div class="catrow">
+      <div class="avatar" style="background:${m.color}">${escapeHtml(m.emoji||m.name[0])}</div>
+      <div class="cat-main">
+        <div class="cat-name">${escapeHtml(m.name)}</div>
+        <div class="bar"><i style="width:${amt/max*100}%;background:${m.color}"></i></div>
+      </div>
+      <div class="cat-amt"><div class="top">${fmt(amt)}</div></div>
+    </div>`).join("") : emptyBox("👛","No spending yet","Logged expenses tagged to a person show here.");
+}
+
+/* ---------- Settings ---------- */
+function renderSettings(){
+  $("setHouse").value = state.house || "";
+  $("setCurrency").value = state.currency || "$";
+}
+
+// ===========================================================
+//  MODAL FRAMEWORK
+// ===========================================================
+function openModal(html){
+  $("modal").innerHTML = html;
+  $("modalBg").classList.add("show");
+}
+function closeModal(){ $("modalBg").classList.remove("show"); }
+$("modalBg").addEventListener("click", e=>{ if(e.target===$("modalBg")) closeModal(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
+
+function emojiPicker(selected, list){
+  return `<div class="chipset" data-picker="emoji">` + list.map(e=>`<button type="button" data-emoji="${e}" class="${e===selected?'on':''}">${e}</button>`).join("") + `</div>`;
+}
+function colorPicker(selected, list){
+  return `<div class="swatchset" data-picker="color">` + list.map(c=>`<button type="button" data-color="${c}" class="${c===selected?'on':''}" style="background:${c}"></button>`).join("") + `</div>`;
+}
+function wirePickers(scope){
+  scope.querySelectorAll('[data-picker="emoji"] button').forEach(b=>b.addEventListener("click",()=>{
+    b.parentElement.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  }));
+  scope.querySelectorAll('[data-picker="color"] button').forEach(b=>b.addEventListener("click",()=>{
+    b.parentElement.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  }));
+}
+function pickedEmoji(scope){ const el=scope.querySelector('[data-picker="emoji"] button.on'); return el?el.dataset.emoji:null; }
+function pickedColor(scope){ const el=scope.querySelector('[data-picker="color"] button.on'); return el?el.dataset.color:null; }
+
+// ---------- Category modal ----------
+function catModal(cat){
+  const editing = !!cat;
+  cat = cat || { name:"", planned:"", emoji:EMOJIS[0], color:COLORS[0], type:"expense" };
+  openModal(`
+    <h3>${editing?"Edit category":"New category"}</h3>
+    <div class="field"><label class="fld">Name</label><input id="m_name" value="${escapeHtml(cat.name)}" placeholder="e.g. Groceries"/></div>
+    <div class="inline">
+      <div class="field" style="flex:1"><label class="fld">Planned amount / month</label><input id="m_planned" type="number" min="0" step="0.01" value="${cat.planned}" placeholder="0.00" inputmode="decimal"/></div>
+      <div class="field" style="flex:0 0 140px"><label class="fld">Type</label>
+        <select id="m_type"><option value="expense" ${cat.type!=="saving"?"selected":""}>Expense</option><option value="saving" ${cat.type==="saving"?"selected":""}>Saving</option></select>
+      </div>
+    </div>
+    <div class="field"><label class="fld">Icon</label>${emojiPicker(cat.emoji, EMOJIS)}</div>
+    <div class="field"><label class="fld">Color</label>${colorPicker(cat.color, COLORS)}</div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="m_cancel">Cancel</button>
+      <button class="btn primary" id="m_save">${editing?"Save":"Add category"}</button>
+    </div>`);
+  const m = $("modal"); wirePickers(m);
+  $("m_cancel").onclick = closeModal;
+  $("m_save").onclick = ()=>{
+    const name = $("m_name").value.trim();
+    if(!name){ toast("Give the category a name."); return; }
+    const data = {
+      name, planned: Math.max(0, Number($("m_planned").value)||0),
+      type: $("m_type").value, emoji: pickedEmoji(m)||EMOJIS[0], color: pickedColor(m)||COLORS[0]
+    };
+    if(editing){ Object.assign(cat, data); }
+    else { month().categories.push({ id:uid(), ...data }); }
+    save(); renderAll(); closeModal();
+  };
+}
+
+// ---------- Income modal ----------
+function incomeModal(inc){
+  const editing = !!inc;
+  inc = inc || { source:"", amount:"", member: state.members[0]?.id || null };
+  openModal(`
+    <h3>${editing?"Edit income":"Add income"}</h3>
+    <div class="field"><label class="fld">Source</label><input id="i_src" value="${escapeHtml(inc.source)}" placeholder="e.g. Salary, Side gig"/></div>
+    <div class="inline">
+      <div class="field" style="flex:1"><label class="fld">Amount / month</label><input id="i_amt" type="number" min="0" step="0.01" value="${inc.amount}" placeholder="0.00" inputmode="decimal"/></div>
+      <div class="field" style="flex:1"><label class="fld">Who earns it</label>
+        <select id="i_mem">${state.members.map(mm=>`<option value="${mm.id}" ${mm.id===inc.member?"selected":""}>${escapeHtml(mm.name)}</option>`).join("")}</select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="i_cancel">Cancel</button>
+      <button class="btn primary" id="i_save">${editing?"Save":"Add"}</button>
+    </div>`);
+  $("i_cancel").onclick = closeModal;
+  $("i_save").onclick = ()=>{
+    const source = $("i_src").value.trim() || "Income";
+    const amount = Math.max(0, Number($("i_amt").value)||0);
+    const member = $("i_mem").value;
+    if(editing){ Object.assign(inc, {source, amount, member}); }
+    else { month().income.push({ id:uid(), source, amount, member }); }
+    save(); renderAll(); closeModal();
+  };
+}
+
+// ---------- Transaction edit modal ----------
+function txModal(tx){
+  const cats = month().categories;
+  openModal(`
+    <h3>Edit transaction</h3>
+    <div class="inline">
+      <div class="field" style="flex:0 0 110px"><label class="fld">Type</label>
+        <select id="t_type"><option value="expense" ${tx.type!=="income"?"selected":""}>Expense</option><option value="income" ${tx.type==="income"?"selected":""}>Income</option></select></div>
+      <div class="field" style="flex:1"><label class="fld">Amount</label><input id="t_amt" type="number" min="0" step="0.01" value="${tx.amount}" inputmode="decimal"/></div>
+    </div>
+    <div class="inline">
+      <div class="field" style="flex:1" id="t_catwrap"><label class="fld">Category</label>
+        <select id="t_cat">${cats.map(c=>`<option value="${c.id}" ${c.id===tx.catId?"selected":""}>${c.emoji||''} ${escapeHtml(c.name)}</option>`).join("")}</select></div>
+      <div class="field" style="flex:1"><label class="fld">Who</label>
+        <select id="t_mem">${state.members.map(mm=>`<option value="${mm.id}" ${mm.id===tx.memberId?"selected":""}>${escapeHtml(mm.name)}</option>`).join("")}</select></div>
+    </div>
+    <div class="inline">
+      <div class="field" style="flex:0 0 150px"><label class="fld">Date</label><input id="t_date" type="date" value="${tx.date||todayISO()}"/></div>
+      <div class="field" style="flex:1"><label class="fld">Note</label><input id="t_note" value="${escapeHtml(tx.note||'')}"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="t_cancel">Cancel</button>
+      <button class="btn primary" id="t_save">Save</button>
+    </div>`);
+  const syncCat = ()=>{ $("t_catwrap").style.display = $("t_type").value==="income"?"none":"block"; };
+  $("t_type").onchange = syncCat; syncCat();
+  $("t_cancel").onclick = closeModal;
+  $("t_save").onclick = ()=>{
+    tx.type = $("t_type").value;
+    tx.amount = Math.max(0, Number($("t_amt").value)||0);
+    tx.catId = tx.type==="income" ? null : $("t_cat").value;
+    tx.memberId = $("t_mem").value;
+    tx.date = $("t_date").value || todayISO();
+    tx.note = $("t_note").value.trim();
+    save(); renderAll(); closeModal();
+  };
+}
+
+// ---------- Goal modal ----------
+function goalModal(goal){
+  const editing = !!goal;
+  goal = goal || { name:"", target:"", saved:0, emoji:"🎯", color:COLORS[2] };
+  openModal(`
+    <h3>${editing?"Edit goal":"New savings goal"}</h3>
+    <div class="field"><label class="fld">What are you saving for?</label><input id="g_name" value="${escapeHtml(goal.name)}" placeholder="e.g. Family trip to Disney"/></div>
+    <div class="inline">
+      <div class="field" style="flex:1"><label class="fld">Target amount</label><input id="g_target" type="number" min="0" step="0.01" value="${goal.target}" inputmode="decimal"/></div>
+      <div class="field" style="flex:1"><label class="fld">Saved so far</label><input id="g_saved" type="number" min="0" step="0.01" value="${goal.saved}" inputmode="decimal"/></div>
+    </div>
+    <div class="field"><label class="fld">Icon</label>${emojiPicker(goal.emoji, ["🎯","✈️","🏖️","🚗","🏠","🎓","💍","🎄","🛟","💻","🎸","👶"])}</div>
+    <div class="field"><label class="fld">Color</label>${colorPicker(goal.color, COLORS)}</div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="g_cancel">Cancel</button>
+      <button class="btn primary" id="g_save">${editing?"Save":"Create goal"}</button>
+    </div>`);
+  const m=$("modal"); wirePickers(m);
+  $("g_cancel").onclick = closeModal;
+  $("g_save").onclick = ()=>{
+    const name = $("g_name").value.trim();
+    if(!name){ toast("Give the goal a name."); return; }
+    const data = { name, target:Math.max(0,Number($("g_target").value)||0), saved:Math.max(0,Number($("g_saved").value)||0), emoji:pickedEmoji(m)||"🎯", color:pickedColor(m)||COLORS[2] };
+    if(editing){ Object.assign(goal, data); } else { state.goals.push({ id:uid(), ...data }); }
+    save(); renderAll(); closeModal();
+  };
+}
+function addFundsModal(goal){
+  openModal(`
+    <h3>Add funds to “${escapeHtml(goal.name)}”</h3>
+    <div class="field"><label class="fld">Amount to add</label><input id="af_amt" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal"/></div>
+    <p class="sub">Currently ${fmt(goal.saved)} of ${fmt(goal.target)}.</p>
+    <div class="modal-actions"><button class="btn ghost" id="af_cancel">Cancel</button><button class="btn primary" id="af_save">Add</button></div>`);
+  $("af_amt").focus();
+  $("af_cancel").onclick = closeModal;
+  $("af_save").onclick = ()=>{
+    const add = Number($("af_amt").value)||0;
+    goal.saved = Math.max(0,(Number(goal.saved)||0)+add);
+    save(); renderAll(); closeModal();
+    if((Number(goal.target)||0)>0 && goal.saved>=goal.target) toast("🎉 Goal reached!");
+  };
+}
+
+// ---------- Member modal ----------
+function memberModal(mem){
+  const editing = !!mem;
+  const usedColors = state.members.map(m=>m.color);
+  const defColor = MEMBER_COLORS.find(c=>!usedColors.includes(c)) || MEMBER_COLORS[0];
+  mem = mem || { name:"", color:defColor, emoji:"🙂" };
+  openModal(`
+    <h3>${editing?"Edit member":"Add family member"}</h3>
+    <div class="field"><label class="fld">Name</label><input id="mm_name" value="${escapeHtml(mem.name)}" placeholder="e.g. Alex"/></div>
+    <div class="field"><label class="fld">Emoji / initial</label>${emojiPicker(mem.emoji, ["🙂","😎","👩","👨","👧","👦","🧑","👵","👴","🐶","🐱","⭐"])}</div>
+    <div class="field"><label class="fld">Color</label>${colorPicker(mem.color, MEMBER_COLORS)}</div>
+    <div class="modal-actions"><button class="btn ghost" id="mm_cancel">Cancel</button><button class="btn primary" id="mm_save">${editing?"Save":"Add"}</button></div>`);
+  const m=$("modal"); wirePickers(m);
+  $("mm_cancel").onclick = closeModal;
+  $("mm_save").onclick = ()=>{
+    const name = $("mm_name").value.trim();
+    if(!name){ toast("Give the member a name."); return; }
+    const data = { name, emoji:pickedEmoji(m)||"🙂", color:pickedColor(m)||MEMBER_COLORS[0] };
+    if(editing){ Object.assign(mem, data); } else { state.members.push({ id:uid(), ...data }); }
+    save(); renderAll(); closeModal();
+  };
+}
+
+// ===========================================================
+//  EVENT WIRING
+// ===========================================================
+// tabs
+$("tabs").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-tab]"); if(!b) return;
+  setTab(b.dataset.tab);
+});
+document.addEventListener("click", e=>{
+  const g = e.target.closest("[data-goto]"); if(g){ setTab(g.dataset.goto); }
+});
+function setTab(tab){
+  activeTab = tab;
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  ["dashboard","budget","transactions","goals","family","settings"].forEach(t=>{
+    $("tab-"+t).classList.toggle("hidden", t!==tab);
   });
 }
-$("soundToggle").addEventListener("click", ()=>{
-  soundOn=!soundOn;
-  $("soundToggle").textContent = soundOn ? "🔊 Sound: On" : "🔇 Sound: Off";
-  if(!soundOn) stopDrumroll(); else audio();
-});
 
-// ===========================================================
-//  CONFETTI
-// ===========================================================
-const conf = $("confetti"), cctx = conf.getContext("2d");
-let confetti=[], confAnim=null;
-function sizeConf(){ conf.width=innerWidth; conf.height=innerHeight; }
-sizeConf(); window.addEventListener("resize", sizeConf);
-function burstConfetti(){
-  for(let i=0;i<160;i++){
-    confetti.push({
-      x:innerWidth/2+(Math.random()-.5)*200, y:innerHeight*0.35,
-      vx:(Math.random()-.5)*12, vy:Math.random()*-12-4,
-      r:4+Math.random()*6, c:`hsl(${Math.random()*360} 90% 60%)`,
-      a:1, rot:Math.random()*6, vr:(Math.random()-.5)*0.3
-    });
+// month nav
+$("prevMonth").onclick = ()=>{ currentMonth = shiftMonth(currentMonth,-1); month(); renderAll(); };
+$("nextMonth").onclick = ()=>{ currentMonth = shiftMonth(currentMonth, 1); month(); renderAll(); };
+$("todayBtn").onclick = ()=>{ currentMonth = nowMonthKey(); month(); renderAll(); };
+
+// budget buttons
+$("addCatBtn").onclick = ()=> catModal(null);
+$("addIncomeBtn").onclick = ()=>{ if(!state.members.length){ toast("Add a family member first."); return; } incomeModal(null); };
+$("copyPrevBtn").onclick = ()=>{
+  const prev = shiftMonth(currentMonth,-1);
+  const P = state.months[prev];
+  if(!P || (!P.categories.length && !P.income.length)){ toast("Nothing to copy from last month."); return; }
+  const M = month();
+  if(M.categories.length || M.income.length){
+    if(!confirm("This replaces this month's income & categories with last month's plan (your logged transactions stay). Continue?")) return;
   }
-  if(!confAnim) confAnim=requestAnimationFrame(confLoop);
-}
-function confLoop(){
-  cctx.clearRect(0,0,conf.width,conf.height);
-  confetti.forEach(p=>{
-    p.vy+=0.3; p.x+=p.vx; p.y+=p.vy; p.vx*=0.99; p.rot+=p.vr; p.a-=0.008;
-    cctx.save(); cctx.globalAlpha=Math.max(0,p.a); cctx.translate(p.x,p.y); cctx.rotate(p.rot);
-    cctx.fillStyle=p.c; cctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6); cctx.restore();
-  });
-  confetti=confetti.filter(p=>p.a>0 && p.y<conf.height+30);
-  if(confetti.length) confAnim=requestAnimationFrame(confLoop);
-  else { cctx.clearRect(0,0,conf.width,conf.height); confAnim=null; }
-}
+  M.categories = P.categories.map(c=>({ ...c, id:uid() }));
+  M.income = P.income.map(i=>({ ...i, id:uid() }));
+  save(); renderAll(); toast("Copied last month's plan.");
+};
 
-// ===========================================================
-//  RESULTS EXPORT
-// ===========================================================
-function resultsText(){
-  let s = `NCAA 27 DRAFT LOTTERY — OFFICIAL ORDER\n`;
-  s += `Commissioner: ${commish.name}\n`;
-  s += `Drawn ${new Date().toLocaleString()}\n`;
-  s += `${"=".repeat(40)}\n`;
-  order.forEach((ti,i)=>{ s += `${String(i+1).padStart(2," ")}. ${teams[ti].name}  (${(seasonOdds(ti)*100).toFixed(1)}%)\n`; });
-  return s;
-}
-$("copyBtn").addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText(resultsText()); toast("Results copied!"); }
-  catch(e){ toast("Copy failed — use Download instead."); }
+$("tab-budget").addEventListener("click", e=>{
+  const ec=e.target.closest("[data-editcat]"); if(ec){ catModal(catById(currentMonth, ec.dataset.editcat)); return; }
+  const dc=e.target.closest("[data-delcat]"); if(dc){
+    const c=catById(currentMonth,dc.dataset.delcat);
+    const n=spentByCat(currentMonth,dc.dataset.delcat);
+    if(n>0 && !confirm(`“${c.name}” has logged spending. Delete the category anyway? (Transactions stay but become uncategorized.)`)) return;
+    month().categories = month().categories.filter(x=>x.id!==dc.dataset.delcat);
+    save(); renderAll(); return;
+  }
+  const ei=e.target.closest("[data-editincome]"); if(ei){ incomeModal(month().income.find(i=>i.id===ei.dataset.editincome)); return; }
+  const di=e.target.closest("[data-delincome]"); if(di){ month().income=month().income.filter(i=>i.id!==di.dataset.delincome); save(); renderAll(); return; }
 });
-$("exportBtn").addEventListener("click", ()=>{
-  const blob = new Blob([resultsText()], {type:"text/plain"});
+
+// transactions
+$("addTxBtn").onclick = ()=>{
+  const type = $("txType").value;
+  const amount = Number($("txAmount").value)||0;
+  if(amount<=0){ toast("Enter an amount greater than 0."); return; }
+  if(type==="expense" && !month().categories.length){ toast("Add a budget category first."); setTab("budget"); return; }
+  const tx = {
+    id: uid(), type,
+    amount, catId: type==="income"? null : $("txCat").value,
+    memberId: $("txMember").value || (state.members[0]&&state.members[0].id),
+    date: $("txDate").value || todayISO(),
+    note: $("txNote").value.trim()
+  };
+  month().transactions.push(tx);
+  save();
+  $("txAmount").value=""; $("txNote").value="";
+  renderAll();
+  toast(type==="income"?"Income added.":"Expense logged.");
+};
+$("txType").onchange = ()=>{ $("txCat").parentElement.style.display = $("txType").value==="income"?"none":"block"; };
+$("txFilter").onchange = renderTransactions;
+$("tab-transactions").addEventListener("click", e=>{
+  const et=e.target.closest("[data-edittx]"); if(et){ txModal(month().transactions.find(t=>t.id===et.dataset.edittx)); return; }
+  const dt=e.target.closest("[data-deltx]"); if(dt){
+    if(!confirm("Delete this transaction?")) return;
+    month().transactions = month().transactions.filter(t=>t.id!==dt.dataset.deltx); save(); renderAll(); return;
+  }
+});
+
+// goals
+$("addGoalBtn").onclick = ()=> goalModal(null);
+$("tab-goals").addEventListener("click", e=>{
+  const eg=e.target.closest("[data-editgoal]"); if(eg){ goalModal(state.goals.find(g=>g.id===eg.dataset.editgoal)); return; }
+  const dg=e.target.closest("[data-delgoal]"); if(dg){ if(!confirm("Delete this goal?"))return; state.goals=state.goals.filter(g=>g.id!==dg.dataset.delgoal); save(); renderAll(); return; }
+  const ag=e.target.closest("[data-addgoal]"); if(ag){ addFundsModal(state.goals.find(g=>g.id===ag.dataset.addgoal)); return; }
+});
+
+// family
+$("addMemberBtn").onclick = ()=> memberModal(null);
+$("tab-family").addEventListener("click", e=>{
+  const em=e.target.closest("[data-editmember]"); if(em){ memberModal(memberById(em.dataset.editmember)); return; }
+  const dm=e.target.closest("[data-delmember]"); if(dm){
+    if(state.members.length<=1){ toast("Keep at least one member."); return; }
+    if(!confirm("Remove this member? Their past transactions stay but show as unassigned.")) return;
+    state.members = state.members.filter(m=>m.id!==dm.dataset.delmember); save(); renderAll(); return;
+  }
+});
+
+// settings
+$("setHouse").addEventListener("input", ()=>{ state.house = $("setHouse").value; save(); $("appTitle").textContent = state.house||"Family Budget"; });
+$("setCurrency").addEventListener("change", ()=>{ state.currency = $("setCurrency").value; save(); renderAll(); });
+$("exportBtn").onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="ncaa27-draft-order.txt"; a.click(); URL.revokeObjectURL(a.href);
+  a.download=`family-budget-backup-${todayISO()}.json`; a.click(); URL.revokeObjectURL(a.href);
+  toast("Backup downloaded.");
+};
+$("importBtn").onclick = ()=> $("importInput").click();
+$("importInput").addEventListener("change", e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const j=JSON.parse(rd.result);
+      if(!j || !j.months || !Array.isArray(j.members)) throw new Error("bad");
+      if(!confirm("Importing replaces all current data. Continue?")) return;
+      state=j; currentMonth = state.months[nowMonthKey()]?nowMonthKey():(Object.keys(state.months).sort().pop()||nowMonthKey());
+      month(); save(); renderAll(); toast("Backup imported.");
+    }catch(err){ toast("That file isn't a valid backup."); }
+    e.target.value="";
+  };
+  rd.readAsText(f);
 });
-$("restartBtn").addEventListener("click", startLottery);
-$("backToSetup").addEventListener("click", ()=>{
-  if(order.length && !finished && !confirm("Leave the draw in progress and edit teams?")) return;
-  $("lotteryView").classList.add("hidden");
-  $("setupView").classList.remove("hidden");
-  $("backToSetup").classList.add("hidden");
-  $("subline").textContent = "Commissioner control room";
-  renderTable(); renderBulk();
-});
+$("resetBtn").onclick = ()=>{
+  if(!confirm("Erase ALL budget data on this device? This can't be undone.")) return;
+  if(!confirm("Really sure? Consider exporting a backup first.")) return;
+  state = defaultState(); currentMonth = nowMonthKey(); month(); save(); renderAll(); setTab("dashboard"); toast("Everything reset.");
+};
+$("sampleBtn").onclick = ()=>{
+  if((month().categories.length || state.goals.length) && !confirm("Load sample data over your current setup?")) return;
+  loadSample(); save(); renderAll(); setTab("dashboard"); toast("Sample family loaded.");
+};
+
+// ===========================================================
+//  SAMPLE DATA
+// ===========================================================
+function loadSample(){
+  const mom = { id:uid(), name:"Jordan", color:MEMBER_COLORS[0], emoji:"👩" };
+  const dad = { id:uid(), name:"Sam", color:MEMBER_COLORS[1], emoji:"👨" };
+  const kid = { id:uid(), name:"Riley", color:MEMBER_COLORS[3], emoji:"👧" };
+  state.members = [mom, dad, kid];
+  state.house = "Our Family";
+  const mk = nowMonthKey(); currentMonth = mk;
+  const cats = [
+    { id:uid(), name:"Groceries", planned:800, type:"expense", emoji:"🛒", color:COLORS[0] },
+    { id:uid(), name:"Rent / Mortgage", planned:1900, type:"expense", emoji:"🏠", color:COLORS[1] },
+    { id:uid(), name:"Utilities", planned:280, type:"expense", emoji:"💡", color:COLORS[4] },
+    { id:uid(), name:"Transport", planned:320, type:"expense", emoji:"🚗", color:COLORS[6] },
+    { id:uid(), name:"Kids & School", planned:250, type:"expense", emoji:"🎓", color:COLORS[3] },
+    { id:uid(), name:"Fun & Dining", planned:400, type:"expense", emoji:"🎉", color:COLORS[8] },
+    { id:uid(), name:"Emergency Fund", planned:500, type:"saving", emoji:"🏦", color:COLORS[10] },
+  ];
+  const income = [
+    { id:uid(), source:"Jordan — Salary", amount:3600, member:mom.id },
+    { id:uid(), source:"Sam — Salary", amount:3100, member:dad.id },
+  ];
+  const day = n => `${mk}-${String(n).padStart(2,"0")}`;
+  const tx = [
+    { id:uid(), type:"expense", amount:132.40, catId:cats[0].id, memberId:mom.id, date:day(3), note:"Costco run" },
+    { id:uid(), type:"expense", amount:1900, catId:cats[1].id, memberId:dad.id, date:day(1), note:"Rent" },
+    { id:uid(), type:"expense", amount:88.15, catId:cats[2].id, memberId:dad.id, date:day(5), note:"Electric" },
+    { id:uid(), type:"expense", amount:54.00, catId:cats[3].id, memberId:mom.id, date:day(6), note:"Gas" },
+    { id:uid(), type:"expense", amount:64.99, catId:cats[5].id, memberId:kid.id, date:day(7), note:"Pizza night" },
+    { id:uid(), type:"expense", amount:210, catId:cats[0].id, memberId:mom.id, date:day(10), note:"Weekly groceries" },
+    { id:uid(), type:"expense", amount:45, catId:cats[4].id, memberId:dad.id, date:day(8), note:"School supplies" },
+  ];
+  state.months = {}; state.months[mk] = { income, categories:cats, transactions:tx };
+  state.goals = [
+    { id:uid(), name:"Summer Trip", target:4000, saved:1250, emoji:"✈️", color:COLORS[1] },
+    { id:uid(), name:"New Car Fund", target:12000, saved:3400, emoji:"🚗", color:COLORS[6] },
+    { id:uid(), name:"Emergency Fund", target:10000, saved:6500, emoji:"🛟", color:COLORS[0] },
+  ];
+}
 
 // ===========================================================
 //  TOAST + INIT
 // ===========================================================
 let toastT=null;
-function toast(msg){
-  const t=$("toast"); t.textContent=msg; t.classList.add("show");
-  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"), 2200);
-}
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2300); }
 
 function init(){
-  teams = loadTeams();
-  recolor();
-  renderBulk();
-  renderTable();
-  loadCommish();
-  renderCommish();
-  bindCommish();
+  state = load();
+  currentMonth = state.months[nowMonthKey()] ? nowMonthKey() : (Object.keys(state.months).sort().pop() || nowMonthKey());
+  month();
+  $("txDate").value = todayISO();
+  save();
+  renderAll();
 }
 init();
 </script>
