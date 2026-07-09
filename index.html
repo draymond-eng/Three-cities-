@@ -48,6 +48,16 @@
   .weeknav .wlabel{min-width:190px;text-align:center;font-weight:700;font-size:13.5px;color:var(--ink)}
   .weeknav .wsub{display:block;font-size:11px;color:var(--muted);font-weight:600}
 
+  /* segmented tabs */
+  .segtabs{display:flex;gap:5px;background:var(--line2);border-radius:13px;padding:4px;margin-bottom:14px}
+  .segtabs button{flex:1;border-radius:10px;padding:10px;font-size:13.5px;font-weight:700;color:var(--muted)}
+  .segtabs button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+  /* recurring toggle */
+  .tog2{position:relative;width:42px;height:24px;border-radius:999px;background:var(--good);flex:none;border:none}
+  .tog2.off{background:#CBD0D6}
+  .tog2::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
+  .tog2.off::after{left:20px}
+
   /* verdict hero */
   .hero{position:relative;background:linear-gradient(160deg,#12463c,#0E7C6B 60%,#12A08A);color:#fff;border-radius:22px;
     padding:22px 22px 20px;box-shadow:var(--shadow-lg);overflow:hidden;margin-bottom:14px}
@@ -232,6 +242,12 @@
     <button class="gear" id="gearBtn" title="Settings">⚙️</button>
   </header>
 
+  <div class="segtabs" id="tabs">
+    <button data-tab="home" class="on">🏠 This week</button>
+    <button data-tab="recurring">🔁 Recurring</button>
+  </div>
+
+  <div id="homeTab">
   <div class="weeknav">
     <button id="wPrev">‹</button>
     <div class="wlabel" id="wLabel">This week<span class="wsub" id="wSub">—</span></div>
@@ -272,6 +288,9 @@
     <span class="tag" id="envTag">tap to add a pull</span>
   </div>
   <div class="envs" id="envs"></div>
+  </div><!-- /homeTab -->
+
+  <div id="recurringTab" class="hidden"></div>
 </div>
 
 <!-- floating actions -->
@@ -357,12 +376,24 @@ const money=n=>{ const neg=n<0; n=Math.abs(Math.round(n)); return (neg?"-$":"$")
 const WEEKS_PER_MONTH=4.345;
 
 /* ---------- starter budget ---------- */
+function starterRecurring(){
+  const B=[["Mortgage","🏠",3350],["HOA","🏘️",240],["Childcare (nanny)","🍼",3800],
+    ["Car payment","🚗",579],["Insurance","🛡️",200],["Utilities","💡",280]];
+  let id=1; return B.map(([name,emoji,amount])=>({id:"r"+(id++),name,emoji,amount,autopay:true,paid:{}}));
+}
+function starterSubs(){
+  const L=[["Apple (App Store / iCloud)",229,"review"],["Nuuly",155,null],["GMACST.com",50,"dispute"],["GMRSHV.com",50,"dispute"],
+    ["FordPass / BlueCruise",50,null],["YouTube TV",75,null],["Amazon Prime Video channels",45,null],["ESPN+",43,null],
+    ["SimpliSafe",33,null],["NY Times",26,null],["HBO Max",25,null],["Spotify",23,null],["Perplexity",23,null],["Fathom",23,null],
+    ["Kindle Unlimited",20,null],["ClassPass",19,null],["Calendly",16,null],["Oura",15,null],["Uber One",15,null],
+    ["Washington Post",14,null],["Crain's Chicago",13,null],["Peacock",12,null],["TuneIn",11,null],["Amazon Prime",9,null],
+    ["X / Twitter",8,null],["Rocket Money",6,"review"],["Google One",2,null]];
+  let id=1; return L.map(([name,cost,flag])=>({id:"s"+(id++),name,cost,keep:true,flag}));
+}
 function starterBuckets(){
-  const NEEDS=[["Mortgage","🏠",3350],["HOA","🏘️",240],["Childcare (nanny)","🍼",3800],
-    ["Baby Cleo","👶",400],["George (dog)","🐕",150],["Utilities","💡",280],
-    ["Groceries","🛒",1300],["Car payment","🚗",579],["Insurance","🛡️",200],["Medical & health","🩺",750]];
+  const NEEDS=[["Groceries","🛒",1300],["Medical & health","🩺",750],["Baby Cleo","👶",400],["George (dog)","🐕",150]];
   const WANTS=[["Dining & takeout","🍽️",1200],["Shopping & retail","🛍️",1500],["Salon & personal","💇",300],
-    ["Travel","✈️",800],["Entertainment","🎬",500],["Subscriptions","📺",650],["Hobbies","⛳",600],["Rideshare & parking","🚕",450]];
+    ["Travel","✈️",800],["Entertainment","🎬",500],["Hobbies","⛳",600],["Rideshare & parking","🚕",450]];
   let id=1; const mk=(e,grp)=>e.map(([name,emoji,monthly])=>({id:"b"+(id++),name,emoji,monthly,bucket:grp}));
   return [...mk(NEEDS,"need"),...mk(WANTS,"want")];
 }
@@ -371,7 +402,7 @@ function baseState(){
     house:"The Washingtons",
     people:[{id:"dray",name:"Draymond",short:"D",color:"#2E6FB5"},{id:"alex",name:"Alexandria",short:"A",color:"#C2547E"}],
     settings:{salary:11700,gift:4167,other:0,savings:33000,goal:50000},
-    buckets:starterBuckets(), pulls:[],
+    buckets:starterBuckets(), recurring:starterRecurring(), subs:starterSubs(), pulls:[],
     ritual:{streak:0,lastCheckIn:null,badges:[],history:[]},
     viewWeek:weekKey(new Date()), setupDone:false
   };
@@ -385,13 +416,15 @@ function sampleState(){
     p(-1,"Dining","dray",64,"Pizza night"), p(-2,"Groceries","alex",148,"Costco"),
     p(-3,"Shopping","alex",210,"Kids clothes"), p(-4,"Rideshare","dray",38,"Airport"),
     p(-6,"Dining","alex",92,"Date night"), p(-9,"Groceries","dray",120,"Weekly run"),
-    p(-11,"Entertainment","dray",55,"Movies"), p(-1,"Mortgage","dray",3350,"July"),
+    p(-11,"Entertainment","dray",55,"Movies"),
     p(-2,"Baby Cleo","alex",78,"Diapers & wipes"), p(-5,"George","dray",64,"Dog food + vet")
   ];
   return s;
 }
 let S=loadRaw()||baseState();
 if(!S.viewWeek) S.viewWeek=weekKey(new Date());
+if(!S.recurring) S.recurring=[];
+if(!S.subs) S.subs=[];
 
 /* ---------- computed ---------- */
 function income(){ const s=S.settings; return (+s.salary||0)+(+s.gift||0)+(+s.other||0); }
@@ -496,6 +529,82 @@ function render(){
 /* ---------- week nav ---------- */
 $("wPrev").onclick=()=>{ S.viewWeek=weekKey(addDays(new Date(S.viewWeek),-7)); render(); };
 $("wNext").onclick=()=>{ const nx=weekKey(addDays(new Date(S.viewWeek),7)); if(nx<=weekKey(new Date())){S.viewWeek=nx;render();} };
+
+/* ---------- tabs ---------- */
+let activeTab="home";
+function setTab(t){
+  activeTab=t;
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  $("homeTab").classList.toggle("hidden",t!=="home");
+  $("recurringTab").classList.toggle("hidden",t!=="recurring");
+  if(t==="recurring") renderRecurring();
+}
+$("tabs").addEventListener("click",e=>{ const b=e.target.closest("button[data-tab]"); if(b) setTab(b.dataset.tab); });
+
+/* ---------- recurring tab ---------- */
+function recurringMonthly(){ return S.recurring.reduce((t,b)=>t+(+b.amount||0),0); }
+function subsKeepMonthly(){ return S.subs.filter(s=>s.keep).reduce((t,s)=>t+(+s.cost||0),0); }
+function renderRecurring(){
+  const mk=monthKey(new Date());
+  const fixed=recurringMonthly(), subsKeep=subsKeepMonthly(), inc=income(), total=fixed+subsKeep;
+  const el=$("recurringTab");
+  el.innerHTML=`
+    <section class="hero" style="background:linear-gradient(160deg,#1e2c3a,#33475c)">
+      <div class="glow"></div>
+      <div class="label">Fixed every month</div>
+      <div class="verdict" style="font-size:30px">${money(total)}<span style="font-size:15px;opacity:.8"> /mo</span></div>
+      <div class="vsub">${inc>0?Math.round(total/inc*100)+"% of your take-home is spoken for before a single envelope.":"Bills + subscriptions that just get paid."}</div>
+    </section>
+    <div class="sec"><h2>Bills</h2><span class="tag">${money(fixed)}/mo</span></div>
+    <div id="billList"></div>
+    <button class="linkbtn" id="addBill" style="margin:6px 2px">＋ Add a bill</button>
+    <div class="sec"><h2>Subscriptions</h2><span class="tag" id="subTag2"></span></div>
+    <div id="subList2"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:13px;font-weight:700;padding:0 2px">
+      <span>Keeping <span id="subKeepCt"></span> · <span id="subKeepAmt"></span>/mo</span>
+      <span style="color:var(--good)">Cutting saves <span id="subSaveAmt"></span>/yr</span>
+    </div>
+    <button class="linkbtn" id="addSub" style="margin:8px 2px 24px">＋ Add a subscription</button>`;
+  const bl=el.querySelector("#billList");
+  bl.innerHTML=S.recurring.length?S.recurring.map(b=>{
+    const paid=b.autopay||(b.paid&&b.paid[mk]);
+    return `<div class="setrow">
+      <span class="se">${b.emoji||"🧾"}</span>
+      <span class="sn">${b.name}<div class="sb">${b.autopay?"autopay":(paid?"paid this month":"due this month")}</div></span>
+      ${b.autopay?`<span class="ebadge" style="background:var(--good-soft);color:var(--good)">auto</span>`
+        :`<button class="ebadge" style="cursor:pointer;background:${paid?'var(--good-soft)':'var(--line2)'};color:${paid?'var(--good)':'var(--muted)'}" data-paid="${b.id}">${paid?"✓ paid":"mark paid"}</button>`}
+      <span class="num" style="font-weight:800;min-width:72px;text-align:right">${money(b.amount)}</span>
+      <button class="pdel" data-editbill="${b.id}" style="color:var(--faint)">✎</button>
+    </div>`;
+  }).join(""):`<div class="qcap" style="padding:10px 2px">No bills yet — add your fixed monthly ones.</div>`;
+  bl.querySelectorAll("[data-paid]").forEach(btn=>btn.onclick=()=>{ const b=S.recurring.find(x=>x.id===btn.dataset.paid); b.paid=b.paid||{}; b.paid[mk]=!b.paid[mk]; save(); renderRecurring(); });
+  bl.querySelectorAll("[data-editbill]").forEach(btn=>btn.onclick=()=>editBill(S.recurring.find(x=>x.id===btn.dataset.editbill)));
+  el.querySelector("#addBill").onclick=()=>editBill(null);
+  const sl=el.querySelector("#subList2");
+  sl.innerHTML=S.subs.map(s=>{
+    const fl=s.flag==="dispute"?`<span class="ebadge" style="background:var(--warn-soft);color:var(--warn)">dispute</span>`
+      :s.flag==="review"?`<span class="ebadge" style="background:var(--gold-soft);color:var(--gold)">review</span>`:"";
+    return `<div class="setrow">
+      <span class="sn" style="font-weight:600">${s.name} ${fl}</span>
+      <span class="num" style="color:var(--muted);min-width:52px;text-align:right">$${s.cost}</span>
+      <button class="tog2 ${s.keep?"":"off"}" data-sub="${s.id}"></button></div>`;
+  }).join("");
+  sl.querySelectorAll("[data-sub]").forEach(btn=>btn.onclick=()=>{ const s=S.subs.find(x=>x.id===btn.dataset.sub); s.keep=!s.keep; save(); renderRecurring(); });
+  el.querySelector("#subKeepCt").textContent=S.subs.filter(s=>s.keep).length;
+  el.querySelector("#subKeepAmt").textContent=money(subsKeep);
+  el.querySelector("#subSaveAmt").textContent=money(S.subs.filter(s=>!s.keep).reduce((t,s)=>t+s.cost*12,0));
+  el.querySelector("#subTag2").textContent=money(subsKeep)+"/mo";
+  el.querySelector("#addSub").onclick=()=>{ const name=prompt("Subscription name:"); if(!name)return; const cost=parseFloat(prompt("Monthly cost:","10"))||0; S.subs.push({id:"s"+Date.now(),name:name.trim(),cost,keep:true,flag:null}); save(); renderRecurring(); };
+}
+function editBill(bill){
+  const editing=!!bill;
+  const name=prompt(editing?"Bill name:":"New bill name:", editing?bill.name:""); if(name===null) return;
+  const amount=parseFloat(prompt("Monthly amount:", editing?bill.amount:"0"))||0;
+  const autopay=confirm("On autopay?  (OK = yes, Cancel = no)");
+  if(editing){ bill.name=name.trim()||bill.name; bill.amount=amount; bill.autopay=autopay; }
+  else { S.recurring.push({id:"r"+Date.now(),name:name.trim()||"Bill",emoji:"🧾",amount,autopay,paid:{}}); }
+  save(); renderRecurring();
+}
 
 /* ---------- sheets ---------- */
 function openSheet(el){ $("scrim").classList.add("show"); el.classList.add("show"); }
@@ -769,7 +878,7 @@ function renderSettings(){
 /* ============================================================
    ONBOARDING — "let's set our budget together"
    ============================================================ */
-let obStep=0; const OB_STEPS=5;
+let obStep=0; const OB_STEPS=6;
 function openOnboarding(){ obStep=0; renderOB(); $("ob").classList.add("show"); }
 function closeOnboarding(){ $("ob").classList.remove("show"); }
 function obBucketRows(grp){
@@ -780,7 +889,20 @@ function obBucketRows(grp){
       <input class="mini" data-obbud="${b.id}" value="${b.monthly}">
       <button class="pdel" data-obdel="${b.id}" style="color:var(--faint);font-size:15px">🗑</button></div>`).join("");
 }
-function obPlanned(){ return S.buckets.reduce((t,b)=>t+(+b.monthly||0),0); }
+function obBillRows(){
+  return S.recurring.map(b=>`
+    <div class="setrow"><span class="se">${b.emoji||"🧾"}</span>
+      <span class="sn">${b.name}</span>
+      <span style="color:var(--muted);font-weight:800">$</span>
+      <input class="mini" data-obbill="${b.id}" value="${b.amount}">
+      <button class="pdel" data-obbilldel="${b.id}" style="color:var(--faint);font-size:15px">🗑</button></div>`).join("");
+}
+function wireOBBills(scope){
+  scope.querySelectorAll("[data-obbill]").forEach(i=>i.addEventListener("input",e=>{ const b=S.recurring.find(x=>x.id===e.target.dataset.obbill); b.amount=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; }));
+  scope.querySelectorAll("[data-obbilldel]").forEach(btn=>btn.onclick=()=>{ S.recurring=S.recurring.filter(x=>x.id!==btn.dataset.obbilldel); renderOB(); });
+  const add=scope.querySelector("[data-obaddbill]"); if(add) add.onclick=()=>{ const name=prompt("Bill name:"); if(!name)return; const amount=parseFloat(prompt("Monthly amount:","200"))||0; S.recurring.push({id:"r"+Date.now(),name:name.trim(),emoji:"🧾",amount,autopay:true,paid:{}}); renderOB(); };
+}
+function obPlanned(){ return S.buckets.reduce((t,b)=>t+(+b.monthly||0),0)+recurringMonthly()+subsKeepMonthly(); }
 function renderOB(){
   $("obProg").style.width=((obStep+1)/OB_STEPS*100)+"%";
   const body=$("obBody"), foot=$("obFoot");
@@ -815,8 +937,19 @@ function renderOB(){
   }
   else if(obStep===2){
     body.innerHTML=`<div class="step">
-      <div class="kicker">Step 2 · Your envelopes</div>
-      <h2 class="mnt">What do you spend on?</h2>
+      <div class="kicker">Step 2 · Fixed bills</div>
+      <h2 class="mnt">Your recurring bills</h2>
+      <p class="mnp">Set-and-forget stuff — mortgage, childcare, insurance. These aren't weekly envelopes; they just get paid. Set the monthly amounts.</p>
+      <div id="obBills">${obBillRows()}</div>
+      <button class="linkbtn" data-obaddbill>＋ Add a bill</button>
+    </div>`;
+    wireOBBills(body);
+    foot.innerHTML=`<button class="primary" id="obNext">Next: envelopes →</button>`;
+  }
+  else if(obStep===3){
+    body.innerHTML=`<div class="step">
+      <div class="kicker">Step 3 · Your envelopes</div>
+      <h2 class="mnt">What do you steer week to week?</h2>
       <p class="mnp">These monthly budgets are the cash that fills each envelope. Adjust the numbers together, remove what doesn't fit, add your own.</p>
       <div class="subhd">Needs — the non-negotiables</div>
       <div id="obNeeds">${obBucketRows("need")}</div>
@@ -828,10 +961,10 @@ function renderOB(){
     wireOBBuckets(body);
     foot.innerHTML=`<button class="primary" id="obNext">Next: income →</button>`;
   }
-  else if(obStep===3){
+  else if(obStep===4){
     const s=S.settings;
     body.innerHTML=`<div class="step">
-      <div class="kicker">Step 3 · Money in & cushion</div>
+      <div class="kicker">Step 4 · Money in & cushion</div>
       <h2 class="mnt">Income & savings</h2>
       <p class="mnp">Take-home cash that actually lands each month — not gross.</p>
       <label class="fld">Salary — take-home / mo</label><input class="in" data-set="salary" value="${s.salary}" inputmode="decimal">
@@ -845,7 +978,7 @@ function renderOB(){
     obBalanceLine();
     foot.innerHTML=`<button class="primary money" id="obNext">Looks good →</button>`;
   }
-  else if(obStep===4){
+  else if(obStep===5){
     body.innerHTML=`<div class="step" style="text-align:center">
       <div class="bigemoji">🎉</div>
       <div class="kicker">All set</div>
