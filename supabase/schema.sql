@@ -46,7 +46,7 @@ declare h households;
 begin
   insert into households(name, join_code)
     values (coalesce(nullif(p_name,''),'Our Family'),
-            upper(encode(gen_random_bytes(4),'hex')))   -- 8-char code, ~4.3B combos
+            upper(substring(replace(gen_random_uuid()::text,'-','') for 8)))  -- 8-char code, ~4.3B combos
     returning * into h;
   insert into household_members(household_id, user_id) values (h.id, auth.uid());
   return h;
