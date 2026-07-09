@@ -29,7 +29,7 @@
   *{box-sizing:border-box}
   html,body{margin:0}
   body{background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
-    padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+    padding-bottom:calc(20px + env(safe-area-inset-bottom))}
   .num{font-family:"Bricolage Grotesque",Inter,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
   .wrap{max-width:1020px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px 16px}
   button{font-family:inherit;cursor:pointer;border:none;background:none}
@@ -118,10 +118,9 @@
   .env .whopull{display:flex;gap:3px;margin-top:8px;min-height:8px}
   .env .whopull i{height:5px;border-radius:3px;display:block}
 
-  /* floating actions */
-  .fab{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
-    background:linear-gradient(180deg,transparent,var(--paper) 34%);display:flex;gap:10px;max-width:1020px;margin:0 auto;z-index:30}
-  .fab .btn{flex:1;border-radius:14px;padding:15px;font-size:15px;font-weight:700;box-shadow:var(--shadow)}
+  /* action bar (in normal flow, sits at the end of the page) */
+  .fab{display:flex;gap:10px;margin:22px 0 6px}
+  .fab .btn{flex:1;border-radius:14px;padding:16px;font-size:15px;font-weight:700;box-shadow:var(--shadow)}
   .btn.dark{background:var(--ink);color:#fff}
   .btn.dark:active{transform:translateY(1px)}
   .btn.money{background:linear-gradient(180deg,var(--good2),var(--good));color:#fff}
@@ -271,7 +270,7 @@
   .skipbtn{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:11px;padding:9px 16px;font-weight:700;font-size:13px}
 
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
-  .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(30px);
+  .toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(30px);
     background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:95;box-shadow:var(--shadow-lg)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -348,15 +347,14 @@
     <span class="tag" id="envTag">tap to add a pull</span>
   </div>
   <div class="envs" id="envs"></div>
+
+  <div class="fab">
+    <button class="btn light" id="addPullBtn" title="Add a pull">＋</button>
+    <button class="btn money" id="moneyNightBtn">🎬 Start Money Night</button>
+  </div>
   </div><!-- /homeTab -->
 
   <div id="recurringTab" class="hidden"></div>
-</div>
-
-<!-- floating actions -->
-<div class="fab">
-  <button class="btn light" id="addPullBtn" title="Add a pull">＋</button>
-  <button class="btn money" id="moneyNightBtn">🎬 Start Money Night</button>
 </div>
 
 <!-- ADD PULL SHEET -->
@@ -455,31 +453,25 @@ function monthLabel(mk){ const[y,m]=mk.split("-"); return new Date(y,m-1,1).toLo
 const money=n=>{ const neg=n<0; n=Math.abs(Math.round(n)); return (neg?"-$":"$")+n.toLocaleString(); };
 const WEEKS_PER_MONTH=4.345;
 
-/* ---------- starter budget ---------- */
+/* ---------- starter budget (generic defaults — no personal figures baked in) ---------- */
 function starterRecurring(){
-  const B=[["Mortgage","🏠",3350],["HOA","🏘️",240],["Childcare (nanny)","🍼",3800],
-    ["Car payment","🚗",579],["Insurance","🛡️",200],["Utilities","💡",280]];
+  const B=[["Rent / Mortgage","🏠",1500],["Utilities","💡",150],["Car payment","🚗",300],["Insurance","🛡️",120],["Phone & internet","📱",100]];
   let id=1; return B.map(([name,emoji,amount])=>({id:"r"+(id++),name,emoji,amount,autopay:true,paid:{}}));
 }
 function starterSubs(){
-  const L=[["Apple (App Store / iCloud)",229,"review"],["Nuuly",155,null],["GMACST.com",50,"dispute"],["GMRSHV.com",50,"dispute"],
-    ["FordPass / BlueCruise",50,null],["YouTube TV",75,null],["Amazon Prime Video channels",45,null],["ESPN+",43,null],
-    ["SimpliSafe",33,null],["NY Times",26,null],["HBO Max",25,null],["Spotify",23,null],["Perplexity",23,null],["Fathom",23,null],
-    ["Kindle Unlimited",20,null],["ClassPass",19,null],["Calendly",16,null],["Oura",15,null],["Uber One",15,null],
-    ["Washington Post",14,null],["Crain's Chicago",13,null],["Peacock",12,null],["TuneIn",11,null],["Amazon Prime",9,null],
-    ["X / Twitter",8,null],["Rocket Money",6,"review"],["Google One",2,null]];
+  const L=[["Streaming TV",20,null],["Music",12,null],["Cloud storage",3,null],["News",10,null]];
   let id=1; return L.map(([name,cost,flag])=>({id:"s"+(id++),name,cost,keep:true,flag}));
 }
 function starterBuckets(){
-  const NEEDS=[["Groceries","🛒",1300],["Medical & health","🩺",750],["Baby Cleo","👶",400],["George (dog)","🐕",150]];
-  const WANTS=[["Dining & takeout","🍽️",1200],["Shopping & retail","🛍️",1500],["Salon & personal","💇",300],
-    ["Travel","✈️",800],["Entertainment","🎬",500],["Hobbies","⛳",600],["Rideshare & parking","🚕",450]];
+  const NEEDS=[["Groceries","🛒",400],["Medical & health","🩺",150],["Baby Cleo","👶",200],["George (dog)","🐕",100]];
+  const WANTS=[["Dining & takeout","🍽️",250],["Shopping & retail","🛍️",200],["Salon & personal","💇",80],
+    ["Travel","✈️",150],["Entertainment","🎬",100],["Hobbies","⛳",100],["Rideshare & parking","🚕",80]];
   let id=1; const mk=(e,grp)=>e.map(([name,emoji,monthly])=>({id:"b"+(id++),name,emoji,monthly,bucket:grp}));
   return [...mk(NEEDS,"need"),...mk(WANTS,"want")];
 }
 function baseState(){
   return {
-    house:"The Washingtons",
+    house:"Our Family",
     people:[
       {id:"dray",name:"Draymond",short:"D",color:"#2E6FB5"},
       {id:"alex",name:"Alexandria",short:"A",color:"#C2547E"},
@@ -487,7 +479,7 @@ function baseState(){
       {id:"george",name:"George",short:"🐕",color:"#5AA0A6"},
       {id:"family",name:"Family",short:"👪",color:"#8267C9"}
     ],
-    settings:{salary:11700,gift:4167,other:0,savings:33000,goal:50000},
+    settings:{salary:0,gift:0,other:0,savings:0,goal:10000},
     buckets:starterBuckets(), recurring:starterRecurring(), subs:starterSubs(), pulls:[],
     merchantRules:{}, whoRules:{},
     ritual:{streak:0,lastCheckIn:null,badges:[],history:[]},
@@ -495,7 +487,8 @@ function baseState(){
   };
 }
 function sampleState(){
-  const s=baseState(); s.setupDone=true;
+  const s=baseState(); s.setupDone=true; s.house="The Sample Family";
+  s.settings={salary:6000,gift:0,other:0,savings:12000,goal:20000};
   const today=new Date();
   const bid=n=>s.buckets.find(b=>b.name.startsWith(n)).id;
   let id=1; const p=(days,bn,who,amt,note)=>({id:"sp"+(id++),date:iso(addDays(today,days)),bucketId:bid(bn),who,amount:amt,note});
