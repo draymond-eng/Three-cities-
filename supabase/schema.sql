@@ -46,20 +46,26 @@ declare h households;
 begin
   insert into households(name, join_code)
     values (coalesce(nullif(p_name,''),'Our Family'),
-            upper(substring(replace(gen_random_uuid()::text,'-','') for 6)))
+            upper(encode(gen_random_bytes(4),'hex')))   -- 8-char code, ~4.3B combos
     returning * into h;
   insert into household_members(household_id, user_id) values (h.id, auth.uid());
   return h;
 end $$;
 
+-- Join by code, but cap the household at 2 members: once both partners are
+-- in, no one else can join even with the code.
 create or replace function join_household(p_code text)
 returns households language plpgsql security definer set search_path = public as $$
-declare h households;
+declare h households; cnt int;
 begin
   select * into h from households where join_code = upper(p_code);
   if h.id is null then raise exception 'No household with that code'; end if;
-  insert into household_members(household_id, user_id) values (h.id, auth.uid())
-    on conflict do nothing;
+  if exists(select 1 from household_members where household_id=h.id and user_id=auth.uid()) then
+    return h;  -- already a member
+  end if;
+  select count(*) into cnt from household_members where household_id=h.id;
+  if cnt >= 2 then raise exception 'This household is full'; end if;
+  insert into household_members(household_id, user_id) values (h.id, auth.uid());
   return h;
 end $$;
 

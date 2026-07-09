@@ -342,7 +342,7 @@
 
   <button class="importcard" id="importOpen">
     <div class="ie">📄</div>
-    <div class="it"><b>Import this week's card</b><span id="importSub">Drop in your Chase statement — swipe who spent what</span></div>
+    <div class="it"><b>Import this week's spending</b><span id="importSub">Card, bank, or Venmo/Cash App export — swipe who spent what</span></div>
     <div class="arrow">→</div>
   </button>
 
@@ -1285,8 +1285,8 @@ function renderImport(){
     b.innerHTML=`<div class="impscroll">
       <div class="dropzone">
         <div class="big">🧾</div>
-        <h3>Drop in this week's card</h3>
-        <p>Upload your Chase statement (PDF) or a CSV export. It's read right here on your device — nothing leaves your phone.</p>
+        <h3>Drop in this week's spending</h3>
+        <p>Upload a statement or export — your Chase card, bank account, or Venmo/Cash App (PDF or CSV). It's read right here on your device — nothing leaves your phone. Tip: skip transfers and card payments so nothing's double-counted.</p>
         <div class="srcbtns"><button class="primary money" id="impPick" style="width:auto;margin:0">Choose file</button></div>
       </div>
       <p class="mnp" style="text-align:center;margin-top:16px">…or paste the transactions</p>
@@ -1335,7 +1335,7 @@ function parseText(text){
 function parseCSV(text){
   const lines=text.split(/\r?\n/).filter(l=>l.trim());
   const head=splitCSV(lines[0]).map(h=>h.toLowerCase().trim());
-  const di=head.findIndex(h=>/date/.test(h)), ai=head.findIndex(h=>/amount/.test(h)), mi=head.findIndex(h=>/descrip|merchant|name|payee/.test(h));
+  const di=head.findIndex(h=>/date/.test(h)), ai=head.findIndex(h=>/amount/.test(h)), mi=head.findIndex(h=>/descrip|merchant|name|payee|note|memo/.test(h));
   const out=[];
   for(let i=1;i<lines.length;i++){ const c=splitCSV(lines[i]); if(c.length<2)continue;
     let amt=parseFloat((c[ai]||"").replace(/[^0-9.\-]/g,"")); if(isNaN(amt))continue;
