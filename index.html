@@ -484,7 +484,8 @@ function baseState(){
       {id:"dray",name:"Draymond",short:"D",color:"#2E6FB5"},
       {id:"alex",name:"Alexandria",short:"A",color:"#C2547E"},
       {id:"cleo",name:"Cleo",short:"C",color:"#E8A22E"},
-      {id:"george",name:"George",short:"🐕",color:"#5AA0A6"}
+      {id:"george",name:"George",short:"🐕",color:"#5AA0A6"},
+      {id:"family",name:"Family",short:"👪",color:"#8267C9"}
     ],
     settings:{salary:11700,gift:4167,other:0,savings:33000,goal:50000},
     buckets:starterBuckets(), recurring:starterRecurring(), subs:starterSubs(), pulls:[],
@@ -523,6 +524,7 @@ function ensureShape(s){
   // ensure the four attribution targets exist (older saves had 2)
   if(!s.people.find(p=>p.id==="cleo")) s.people.push({id:"cleo",name:"Cleo",short:"C",color:"#E8A22E"});
   if(!s.people.find(p=>p.id==="george")) s.people.push({id:"george",name:"George",short:"🐕",color:"#5AA0A6"});
+  if(!s.people.find(p=>p.id==="family")) s.people.push({id:"family",name:"Family",short:"👪",color:"#8267C9"});
   return s;
 }
 let S=ensureShape(loadRaw()||baseState());
@@ -1032,7 +1034,7 @@ function renderOB(){
       <label class="fld">Household name</label>
       <input class="in" id="obHouse" value="${S.house.replace(/"/g,'&quot;')}">
       <label class="fld">The two of you (tagged on every purchase)</label>
-      ${S.people.map(p=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      ${S.people.filter(p=>p.id==="dray"||p.id==="alex").map(p=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         <span style="width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;background:${p.color}">${p.short}</span>
         <input class="in" data-person="${p.id}" value="${p.name.replace(/"/g,'&quot;')}"></div>`).join("")}
       <p class="mnp" style="margin-top:12px">Baby Cleo and George get their own envelopes on the next screen 🍼🐕</p>
@@ -1252,6 +1254,7 @@ function renderDeck(){
       <button class="envchip" data-envpick="${k}">${bk?bk.emoji+" "+bk.name:"🏷️ Pick envelope"} <span class="chg">change</span></button>`;
     deck.appendChild(card);
   }
+  $("nameTargets").style.gridTemplateColumns="repeat("+S.people.length+",1fr)";
   $("nameTargets").innerHTML=S.people.map(p=>`<button class="nametarget" data-assign="${p.id}" style="background:${p.color}"><span class="av">${p.short}</span>${p.name.split(" ")[0]}</button>`).join("");
   $("nameTargets").querySelectorAll("[data-assign]").forEach(btn=>btn.onclick=()=>assignTop(btn.dataset.assign));
   $("skipCard").onclick=advance;
@@ -1265,7 +1268,7 @@ function assignTop(personId){
   S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),date:t.date,bucketId:t.bucketId,who:personId,amount:t.amount,note:t.merchant.slice(0,40),source:"import"});
   const key=merchantKey(t.merchant); S.merchantRules[key]=t.bucketId; S.whoRules[key]=personId;
   impAdded++; save();
-  const c=topCard(); const p=S.people.findIndex(x=>x.id===personId); const dir=(p-1.5)/1.5;
+  const c=topCard(); const p=S.people.findIndex(x=>x.id===personId); const n=S.people.length; const dir=n>1?(p-(n-1)/2)/((n-1)/2):0;
   if(c){ c.classList.add("gone"); c.style.transform=`translate(${dir*140}%,-55%) rotate(${dir*16}deg)`; c.style.opacity="0"; }
   setTimeout(advance,300);
 }
