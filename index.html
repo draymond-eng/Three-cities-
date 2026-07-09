@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#0E7C6B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Money Night">
+<meta name="apple-mobile-web-app-title" content="Klepcake">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>Money Night — The Washingtons</title>
+<title>Klepcake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -236,7 +236,7 @@
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <div class="eyebrow">Money Night</div>
+      <div class="eyebrow">🍰 Klepcake</div>
       <h1 id="houseTitle">The Washingtons</h1>
     </div>
     <button class="gear" id="gearBtn" title="Settings">⚙️</button>
@@ -350,7 +350,8 @@
 <script>
 "use strict";
 /* ============================================================
-   MONEY NIGHT — The Washingtons' weekly envelope budget
+   KLEPCAKE — the family's weekly envelope budget
+   ("Money Night" is the Sunday ritual inside the app.)
    Single-file PWA. Data local-first (localStorage).
    ============================================================ */
 const $=id=>document.getElementById(id);
@@ -861,7 +862,7 @@ function renderSettings(){
   };
   b.querySelector("#exportBtn").onclick=()=>{
     const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="money-night-"+iso(new Date())+".json"; a.click();
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="klepcake-"+iso(new Date())+".json"; a.click();
     toast("Backup downloaded");
   };
   b.querySelector("#importBtn").onclick=()=>b.querySelector("#fileIn").click();
@@ -909,7 +910,7 @@ function renderOB(){
   if(obStep===0){
     body.innerHTML=`<div class="step" style="text-align:center">
       <div class="bigemoji">👪</div>
-      <div class="kicker">Welcome to Money Night</div>
+      <div class="kicker">Welcome to Klepcake 🍰</div>
       <h2 class="mnt">Let's set your budget — together</h2>
       <p class="mnp">Grab ${S.people[1]?S.people[1].name.split(" ")[0]:"each other"} and ten minutes. You'll build your envelopes and set what each one holds every month. After that: upload the card Saturday night, and Sunday is Money Night. 💵</p>
     </div>`;
@@ -1006,7 +1007,7 @@ function wireOBBuckets(scope){
   });
 }
 function obNextFn(){
-  if(obStep===OB_STEPS-1){ S.setupDone=true; save(); closeOnboarding(); render(); burst(); toast("Budget set — welcome to Money Night!"); return; }
+  if(obStep===OB_STEPS-1){ S.setupDone=true; save(); closeOnboarding(); render(); burst(); toast("Budget set — welcome to Klepcake! 🍰"); return; }
   save(); obStep++; renderOB();
 }
 

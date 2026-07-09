@@ -1,7 +1,7 @@
-/* Money Night — service worker
+/* Klepcake — service worker
    Network-first for the app shell (so updates land fast), cache fallback
    for offline. Bump CACHE when you ship a new version. */
-const CACHE = "money-night-v1";
+const CACHE = "klepcake-v1";
 const ASSETS = [
   "./",
   "./index.html",

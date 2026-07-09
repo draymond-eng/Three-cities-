@@ -1,7 +1,7 @@
 {
-  "name": "Money Night — The Washingtons",
-  "short_name": "Money Night",
-  "description": "Weekly envelope budgeting for the family — pull from your envelopes, keep the streak, rebuild the cushion.",
+  "name": "Klepcake",
+  "short_name": "Klepcake",
+  "description": "The family's weekly envelope budget — upload the card, swipe who spent what, keep the streak, rebuild the cushion.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
