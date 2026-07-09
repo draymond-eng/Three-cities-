@@ -1604,6 +1604,14 @@ async function cloudJoinHousehold(code){
   await refreshJoinCode();
   await cloudPull(); subscribeRealtime(); updateSyncUI(); return null;
 }
+function newJoinCode(){ const cs="ABCDEFGHJKMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<8;i++) s+=cs[Math.floor(Math.random()*cs.length)]; return s; }
+async function rotateCode(){
+  if(!CLOUD.householdId) return;
+  const code=newJoinCode();
+  const { error }=await CLOUD.sb.from("households").update({ join_code:code }).eq("id",CLOUD.householdId);
+  if(error){ toast(error.message); return; }
+  CLOUD.joinCode=code; updateSyncUI(); renderSyncSheet(); toast("New secure code set 🔒");
+}
 async function cloudSignOut(){ try{ if(CLOUD.channel) CLOUD.sb.removeChannel(CLOUD.channel); await CLOUD.sb.auth.signOut(); }catch(e){} CLOUD.user=null; CLOUD.householdId=null; CLOUD.channel=null; updateSyncUI(); renderSyncSheet(); }
 
 /* ---- sync UI ---- */
@@ -1627,8 +1635,10 @@ function renderSyncSheet(){
       <div style="display:flex;gap:8px"><input class="in" id="jc" value="${CLOUD.joinCode||""}" readonly style="font-family:ui-monospace;font-size:20px;text-align:center;letter-spacing:3px">
       <button class="primary" style="width:auto;margin:0" id="copyJC">Copy</button></div>
       <p class="mnp" style="margin-top:10px">On her phone: open Klepcake → Settings → Sync → “Join with a code” → enter this.</p>
+      <button class="ghostbtn" id="newCodeBtn">🔄 Generate a new code</button>
       <button class="ghostbtn" id="signOutBtn" style="color:var(--warn)">Sign out</button>`;
     $("copyJC").onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText(CLOUD.joinCode); toast("Code copied"); };
+    $("newCodeBtn").onclick=rotateCode;
     $("signOutBtn").onclick=cloudSignOut;
     return;
   }
