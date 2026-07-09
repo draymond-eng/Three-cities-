@@ -417,6 +417,15 @@
 <canvas id="confetti"></canvas>
 <div class="toast" id="toast"></div>
 
+<!-- SYNC — sign in & join household -->
+<div class="sheet" id="syncSheet">
+  <div class="grab"></div>
+  <div class="shead"><h3>☁️ Sync across devices</h3><button class="x" data-close>✕</button></div>
+  <div class="sbody" id="syncBody"></div>
+</div>
+
+<script src="klepcake-config.js"></script>
+<script src="vendor/supabase.js"></script>
 <script>
 "use strict";
 /* ============================================================
@@ -429,7 +438,7 @@ const KEY="money-night:v1";
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} cloudPush(); }
 function loadRaw(){ try{ const r=localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
 
 /* ---------- date helpers ---------- */
@@ -498,15 +507,25 @@ function sampleState(){
   ];
   return s;
 }
-let S=loadRaw()||baseState();
-if(!S.viewWeek) S.viewWeek=weekKey(new Date());
-if(!S.recurring) S.recurring=[];
-if(!S.subs) S.subs=[];
-if(!S.merchantRules) S.merchantRules={};
-if(!S.whoRules) S.whoRules={};
-// ensure the four attribution targets exist (older saves had 2)
-if(!S.people.find(p=>p.id==="cleo")) S.people.push({id:"cleo",name:"Cleo",short:"C",color:"#E8A22E"});
-if(!S.people.find(p=>p.id==="george")) S.people.push({id:"george",name:"George",short:"🐕",color:"#5AA0A6"});
+function ensureShape(s){
+  s=s||{};
+  if(!s.house) s.house="Our Family";
+  if(!s.settings) s.settings={salary:0,gift:0,other:0,savings:0,goal:50000};
+  if(!Array.isArray(s.people)||!s.people.length) s.people=baseState().people;
+  if(!Array.isArray(s.buckets)) s.buckets=[];
+  if(!Array.isArray(s.recurring)) s.recurring=[];
+  if(!Array.isArray(s.subs)) s.subs=[];
+  if(!Array.isArray(s.pulls)) s.pulls=[];
+  if(!s.merchantRules) s.merchantRules={};
+  if(!s.whoRules) s.whoRules={};
+  if(!s.ritual) s.ritual={streak:0,lastCheckIn:null,badges:[],history:[]};
+  if(!s.viewWeek) s.viewWeek=weekKey(new Date());
+  // ensure the four attribution targets exist (older saves had 2)
+  if(!s.people.find(p=>p.id==="cleo")) s.people.push({id:"cleo",name:"Cleo",short:"C",color:"#E8A22E"});
+  if(!s.people.find(p=>p.id==="george")) s.people.push({id:"george",name:"George",short:"🐕",color:"#5AA0A6"});
+  return s;
+}
+let S=ensureShape(loadRaw()||baseState());
 
 /* ---------- computed ---------- */
 function income(){ const s=S.settings; return (+s.salary||0)+(+s.gift||0)+(+s.other||0); }
@@ -894,6 +913,11 @@ $("gearBtn").onclick=()=>{ renderSettings(); openSheet($("setSheet")); };
 function renderSettings(){
   const b=$("setBody"); const s=S.settings;
   b.innerHTML=`
+    <button class="importcard" id="openSyncBtn" style="margin-bottom:16px">
+      <div class="ie">☁️</div>
+      <div class="it"><b id="syncTitle">Sync across devices</b><span id="syncSub">Sign in so you & Alexandria share one household</span></div>
+      <div class="arrow">→</div>
+    </button>
     <div class="subhd">Income (take-home cash / month)</div>
     <div class="setrow"><span class="se">💼</span><span class="sn">Salary — take-home</span><input class="mini" data-s="salary" value="${s.salary}"></div>
     <div class="setrow"><span class="se">🎁</span><span class="sn">Family gift (50k ÷ 12)</span><input class="mini" data-s="gift" value="${s.gift}"></div>
@@ -955,6 +979,8 @@ function renderSettings(){
   b.querySelector("#resetBtn").onclick=()=>{ if(!confirm("Erase everything on this device?"))return; if(!confirm("Really sure? Export a backup first if unsure."))return; S=baseState(); save(); closeSheets(); render(); openOnboarding(); toast("Reset — let's set up fresh"); };
   b.querySelector("#sampleBtn").onclick=()=>{ if(!confirm("Reload the sample data? Replaces current."))return; S=sampleState(); save(); closeSheets(); render(); toast("Sample loaded"); };
   b.querySelector("#redoSetup").onclick=()=>{ closeSheets(); openOnboarding(); };
+  b.querySelector("#openSyncBtn").onclick=openSync;
+  updateSyncUI();
 }
 
 /* ============================================================
@@ -1297,9 +1323,147 @@ function confLoop(){
 let toastT=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2000); }
 
+/* ============================================================
+   CLOUD SYNC (Supabase) — optional, local-first
+   ============================================================ */
+const CLOUD={ on:false, sb:null, user:null, householdId:null, joinCode:null, channel:null, pushT:null, applying:false };
+function cloudInit(){
+  CLOUD.on = !!(window.KLEPCAKE_SUPABASE_URL && window.KLEPCAKE_SUPABASE_ANON_KEY && window.supabase);
+  if(!CLOUD.on) return;
+  try{
+    CLOUD.sb = window.supabase.createClient(window.KLEPCAKE_SUPABASE_URL, window.KLEPCAKE_SUPABASE_ANON_KEY,
+      { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } });
+  }catch(e){ CLOUD.on=false; return; }
+  CLOUD.sb.auth.getSession().then(({data})=>{ if(data&&data.session) onSignedIn(data.session.user); else updateSyncUI(); });
+  CLOUD.sb.auth.onAuthStateChange((_e,session)=>{ if(session&&session.user){ if(!CLOUD.user) onSignedIn(session.user); } else { CLOUD.user=null; CLOUD.householdId=null; updateSyncUI(); } });
+}
+async function onSignedIn(user){
+  CLOUD.user=user;
+  try{
+    const { data:mem } = await CLOUD.sb.from("household_members").select("household_id").limit(1);
+    if(mem&&mem.length){ CLOUD.householdId=mem[0].household_id; await cloudPull(); subscribeRealtime(); }
+  }catch(e){}
+  updateSyncUI(); if(typeof renderSyncSheet==="function"&&$("syncSheet").classList.contains("show")) renderSyncSheet();
+}
+function applyRemote(data){
+  if(!data) return;
+  CLOUD.applying=true;
+  S=ensureShape(data);
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  CLOUD.applying=false;
+  if(S.setupDone) closeOnboarding();
+  render(); if(activeTab==="recurring") renderRecurring();
+}
+async function cloudPull(){
+  if(!CLOUD.householdId) return;
+  try{
+    const { data } = await CLOUD.sb.from("households").select("data,join_code").eq("id",CLOUD.householdId).single();
+    if(data){ CLOUD.joinCode=data.join_code; if(data.data && Object.keys(data.data).length) applyRemote(data.data); }
+  }catch(e){}
+}
+function cloudPush(){
+  if(!CLOUD.on||!CLOUD.householdId||CLOUD.applying) return;
+  clearTimeout(CLOUD.pushT);
+  CLOUD.pushT=setTimeout(async()=>{ try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); }catch(e){} }, 800);
+}
+function subscribeRealtime(){
+  if(!CLOUD.householdId) return;
+  if(CLOUD.channel){ try{ CLOUD.sb.removeChannel(CLOUD.channel); }catch(e){} }
+  CLOUD.channel=CLOUD.sb.channel("hh-"+CLOUD.householdId)
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"households",filter:"id=eq."+CLOUD.householdId},
+      p=>{ if(p.new&&p.new.data) applyRemote(p.new.data); })
+    .subscribe();
+}
+async function cloudCreateHousehold(){
+  const { data, error } = await CLOUD.sb.rpc("create_household",{ p_name:S.house });
+  if(error) return error.message;
+  CLOUD.householdId=data.id; CLOUD.joinCode=data.join_code;
+  try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); }catch(e){}
+  subscribeRealtime(); updateSyncUI(); return null;
+}
+async function cloudJoinHousehold(code){
+  const { data, error } = await CLOUD.sb.rpc("join_household",{ p_code:(code||"").trim() });
+  if(error) return error.message;
+  CLOUD.householdId=data.id; CLOUD.joinCode=data.join_code;
+  await cloudPull(); subscribeRealtime(); updateSyncUI(); return null;
+}
+async function cloudSignOut(){ try{ if(CLOUD.channel) CLOUD.sb.removeChannel(CLOUD.channel); await CLOUD.sb.auth.signOut(); }catch(e){} CLOUD.user=null; CLOUD.householdId=null; CLOUD.channel=null; updateSyncUI(); renderSyncSheet(); }
+
+/* ---- sync UI ---- */
+let syncEmail="", syncSent=false;
+function openSync(){ if(!CLOUD.on){ toast("Cloud sync isn't configured"); return; } syncSent=false; renderSyncSheet(); openSheet($("syncSheet")); }
+function updateSyncUI(){
+  const t=$("syncTitle"), s=$("syncSub");
+  if(!t) return;
+  if(!CLOUD.on){ t.textContent="Sync unavailable"; s.textContent="Cloud keys not set"; return; }
+  if(CLOUD.householdId){ t.textContent="✓ Synced across devices"; s.textContent="Code "+(CLOUD.joinCode||"—")+" · tap to manage"; }
+  else if(CLOUD.user){ t.textContent="Signed in — finish setup"; s.textContent="Create or join your household"; }
+  else { t.textContent="Sync across devices"; s.textContent="Sign in so you & Alexandria share one household"; }
+}
+function renderSyncSheet(){
+  const b=$("syncBody");
+  if(!CLOUD.on){ b.innerHTML=`<p class="mnp">Cloud sync isn't configured on this build.</p>`; return; }
+  if(CLOUD.householdId){
+    b.innerHTML=`
+      <div class="okcard" style="margin-bottom:14px">✓ You're synced. Changes on any phone show up on the others.</div>
+      <label class="fld">Your household code — share it with ${S.people[1]?S.people[1].name.split(" ")[0]:"your partner"}</label>
+      <div style="display:flex;gap:8px"><input class="in" id="jc" value="${CLOUD.joinCode||""}" readonly style="font-family:ui-monospace;font-size:20px;text-align:center;letter-spacing:3px">
+      <button class="primary" style="width:auto;margin:0" id="copyJC">Copy</button></div>
+      <p class="mnp" style="margin-top:10px">On her phone: open Klepcake → Settings → Sync → “Join with a code” → enter this.</p>
+      <button class="ghostbtn" id="signOutBtn" style="color:var(--warn)">Sign out</button>`;
+    $("copyJC").onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText(CLOUD.joinCode); toast("Code copied"); };
+    $("signOutBtn").onclick=cloudSignOut;
+    return;
+  }
+  if(CLOUD.user){
+    b.innerHTML=`
+      <p class="mnp">Signed in as <b>${CLOUD.user.email||""}</b>. Now set up your shared household.</p>
+      <button class="primary money" id="createHH">Create our household</button>
+      <div style="text-align:center;margin:14px 0;color:var(--muted);font-size:12px">— or —</div>
+      <label class="fld">Join with a code (if ${S.people[0]?S.people[0].name.split(" ")[0]:"your partner"} already created one)</label>
+      <div style="display:flex;gap:8px"><input class="in" id="joinCode" placeholder="ABC123" style="text-transform:uppercase;letter-spacing:2px">
+      <button class="primary" style="width:auto;margin:0" id="joinHH">Join</button></div>
+      <div id="syncMsg" class="qcap" style="text-align:center;margin-top:10px"></div>
+      <button class="ghostbtn" id="signOutBtn" style="margin-top:14px">Sign out</button>`;
+    $("createHH").onclick=async()=>{ $("createHH").textContent="Creating…"; const err=await cloudCreateHousehold(); if(err){$("syncMsg").textContent=err;$("createHH").textContent="Create our household";} else { renderSyncSheet(); toast("Household created 🎉"); } };
+    $("joinHH").onclick=async()=>{ const c=$("joinCode").value; if(!c){toast("Enter a code");return;} $("syncMsg").textContent="Joining…"; const err=await cloudJoinHousehold(c); if(err){$("syncMsg").textContent=err;} else { renderSyncSheet(); toast("Joined! Pulling your envelopes…"); } };
+    $("signOutBtn").onclick=cloudSignOut;
+    return;
+  }
+  // signed out
+  b.innerHTML=`
+    <p class="mnp">Sign in with your email to sync Klepcake across your phones. We'll email you a 6-digit code.</p>
+    <label class="fld">Email</label>
+    <input class="in" id="syncEmail" type="email" inputmode="email" placeholder="you@email.com" value="${syncEmail}">
+    <button class="primary money" id="sendCode">Email me a code</button>
+    <div id="codeWrap" class="${syncSent?"":"hidden"}">
+      <label class="fld">Enter the 6-digit code from your email</label>
+      <input class="in" id="otp" inputmode="numeric" placeholder="123456" style="letter-spacing:6px;text-align:center;font-size:22px">
+      <button class="primary" id="verifyCode">Verify & sign in</button>
+    </div>
+    <div id="syncMsg" class="qcap" style="text-align:center;margin-top:10px"></div>`;
+  $("sendCode").onclick=async()=>{
+    const em=$("syncEmail").value.trim(); if(!em){toast("Enter your email");return;} syncEmail=em;
+    $("sendCode").textContent="Sending…";
+    const { error }=await CLOUD.sb.auth.signInWithOtp({ email:em, options:{ shouldCreateUser:true, emailRedirectTo:location.href.split("#")[0] } });
+    $("sendCode").textContent="Email me a code";
+    if(error){ $("syncMsg").textContent=error.message; return; }
+    syncSent=true; $("codeWrap").classList.remove("hidden"); $("syncMsg").textContent="Check your email — enter the code (or tap the link).";
+  };
+  $("verifyCode").onclick=async()=>{
+    const token=$("otp").value.trim(); if(!token){toast("Enter the code");return;}
+    $("verifyCode").textContent="Verifying…";
+    const { error }=await CLOUD.sb.auth.verifyOtp({ email:syncEmail, token, type:"email" });
+    $("verifyCode").textContent="Verify & sign in";
+    if(error){ $("syncMsg").textContent=error.message; return; }
+    // onAuthStateChange -> onSignedIn will refresh the sheet
+  };
+}
+
 /* ---------- boot ---------- */
 render();
 if(!S.setupDone) openOnboarding();
+cloudInit();
 
 /* ---------- service worker (offline / installable) ---------- */
 if("serviceWorker" in navigator){ addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{})); }
