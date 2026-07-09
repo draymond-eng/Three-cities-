@@ -147,8 +147,8 @@
   select.in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236E7683' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 
   /* who chips */
-  .whorow{display:flex;gap:8px}
-  .whochip{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:11px;font-weight:700;font-size:14px;color:var(--ink);
+  .whorow{display:flex;gap:8px;flex-wrap:wrap}
+  .whochip{flex:1 1 28%;border:1.5px solid var(--line);border-radius:12px;padding:11px;font-weight:700;font-size:14px;color:var(--ink);
     display:flex;align-items:center;justify-content:center;gap:7px;background:var(--card);transition:.12s}
   .whochip .dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
   .whochip.on{border-color:var(--ink);box-shadow:0 0 0 2px rgba(27,36,48,.08)}
@@ -1338,7 +1338,8 @@ function renderDeck(){
     card.innerHTML=`<div class="amt">${money(t.amount)}</div>
       <div class="merch">${escapeMerch(t.merchant)}</div>
       <div class="date">${t.date}</div>
-      <button class="envchip" data-envpick="${k}">${bk?bk.emoji+" "+bk.name:"🏷️ Pick envelope"} <span class="chg">change</span></button>`;
+      <button class="envchip" data-envpick="${k}">${bk?bk.emoji+" "+bk.name:"🏷️ Pick envelope"} <span class="chg">change</span></button>
+      ${depth===0?`<button data-split="${k}" style="display:block;margin:10px auto 0;background:transparent;border:1px dashed var(--line2);color:var(--muted);border-radius:12px;padding:8px 14px;font-size:12.5px;font-weight:700">✂️ Split across people/envelopes</button>`:''}`;
     deck.appendChild(card);
   }
   $("nameTargets").style.gridTemplateColumns="repeat("+S.people.length+",1fr)";
@@ -1346,6 +1347,7 @@ function renderDeck(){
   $("nameTargets").querySelectorAll("[data-assign]").forEach(btn=>btn.onclick=()=>assignTop(btn.dataset.assign));
   $("skipCard").onclick=advance;
   deck.querySelectorAll("[data-envpick]").forEach(btn=>btn.onclick=ev=>{ ev.stopPropagation(); pickEnvelope(+btn.dataset.envpick); });
+  deck.querySelectorAll("[data-split]").forEach(btn=>btn.onclick=ev=>{ ev.stopPropagation(); openSplit(+btn.dataset.split); });
   enableDrag();
 }
 function topCard(){ const d=$("deck"); return d?d.querySelector(`.swcard[data-k="${impIdx}"]`):null; }
@@ -1371,9 +1373,61 @@ function pickEnvelope(k){
   ov.onclick=close;
   box.querySelectorAll("[data-b]").forEach(btn=>btn.onclick=()=>{ impDeck[k].bucketId=btn.dataset.b; close(); renderDeck(); });
 }
+function openSplit(k){
+  const t=impDeck[k]; const r2=n=>Math.round(n*100)/100;
+  let rows=[{amount:r2(t.amount),bucketId:t.bucketId||(S.buckets[0]&&S.buckets[0].id),who:S.people[0].id}];
+  const ov=document.createElement("div"); ov.className="scrim show"; ov.style.zIndex="85";
+  const box=document.createElement("div");
+  box.style.cssText="position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;max-height:88vh;overflow:auto;z-index:86";
+  document.body.appendChild(ov); document.body.appendChild(box);
+  const close=()=>{ ov.remove(); box.remove(); };
+  ov.onclick=close;
+  const remainder=()=>r2(t.amount - rows.reduce((s,x)=>s+(+x.amount||0),0));
+  function updateRem(){
+    const rem=remainder(), el=box.querySelector("#remLine"), sv=box.querySelector("#saveSplit"); if(!el) return;
+    if(Math.abs(rem)<0.01){ el.innerHTML='<span style="color:var(--good)">✓ Adds up to '+money(t.amount)+'</span>'; sv.style.opacity="1"; }
+    else if(rem>0){ el.innerHTML='<span style="color:var(--muted)">'+money(rem)+' left to assign</span>'; sv.style.opacity=".55"; }
+    else { el.innerHTML='<span style="color:var(--bad)">'+money(-rem)+' over</span>'; sv.style.opacity=".55"; }
+  }
+  function draw(){
+    box.innerHTML=`
+      <div style="font-weight:800;font-size:17px">Split ${money(t.amount)}</div>
+      <div class="qcap" style="margin-bottom:12px">${escapeMerch(t.merchant)}</div>
+      <div id="splitRows"></div>
+      <button class="linkbtn" id="addRow" style="margin:2px 0 10px">＋ Add a piece</button>
+      <div id="remLine" style="text-align:center;font-weight:800;font-size:13px;margin-bottom:10px"></div>
+      <button class="primary money" id="saveSplit">Save split</button>
+      <button class="ghostbtn" id="cancelSplit">Cancel</button>`;
+    box.querySelector("#splitRows").innerHTML=rows.map((r,i)=>`
+      <div style="border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="color:var(--muted);font-weight:800">$</span>
+          <input class="in" data-amt="${i}" type="number" inputmode="decimal" value="${r.amount}" style="width:96px">
+          <select class="in" data-bkt="${i}" style="flex:1">${S.buckets.map(bx=>`<option value="${bx.id}" ${bx.id===r.bucketId?"selected":""}>${bx.emoji} ${bx.name}</option>`).join("")}</select>
+          ${rows.length>1?`<button class="pdel" data-rm="${i}" style="color:var(--bad)">🗑</button>`:""}
+        </div>
+        <div class="whorow" style="margin-top:8px;gap:6px" data-wr="${i}">${S.people.map(p=>`<button class="whochip ${p.id===r.who?"on":""}" data-who="${i}|${p.id}" style="padding:7px 5px;font-size:11.5px"><span class="dot" style="background:${p.color};width:16px;height:16px;font-size:9px">${p.short}</span>${p.name.split(" ")[0]}</button>`).join("")}</div>
+      </div>`).join("");
+    const rw=box.querySelector("#splitRows");
+    rw.querySelectorAll("[data-amt]").forEach(inp=>inp.oninput=e=>{ rows[+e.target.dataset.amt].amount=parseFloat(e.target.value)||0; updateRem(); });
+    rw.querySelectorAll("[data-bkt]").forEach(sel=>sel.onchange=e=>{ rows[+e.target.dataset.bkt].bucketId=e.target.value; });
+    rw.querySelectorAll("[data-rm]").forEach(btn=>btn.onclick=()=>{ rows.splice(+btn.dataset.rm,1); draw(); });
+    rw.querySelectorAll("[data-who]").forEach(btn=>btn.onclick=()=>{ const parts=btn.dataset.who.split("|"); rows[+parts[0]].who=parts[1];
+      rw.querySelector('[data-wr="'+parts[0]+'"]').querySelectorAll(".whochip").forEach(c=>c.classList.remove("on")); btn.classList.add("on"); });
+    box.querySelector("#addRow").onclick=()=>{ const rem=remainder(); rows.push({amount:rem>0?rem:0,bucketId:t.bucketId||(S.buckets[0]&&S.buckets[0].id),who:S.people[0].id}); draw(); };
+    box.querySelector("#cancelSplit").onclick=close;
+    box.querySelector("#saveSplit").onclick=()=>{
+      if(Math.abs(remainder())>0.01){ toast("Amounts must add up to "+money(t.amount)); return; }
+      rows.forEach(r=>{ if((+r.amount||0)>0 && r.bucketId){ S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,6),date:t.date,bucketId:r.bucketId,who:r.who,amount:+r.amount,note:t.merchant.slice(0,40),source:"import-split"}); } });
+      impAdded++; save(); close(); advance();
+    };
+    updateRem();
+  }
+  draw();
+}
 function enableDrag(){
   const c=topCard(); if(!c) return; let drag=false,sx,sy;
-  c.onpointerdown=e=>{ drag=true; sx=e.clientX; sy=e.clientY; try{c.setPointerCapture(e.pointerId);}catch(_){} c.style.transition="none"; };
+  c.onpointerdown=e=>{ if(e.target.closest("button,select,input,a")) return; drag=true; sx=e.clientX; sy=e.clientY; try{c.setPointerCapture(e.pointerId);}catch(_){} c.style.transition="none"; };
   c.onpointermove=e=>{ if(!drag)return; const dx=e.clientX-sx,dy=e.clientY-sy; c.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*0.03}deg)`;
     document.querySelectorAll(".nametarget").forEach(n=>n.style.outline=""); const el=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.dataset&&x.dataset.assign); if(el) el.style.outline="3px solid #1B2430"; };
   c.onpointerup=e=>{ if(!drag)return; drag=false; document.querySelectorAll(".nametarget").forEach(n=>n.style.outline="");
