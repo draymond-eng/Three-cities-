@@ -2,124 +2,223 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#FBF9F5">
-<title>The Washington Household — Money Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E7C6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Money Night">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Money Night — The Washingtons</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#FBF9F5; --card:#FFFFFF; --ink:#1B2430; --muted:#6E7683;
+    --paper:#FBF9F5; --card:#FFFFFF; --ink:#1B2430; --muted:#6E7683; --faint:#9AA1AC;
     --line:#EAE4D9; --line2:#F1ECE2;
-    --good:#0E7C6B; --good-soft:#E2F1ED;
+    --good:#0E7C6B; --good-soft:#E2F1ED; --good2:#12A08A;
     --warn:#C2543D; --warn-soft:#F7E7E1;
-    --hold:#B9852B;
-    --shadow:0 1px 2px rgba(27,36,48,.04),0 8px 24px rgba(27,36,48,.05);
+    --gold:#C98A1E; --gold-soft:#F6ECD6;
+    --money:#2E8B57; --money2:#3CB371;
+    --dray:#2E6FB5; --alex:#C2547E;
+    --shadow:0 1px 2px rgba(27,36,48,.04),0 8px 24px rgba(27,36,48,.06);
+    --shadow-lg:0 20px 60px rgba(27,36,48,.18);
   }
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;
-    -webkit-font-smoothing:antialiased;padding-bottom:64px}
+  body{background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    padding-bottom:calc(84px + env(safe-area-inset-bottom))}
   .num{font-family:"Bricolage Grotesque",Inter,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-  .wrap{max-width:1080px;margin:0 auto;padding:20px 18px}
-  a{color:var(--good)}
-  button{font-family:inherit;cursor:pointer}
+  .wrap{max-width:1020px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 16px 16px}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
   input,select{font-family:inherit}
+  .hidden{display:none !important}
 
   /* header */
-  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px}
-  .brand .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
-  .brand h1{font-family:"Bricolage Grotesque";font-weight:800;font-size:28px;margin:2px 0 0;letter-spacing:-.02em}
-  .monthpick{display:flex;align-items:center;gap:8px}
-  .monthpick select{appearance:none;background:var(--card);border:1px solid var(--line);border-radius:10px;
-    padding:9px 30px 9px 12px;font-size:14px;font-weight:600;color:var(--ink);
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236E7683' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 10px center}
-  .ghost{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:600;color:var(--ink)}
-  .ghost:hover{border-color:var(--muted)}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .brand .eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .brand h1{font-family:"Bricolage Grotesque";font-weight:800;font-size:22px;margin:1px 0 0;letter-spacing:-.02em}
+  .gear{width:40px;height:40px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:18px;color:var(--ink);box-shadow:var(--shadow)}
+  .gear:active{transform:scale(.94)}
 
-  /* verdict strip — signature */
-  .verdict{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
-    padding:20px 22px;margin-bottom:16px}
-  .verdict .row1{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
-  .verdict .label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
-  .verdict .headline{font-size:34px;font-weight:800;margin-top:2px}
-  .verdict .headline small{font-size:15px;font-weight:600;color:var(--muted);margin-left:8px;letter-spacing:0}
-  .flow{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px}
-  .flow div{font-size:13px;color:var(--muted)}
-  .flow b{display:block;font-size:19px;color:var(--ink);margin-top:2px}
-  .bar{position:relative;height:14px;border-radius:8px;background:var(--line2);margin-top:16px;overflow:hidden}
-  .bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:8px;transition:width .5s ease}
-  .bar .mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink);opacity:.55}
-  .bar .mtag{position:absolute;top:-20px;transform:translateX(-50%);font-size:10px;color:var(--ink);white-space:nowrap;font-weight:600}
-  .runway{margin-top:14px;font-size:13px;color:var(--muted)}
-  .runway b{color:var(--ink);font-weight:700}
+  /* week nav */
+  .weeknav{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:14px}
+  .weeknav button{width:34px;height:34px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;color:var(--ink)}
+  .weeknav .wlabel{min-width:190px;text-align:center;font-weight:700;font-size:13.5px;color:var(--ink)}
+  .weeknav .wsub{display:block;font-size:11px;color:var(--muted);font-weight:600}
 
-  /* 50/30/20 cards */
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
-  .stat .t{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-  .stat .big{font-size:26px;font-weight:800;margin:6px 0 2px}
-  .stat .sub{font-size:12.5px;color:var(--muted)}
-  .stat .track{height:8px;border-radius:6px;background:var(--line2);margin-top:10px;position:relative;overflow:hidden}
-  .stat .track .f{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
-  .stat .track .target{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
-  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:2px}
-  .pill.ok{background:var(--good-soft);color:var(--good)}
-  .pill.over{background:var(--warn-soft);color:var(--warn)}
+  /* verdict hero */
+  .hero{position:relative;background:linear-gradient(160deg,#12463c,#0E7C6B 60%,#12A08A);color:#fff;border-radius:22px;
+    padding:22px 22px 20px;box-shadow:var(--shadow-lg);overflow:hidden;margin-bottom:14px}
+  .hero.over{background:linear-gradient(160deg,#7a2417,#C2543D 62%,#d46a52)}
+  .hero .glow{position:absolute;inset:-40% -10% auto;height:70%;background:radial-gradient(closest-side,rgba(255,255,255,.28),transparent);pointer-events:none}
+  .hero .label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.85}
+  .hero .verdict{font-family:"Bricolage Grotesque";font-weight:800;font-size:33px;line-height:1.05;margin:6px 0 2px;letter-spacing:-.02em}
+  .hero .vsub{font-size:13.5px;opacity:.9;font-weight:500}
+  .hero .stars{display:flex;gap:5px;margin-top:14px;align-items:center}
+  .hero .stars .s{font-size:23px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}
+  .hero .streak{margin-left:auto;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);
+    border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px)}
+  .hero .flow{display:flex;gap:18px;margin-top:16px;flex-wrap:wrap}
+  .hero .flow div{font-size:11.5px;opacity:.85;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+  .hero .flow b{display:block;font-size:17px;margin-top:3px;opacity:1;letter-spacing:0;text-transform:none;font-weight:800}
+  .hero .flow b.num{font-family:"Bricolage Grotesque"}
 
-  /* panels */
-  .cols{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
-  .panel h2{font-family:"Bricolage Grotesque";font-weight:700;font-size:17px;margin:0 0 2px;letter-spacing:-.01em}
-  .panel .cap{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+  /* quest bar */
+  .quest{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px}
+  .quest .qtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .quest .qname{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
+  .quest .qval{font-size:13px;font-weight:700;color:var(--good)}
+  .quest .qtrack{height:12px;border-radius:8px;background:var(--line2);margin-top:10px;position:relative;overflow:hidden}
+  .quest .qfill{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,var(--good2),var(--good));transition:width .6s ease}
+  .quest .qcap{font-size:11.5px;color:var(--muted);margin-top:7px}
 
-  /* category table */
-  .cat{display:grid;grid-template-columns:1fr auto auto;gap:8px 12px;align-items:center}
-  .cat .grouphd{grid-column:1/-1;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
-    font-weight:700;margin:12px 0 2px;display:flex;justify-content:space-between}
-  .cat .grouphd:first-child{margin-top:0}
-  .cat .name{font-size:14px}
-  .cat .name .tgt{font-size:11.5px;color:var(--muted);margin-left:2px}
-  .cat input{width:92px;text-align:right;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;
-    font-variant-numeric:tabular-nums;color:var(--ink);background:var(--paper)}
-  .cat input:focus{outline:none;border-color:var(--good);background:#fff}
-  .cat .delta{font-size:12px;text-align:right;min-width:64px;font-variant-numeric:tabular-nums}
-  .delta.up{color:var(--warn)} .delta.down{color:var(--good)}
+  /* section head */
+  .sec{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 10px}
+  .sec h2{font-family:"Bricolage Grotesque";font-size:16px;font-weight:700;margin:0;letter-spacing:-.01em}
+  .sec .tag{font-size:11px;font-weight:700;color:var(--muted)}
 
-  /* subscriptions */
-  .sub{display:grid;grid-template-columns:1fr auto auto;gap:6px 10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line2)}
-  .sub:last-child{border-bottom:0}
-  .sub .sn{font-size:13.5px;display:flex;align-items:center;gap:7px}
-  .sub .amt{font-size:13.5px;font-variant-numeric:tabular-nums;color:var(--muted)}
-  .flagdot{font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px}
-  .flagdot.dispute{background:var(--warn-soft);color:var(--warn)}
-  .flagdot.audit{background:#F3ECD9;color:var(--hold)}
-  .tog{position:relative;width:40px;height:23px;border-radius:999px;background:var(--good);border:none;transition:background .2s;flex:none}
-  .tog.off{background:#CBD0D6}
-  .tog::after{content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;transition:left .2s}
-  .tog.off::after{left:19px}
-  .subfoot{display:flex;justify-content:space-between;margin-top:12px;font-size:13px}
-  .subfoot b{font-weight:700}
+  /* envelopes grid */
+  .envs{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(min-width:720px){.envs{grid-template-columns:repeat(3,1fr)}}
+  .env{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 13px 14px;box-shadow:var(--shadow);
+    overflow:hidden;transition:transform .1s ease}
+  .env:active{transform:scale(.98)}
+  .env.dry{border-color:#e6b7ac;background:linear-gradient(180deg,#fff,var(--warn-soft))}
+  .env .ehd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .env .eemoji{font-size:19px}
+  .env .ename{font-size:13px;font-weight:700;line-height:1.1;flex:1;min-width:0}
+  .env .ebadge{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);
+    background:var(--line2);border-radius:6px;padding:2px 5px}
+  /* the cash stack */
+  .cash{height:52px;display:flex;flex-direction:column-reverse;gap:3px;justify-content:flex-start;padding:3px;border-radius:8px;
+    background:repeating-linear-gradient(45deg,#f4efe6,#f4efe6 6px,#f0eadd 6px,#f0eadd 12px);position:relative;margin-bottom:9px}
+  .cash .bill{height:6px;border-radius:2px;background:linear-gradient(90deg,var(--money),var(--money2));box-shadow:0 1px 0 rgba(0,0,0,.06);
+    position:relative;overflow:hidden}
+  .cash .bill::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:8px;transform:translateX(-50%);background:rgba(255,255,255,.35);border-radius:50%}
+  .cash.empty{background:repeating-linear-gradient(45deg,#f6e4de,#f6e4de 6px,#f3dcd4 6px,#f3dcd4 12px)}
+  .cash .emptytag{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--warn);letter-spacing:.04em}
+  .env .enums{display:flex;justify-content:space-between;align-items:flex-end}
+  .env .eleft{font-family:"Bricolage Grotesque";font-weight:800;font-size:17px}
+  .env .eleft.over{color:var(--warn)}
+  .env .eweek{font-size:11px;color:var(--muted);text-align:right;font-weight:600}
+  .env .eweek b{color:var(--ink)}
+  .env .whopull{display:flex;gap:3px;margin-top:8px;min-height:8px}
+  .env .whopull i{height:5px;border-radius:3px;display:block}
 
-  /* trend */
-  .trend{display:flex;align-items:flex-end;gap:6px;height:110px;margin-top:6px}
-  .tcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;min-width:0}
-  .tbar{width:70%;border-radius:5px 5px 0 0;min-height:3px}
-  .tlab{font-size:10px;color:var(--muted);white-space:nowrap}
+  /* floating actions */
+  .fab{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,transparent,var(--paper) 34%);display:flex;gap:10px;max-width:1020px;margin:0 auto;z-index:30}
+  .fab .btn{flex:1;border-radius:14px;padding:15px;font-size:15px;font-weight:700;box-shadow:var(--shadow)}
+  .btn.dark{background:var(--ink);color:#fff}
+  .btn.dark:active{transform:translateY(1px)}
+  .btn.money{background:linear-gradient(180deg,var(--good2),var(--good));color:#fff}
+  .btn.light{background:var(--card);color:var(--ink);border:1px solid var(--line);flex:0 0 58px;font-size:22px;padding:12px}
 
-  /* settings + save */
-  .settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-  .field label{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:4px}
-  .field input{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:14px;
-    font-variant-numeric:tabular-nums;background:var(--paper)}
-  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-  .primary{background:var(--ink);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600}
-  .primary:hover{background:#0f1720}
-  .savedmsg{font-size:12.5px;color:var(--good);align-self:center;font-weight:600;opacity:0;transition:opacity .3s}
-  .note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
-  @media(max-width:820px){.cols{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
+  /* modal / sheet */
+  .scrim{position:fixed;inset:0;background:rgba(20,26,34,.5);backdrop-filter:blur(3px);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--paper);border-radius:22px 22px 0 0;
+    max-width:560px;margin:0 auto;box-shadow:var(--shadow-lg);transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.9,.3,1);
+    max-height:92vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+  .sheet.show{transform:translateY(0)}
+  .sheet .grab{width:38px;height:4px;border-radius:3px;background:var(--line);margin:10px auto 4px;flex:none}
+  .sheet .shead{padding:6px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex:none}
+  .sheet .shead h3{font-family:"Bricolage Grotesque";font-size:19px;margin:0;font-weight:800;letter-spacing:-.01em}
+  .sheet .sbody{padding:0 20px 20px;overflow:auto}
+  .x{width:34px;height:34px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;color:var(--muted)}
+
+  label.fld{display:block;font-size:11.5px;color:var(--muted);font-weight:700;margin:14px 0 6px;letter-spacing:.02em}
+  .in{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:16px;background:var(--card);color:var(--ink);
+    font-variant-numeric:tabular-nums}
+  .in:focus{outline:none;border-color:var(--good)}
+  .amtbig{font-family:"Bricolage Grotesque";font-size:30px;font-weight:800;text-align:center;padding:16px}
+  select.in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236E7683' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+
+  /* who chips */
+  .whorow{display:flex;gap:8px}
+  .whochip{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:11px;font-weight:700;font-size:14px;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;gap:7px;background:var(--card);transition:.12s}
+  .whochip .dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .whochip.on{border-color:var(--ink);box-shadow:0 0 0 2px rgba(27,36,48,.08)}
+  .whochip[data-w="dray"].on{border-color:var(--dray)}
+  .whochip[data-w="alex"].on{border-color:var(--alex)}
+
+  .primary{width:100%;background:var(--ink);color:#fff;border-radius:14px;padding:15px;font-size:16px;font-weight:700;margin-top:18px}
+  .primary:active{transform:translateY(1px)}
+  .primary.money{background:linear-gradient(180deg,var(--good2),var(--good))}
+  .ghostbtn{width:100%;background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:14px;padding:13px;font-weight:700;font-size:14px;margin-top:10px}
+
+  /* pulls list */
+  .pull{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line2)}
+  .pull:last-child{border-bottom:none}
+  .pull .pe{font-size:18px;width:34px;height:34px;border-radius:10px;background:var(--line2);display:flex;align-items:center;justify-content:center;flex:none}
+  .pull .pmid{flex:1;min-width:0}
+  .pull .pname{font-size:14px;font-weight:600}
+  .pull .pmeta{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:1px}
+  .whotag{font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:999px;color:#fff}
+  .pull .pamt{font-family:"Bricolage Grotesque";font-weight:800;font-size:15px}
+  .pull .pdel{color:var(--faint);font-size:15px;padding:5px 6px;border-radius:8px}
+  .pull .pdel:active{background:var(--warn-soft);color:var(--warn)}
+
+  /* money night steps */
+  .mn{position:fixed;inset:0;z-index:70;background:var(--paper);transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.9,.3,1);
+    display:flex;flex-direction:column}
+  .mn.show{transform:translateY(0)}
+  .mn .mnhead{padding:calc(12px + env(safe-area-inset-top)) 18px 8px;display:flex;align-items:center;gap:12px;flex:none}
+  .mn .mnhead .x{flex:none}
+  .mn .prog{flex:1;height:6px;border-radius:4px;background:var(--line2);overflow:hidden}
+  .mn .prog i{display:block;height:100%;background:var(--good);border-radius:4px;transition:width .35s ease;width:20%}
+  .mn .mnbody{flex:1;overflow:auto;padding:8px 20px 20px;max-width:600px;margin:0 auto;width:100%}
+  .mn .step{animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .mn .kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--good);font-weight:800;margin-top:10px}
+  .mn h2.mnt{font-family:"Bricolage Grotesque";font-size:27px;font-weight:800;letter-spacing:-.02em;margin:6px 0 4px;line-height:1.1}
+  .mn p.mnp{font-size:14.5px;color:var(--muted);line-height:1.5;margin:0 0 14px}
+  .mn .mnfoot{flex:none;padding:14px 20px calc(16px + env(safe-area-inset-bottom));max-width:600px;margin:0 auto;width:100%}
+  .bigemoji{font-size:60px;text-align:center;margin:26px 0 6px;animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
+  @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+  .mnverdict{text-align:center;padding:8px 0}
+  .mnverdict .big{font-family:"Bricolage Grotesque";font-size:40px;font-weight:800;letter-spacing:-.02em}
+  .mnstars{font-size:30px;text-align:center;letter-spacing:4px;margin:6px 0}
+
+  /* quick log row in money night */
+  .qlog{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+  .qlog .qtop2{display:flex;align-items:center;gap:8px}
+  .qlog .qemoji{font-size:17px}
+  .qlog .qn{font-size:13.5px;font-weight:700;flex:1}
+  .qlog .qspent{font-size:12px;color:var(--muted);font-weight:600}
+  .qlog .qadd{display:flex;gap:7px;margin-top:9px}
+  .qlog .qadd input{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:15px;background:var(--paper)}
+  .qlog .qadd .who2{display:flex;gap:4px}
+  .qlog .qadd .who2 button{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--line);font-size:12px;font-weight:800;color:#fff}
+  .qlog .qadd .who2 button.off{opacity:.35}
+  .qlog .qadd .go{width:36px;height:34px;border-radius:9px;background:var(--ink);color:#fff;font-size:18px}
+
+  .flagcard{background:var(--warn-soft);border:1px solid #e6b7ac;border-radius:14px;padding:13px 15px;margin-bottom:10px}
+  .flagcard .fn{font-weight:800;font-size:14px;display:flex;justify-content:space-between}
+  .flagcard .fc{font-size:12.5px;color:var(--warn);margin-top:3px;font-weight:600}
+  .okcard{background:var(--good-soft);border:1px solid #bfe0d6;border-radius:14px;padding:13px 15px;color:var(--good);font-weight:700;font-size:14px}
+
+  .badge{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:9px 13px;font-size:13px;font-weight:700;margin:5px 5px 0 0;box-shadow:var(--shadow)}
+  .badge .be{font-size:18px}
+  .badge.new{border-color:var(--gold);background:var(--gold-soft);animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
+
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
+  .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(30px);
+    background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:95;box-shadow:var(--shadow-lg)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .setrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line2)}
+  .setrow:last-child{border-bottom:none}
+  .setrow .se{font-size:18px;width:34px;text-align:center}
+  .setrow .sn{flex:1;font-size:14px;font-weight:600}
+  .setrow .sb{font-size:12.5px;color:var(--muted);font-weight:600}
+  .setrow input.mini{width:96px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:14px;text-align:right;background:var(--card)}
+  .subhd{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:16px 0 4px}
+  .linkbtn{color:var(--good);font-weight:700;font-size:13.5px;background:none;padding:6px 0}
 </style>
 </head>
 <body>
@@ -127,277 +226,556 @@
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <div class="eyebrow">Household money dashboard</div>
-      <h1>The Washingtons</h1>
+      <div class="eyebrow">Money Night</div>
+      <h1 id="houseTitle">The Washingtons</h1>
     </div>
-    <div class="monthpick">
-      <select id="monthSel"></select>
-      <button class="ghost" id="addMonth">+ New month</button>
-    </div>
+    <button class="gear" id="gearBtn" title="Settings">⚙️</button>
   </header>
 
-  <!-- SIGNATURE: monthly verdict -->
-  <section class="verdict">
-    <div class="row1">
-      <div>
-        <div class="label" id="vLabel">This month</div>
-        <div class="headline num" id="vHead">—</div>
-      </div>
-      <div class="flow">
-        <div>Money in<b class="num" id="vIn">—</b></div>
-        <div>Money out<b class="num" id="vOut">—</b></div>
-        <div>Reset target out<b class="num" id="vTgt">—</b></div>
-      </div>
-    </div>
-    <div class="bar" id="vBar">
-      <div class="fill" id="vFill"></div>
-      <div class="mark" id="vMark"><span class="mtag">income</span></div>
-    </div>
-    <div class="runway" id="vRunway"></div>
-  </section>
-
-  <!-- 50/30/20 -->
-  <div class="grid3" id="ratioCards"></div>
-
-  <div class="cols">
-    <!-- category ledger -->
-    <section class="panel">
-      <h2>Where the money went</h2>
-      <p class="cap">Type this month's totals. Grey targets are the reset budget we set.</p>
-      <div class="cat" id="catTable"></div>
-    </section>
-
-    <div>
-      <!-- subscriptions -->
-      <section class="panel">
-        <h2>Subscriptions</h2>
-        <p class="cap">Toggle off to cancel. Flags need attention.</p>
-        <div id="subList"></div>
-        <div class="subfoot">
-          <span>Keeping <b class="num" id="subKeepCt">0</b> · <b class="num" id="subKeep">$0</b>/mo</span>
-          <span style="color:var(--good)">Cancelled saves <b class="num" id="subSave">$0</b>/yr</span>
-        </div>
-      </section>
-
-      <!-- trend -->
-      <section class="panel">
-        <h2>Monthly balance</h2>
-        <p class="cap">Green = you added to savings. Clay = you drew down.</p>
-        <div class="trend" id="trend"></div>
-      </section>
-    </div>
+  <div class="weeknav">
+    <button id="wPrev">‹</button>
+    <div class="wlabel" id="wLabel">This week<span class="wsub" id="wSub">—</span></div>
+    <button id="wNext">›</button>
   </div>
 
-  <!-- settings -->
-  <section class="panel">
-    <h2>Income & runway</h2>
-    <p class="cap">Take-home cash that actually lands each month — not gross salary.</p>
-    <div class="settings">
-      <div class="field"><label>Salary — take-home / mo</label><input id="sSalary" inputmode="numeric"></div>
-      <div class="field"><label>Family gift / mo (50k ÷ 12)</label><input id="sGift" inputmode="numeric"></div>
-      <div class="field"><label>Other income / mo</label><input id="sOther" inputmode="numeric"></div>
-      <div class="field"><label>Liquid savings (checking + brokerage)</label><input id="sSavings" inputmode="numeric"></div>
+  <!-- VERDICT HERO -->
+  <section class="hero" id="hero">
+    <div class="glow"></div>
+    <div style="display:flex;align-items:flex-start">
+      <div style="flex:1">
+        <div class="label" id="heroLabel">This week's discretionary</div>
+        <div class="verdict" id="heroVerdict">—</div>
+        <div class="vsub" id="heroSub">—</div>
+      </div>
+      <div class="streak" id="streakChip">🔥 <span id="streakN">0</span></div>
     </div>
-    <div class="actions">
-      <button class="primary" id="saveBtn">Save this month</button>
-      <button class="ghost" id="exportBtn">Export backup</button>
-      <button class="ghost" id="importBtn">Import backup</button>
-      <input type="file" id="fileIn" accept="application/json" hidden>
-      <span class="savedmsg" id="savedMsg">Saved</span>
+    <div class="stars" id="heroStars"></div>
+    <div class="flow">
+      <div>Spent this week<b class="num" id="fWeek">—</b></div>
+      <div>Weekly pace<b class="num" id="fPace">—</b></div>
+      <div>Month left<b class="num" id="fMonth">—</b></div>
     </div>
-    <p class="note" id="footNote"></p>
   </section>
+
+  <!-- QUEST -->
+  <section class="quest" id="quest">
+    <div class="qtop">
+      <div class="qname">🏦 <span id="questName">Rebuild the cushion</span></div>
+      <div class="qval" id="questVal">—</div>
+    </div>
+    <div class="qtrack"><div class="qfill" id="questFill" style="width:0%"></div></div>
+    <div class="qcap" id="questCap">—</div>
+  </section>
+
+  <div class="sec">
+    <h2>Your envelopes</h2>
+    <span class="tag" id="envTag">tap to add a pull</span>
+  </div>
+  <div class="envs" id="envs"></div>
 </div>
 
+<!-- floating actions -->
+<div class="fab">
+  <button class="btn light" id="addPullBtn" title="Add a pull">＋</button>
+  <button class="btn money" id="moneyNightBtn">🎬 Start Money Night</button>
+</div>
+
+<!-- ADD PULL SHEET -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="pullSheet">
+  <div class="grab"></div>
+  <div class="shead"><h3 id="pullTitle">Add a pull</h3><button class="x" data-close>✕</button></div>
+  <div class="sbody">
+    <div class="amtbig"><span id="pullCurrency">$</span><span id="pullAmtDisplay" contenteditable="false">0</span></div>
+    <input class="in" id="pullAmt" type="number" inputmode="decimal" step="0.01" placeholder="0.00" style="text-align:center">
+    <label class="fld">From which envelope</label>
+    <select class="in" id="pullBucket"></select>
+    <label class="fld">Who pulled it</label>
+    <div class="whorow" id="pullWho"></div>
+    <label class="fld">Note (optional)</label>
+    <input class="in" id="pullNote" placeholder="e.g. Costco, date night…">
+    <label class="fld">When</label>
+    <input class="in" id="pullDate" type="date">
+    <button class="primary money" id="savePull">Pull from envelope</button>
+    <button class="ghostbtn" id="deletePull" style="display:none;color:var(--warn)">Delete this pull</button>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet" id="setSheet">
+  <div class="grab"></div>
+  <div class="shead"><h3>Settings</h3><button class="x" data-close>✕</button></div>
+  <div class="sbody" id="setBody"></div>
+</div>
+
+<!-- MONEY NIGHT -->
+<div class="mn" id="mn">
+  <div class="mnhead">
+    <button class="x" id="mnClose">✕</button>
+    <div class="prog"><i id="mnProg"></i></div>
+  </div>
+  <div class="mnbody" id="mnBody"></div>
+  <div class="mnfoot" id="mnFoot"></div>
+</div>
+
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
 <script>
-/* ---------- persistence: localStorage first (real devices + hosting),
-   then artifact window.storage, then in-memory as last resort ---------- */
-const KEY='washington:household:v1';
-const mem={};
-async function store(v){
-  const s=JSON.stringify(v);
-  try{ localStorage.setItem(KEY,s); return; }catch(e){}
-  try{ if(window.storage){ await window.storage.set(KEY,s); return; } }catch(e){}
-  mem[KEY]=s;
-}
-async function load(){
-  try{ const r=localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){}
-  try{ if(window.storage){ const r=await window.storage.get(KEY); if(r&&r.value) return JSON.parse(r.value); } }catch(e){}
-  return mem[KEY]?JSON.parse(mem[KEY]):null;
-}
+"use strict";
+/* ============================================================
+   MONEY NIGHT — The Washingtons' weekly envelope budget
+   Single-file PWA. Data local-first (localStorage).
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const KEY="money-night:v1";
+const MAXBILLS=8;
 
-/* ---------- model: the Washingtons' real baseline ---------- */
-const NEEDS=[
-  ['Mortgage','mortgage',3350,3350],['HOA','hoa',240,240],['Childcare (nanny)','nanny',3800,3800],
-  ['Utilities','utilities',280,280],['Groceries','groceries',1471,1300],['Car payment (Mach-E)','car',579,579],
-  ['Insurance','insurance',200,200],['Medical & health','medical',1000,750]
-];
-const WANTS=[
-  ['Dining & takeout','dining',2641,1200],['Shopping & retail','shopping',2570,1500],
-  ['Salon & personal','salon',500,300],['Travel','travel',1626,800],
-  ['Entertainment','entertain',950,500],['Subscriptions','subs',1350,650],
-  ['Hobbies (golf/boat/gaming)','hobbies',950,600],['Rideshare & parking','rideshare',693,450]
-];
-const CATS=[...NEEDS.map(c=>['need',...c]),...WANTS.map(c=>['want',...c])];
+/* ---------- persistence ---------- */
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function loadRaw(){ try{ const r=localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
 
-const SUBS=[
-  ['Apple (App Store / iCloud)',229,true,'audit'],['Nuuly',155,true,null],
-  ['GMACST.com',50,true,'dispute'],['GMRSHV.com',50,true,'dispute'],
-  ['FordPass / BlueCruise',50,true,null],['YouTube TV',75,true,null],
-  ['Amazon Prime Video channels',45,true,null],['ESPN+',43,true,null],
-  ['SimpliSafe',33,true,null],['NY Times',26,true,null],['HBO Max',25,true,null],
-  ['Spotify',23,true,null],['Perplexity',23,true,null],['Fathom',23,true,null],
-  ['Kindle Unlimited',20,true,null],['ClassPass',19,true,null],['Calendly',16,true,null],
-  ['Oura',15,true,null],['Uber One',15,true,null],['Washington Post',14,true,null],
-  ['Crain’s Chicago',13,true,null],['Peacock',12,true,null],['TuneIn',11,true,null],
-  ['Amazon Prime',9,true,null],['X / Twitter',8,true,null],
-  ['Rocket Money',6,true,'audit'],['Google One',2,true,null]
-];
+/* ---------- date helpers ---------- */
+function startOfWeek(d){ d=new Date(d); const off=(d.getDay()+6)%7; d.setHours(0,0,0,0); d.setDate(d.getDate()-off); return d; } // Monday
+function iso(d){ d=new Date(d); const z=new Date(d.getTime()-d.getTimezoneOffset()*60000); return z.toISOString().slice(0,10); }
+function weekKey(d){ return iso(startOfWeek(d)); }
+function monthKey(d){ return iso(d).slice(0,7); }
+function addDays(d,n){ d=new Date(d); d.setDate(d.getDate()+n); return d; }
+function addMonthKey(mk,n){ let[y,m]=mk.split("-").map(Number); m+=n; while(m<1){m+=12;y--;} while(m>12){m-=12;y++;} return y+"-"+String(m).padStart(2,"0"); }
+function fmtRange(mon){ const sun=addDays(mon,6);
+  const o={month:"short",day:"numeric"};
+  return new Date(mon).toLocaleDateString("en-US",o)+" – "+sun.toLocaleDateString("en-US",o); }
+function monthLabel(mk){ const[y,m]=mk.split("-"); return new Date(y,m-1,1).toLocaleDateString("en-US",{month:"long",year:"numeric"}); }
+const money=n=>{ const neg=n<0; n=Math.abs(Math.round(n)); return (neg?"-$":"$")+n.toLocaleString(); };
+const WEEKS_PER_MONTH=4.345;
 
-function fresh(){
-  const spend={}; CATS.forEach(c=>spend[c[2]]=c[3]);
-  const mkey='2026-07';
+/* ---------- seed ---------- */
+function seed(){
+  const NEEDS=[["Mortgage","🏠",3350],["HOA","🏘️",240],["Childcare (nanny)","🍼",3800],["Utilities","💡",280],
+    ["Groceries","🛒",1300],["Car payment","🚗",579],["Insurance","🛡️",200],["Medical & health","🩺",750]];
+  const WANTS=[["Dining & takeout","🍽️",1200],["Shopping & retail","🛍️",1500],["Salon & personal","💇",300],
+    ["Travel","✈️",800],["Entertainment","🎬",500],["Subscriptions","📺",650],["Hobbies","⛳",600],["Rideshare & parking","🚕",450]];
+  let id=1; const mk=e=>e.map(([name,emoji,monthly])=>({id:"b"+(id++),name,emoji,monthly,bucket:null}));
+  const buckets=[...mk(NEEDS).map(b=>({...b,bucket:"need"})),...mk(WANTS).map(b=>({...b,bucket:"want"}))];
+  // a few sample pulls in the current week/month, tagged
+  const today=new Date();
+  const bid=n=>buckets.find(b=>b.name.startsWith(n)).id;
+  const p=(days,bn,who,amt,note)=>({id:"p"+(id++),date:iso(addDays(today,days)),bucketId:bid(bn),who,amount:amt,note});
+  const pulls=[
+    p(-1,"Dining","dray",64,"Pizza night"), p(-2,"Groceries","alex",148,"Costco"),
+    p(-3,"Shopping","alex",210,"Kids clothes"), p(-4,"Rideshare","dray",38,"Airport"),
+    p(-6,"Dining","alex",92,"Date night"), p(-9,"Groceries","dray",120,"Weekly run"),
+    p(-11,"Entertainment","dray",55,"Movies"), p(-1,"Mortgage","dray",3350,"July")
+  ];
   return {
-    settings:{salary:11700,gift:4167,other:0,savings:33000},
-    subs:SUBS.map(s=>({name:s[0],cost:s[1],keep:s[2],flag:s[3]})),
-    months:{[mkey]:{spend}},
-    current:mkey
+    house:"The Washingtons",
+    people:[{id:"dray",name:"Draymond",short:"D",color:"#2E6FB5"},{id:"alex",name:"Alexandria",short:"A",color:"#C2547E"}],
+    settings:{salary:11700,gift:4167,other:0,savings:33000,goal:50000},
+    buckets, pulls,
+    ritual:{streak:0,lastCheckIn:null,badges:[],history:[]},
+    viewWeek: weekKey(today)
   };
 }
-let S=null;
+let S=loadRaw()||seed();
+if(!S.viewWeek) S.viewWeek=weekKey(new Date());
 
-/* ---------- helpers ---------- */
-const $=id=>document.getElementById(id);
-const money=n=>(n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString();
-const monthName=k=>{const[y,m]=k.split('-');return new Date(y,m-1,1).toLocaleString('en-US',{month:'long',year:'numeric'});};
-function income(){const s=S.settings;return (+s.salary||0)+(+s.gift||0)+(+s.other||0);}
-function monthSpend(k){const sp=S.months[k].spend;return CATS.reduce((t,c)=>t+(+sp[c[2]]||0),0);}
-function bucket(k,which){return CATS.filter(c=>c[0]===which).reduce((t,c)=>t+(+S.months[k].spend[c[2]]||0),0);}
-function targetOut(){return CATS.reduce((t,c)=>t+c[4],0);}
+/* ---------- computed ---------- */
+function income(){ const s=S.settings; return (+s.salary||0)+(+s.gift||0)+(+s.other||0); }
+function pullsInWeek(wk){ return S.pulls.filter(p=>weekKey(p.date)===wk); }
+function pullsInMonth(mk){ return S.pulls.filter(p=>monthKey(p.date)===mk); }
+function spentBucketMonth(bid,mk){ return S.pulls.filter(p=>p.bucketId===bid&&monthKey(p.date)===mk).reduce((t,p)=>t+(+p.amount||0),0); }
+function spentBucketWeek(bid,wk){ return S.pulls.filter(p=>p.bucketId===bid&&weekKey(p.date)===wk).reduce((t,p)=>t+(+p.amount||0),0); }
 
-/* ---------- render ---------- */
-function render(){
-  const k=S.current, inc=income(), out=monthSpend(k), gap=inc-out;
-  // month select
-  const sel=$('monthSel'); sel.innerHTML='';
-  Object.keys(S.months).sort().reverse().forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=monthName(m);if(m===k)o.selected=true;sel.appendChild(o);});
+// earliest month across pulls (bounds carryover recursion)
+function earliestMonth(){
+  let e=null; S.pulls.forEach(p=>{ const m=monthKey(p.date); if(!e||m<e) e=m; });
+  return e;
+}
+// available envelope capacity for a bucket in month mk = monthly + carried leftover from prior months
+function bucketAvailable(b,mk){
+  let start=earliestMonth(); if(!start||start>mk) return b.monthly;
+  let carry=0, m=start;
+  while(m<mk){ const avail=b.monthly+carry; const spent=spentBucketMonth(b.id,m);
+    carry=Math.max(0,avail-spent); m=addMonthKey(m,1); if(m<start) break; }
+  return b.monthly+carry;
+}
+function bucketCarry(b,mk){ return bucketAvailable(b,mk)-b.monthly; }
+function bucketRemaining(b,mk){ return bucketAvailable(b,mk)-spentBucketMonth(b.id,mk); }
 
-  // verdict
-  $('vLabel').textContent=monthName(k);
-  const draw=gap<0;
-  $('vHead').innerHTML=(draw?'Drew down ':'Added ')+'<span class="num">'+money(Math.abs(gap))+'</span>'+
-     '<small>'+(draw?'more spent than came in':'saved this month')+'</small>';
-  $('vHead').style.color=draw?'var(--warn)':'var(--good)';
-  $('vIn').textContent=money(inc); $('vOut').textContent=money(out); $('vTgt').textContent=money(targetOut());
-  // bar: scale to max(out,inc,target)*1.05, fill=out, mark=income
-  const scale=Math.max(out,inc,targetOut())*1.06;
-  $('vFill').style.width=Math.min(100,out/scale*100)+'%';
-  $('vFill').style.background=draw?'var(--warn)':'var(--good)';
-  const mk=$('vMark'); mk.style.left=(inc/scale*100)+'%';
-  // runway
-  const rn=$('vRunway');
-  if(draw){const months=S.settings.savings/Math.abs(gap);
-    rn.innerHTML='At this pace, your <b>'+money(S.settings.savings)+'</b> liquid cushion lasts <b>'+months.toFixed(1)+' months</b>. '+
-      'Hit the reset target ('+money(targetOut())+' out) and the gap shrinks to <b>'+money(Math.abs(inc-targetOut()))+'/mo</b>.';
-  } else { rn.innerHTML='You lived inside your means this month. Route the surplus to savings or the Three Cities runway.'; }
-
-  // 50/30/20 cards
-  const cards=[['Needs',bucket(k,'need'),.50,'#3b6ea5'],['Wants',bucket(k,'want'),.30,'var(--warn)'],
-    ['Savings',Math.max(0,gap),.20,'var(--good)']];
-  $('ratioCards').innerHTML=cards.map(([t,val,tp,col])=>{
-    const pct=inc>0?val/inc*100:0, tpct=tp*100, over=pct>tpct+0.5&&t!=='Savings', under=t==='Savings'&&pct<tpct-0.5;
-    const badge=t==='Savings'?(pct>=tpct?'<span class="pill ok">on target</span>':'<span class="pill over">below 20%</span>')
-      :(over?'<span class="pill over">over '+Math.round(tpct)+'%</span>':'<span class="pill ok">under '+Math.round(tpct)+'%</span>');
-    return '<div class="stat"><div class="t">'+t+' <span style="color:var(--muted)">· target '+Math.round(tpct)+'%</span></div>'+
-      '<div class="big num" style="color:'+col+'">'+pct.toFixed(0)+'%'+badge+'</div>'+
-      '<div class="sub num">'+money(val)+' of '+money(inc)+'</div>'+
-      '<div class="track"><div class="f" style="width:'+Math.min(100,pct)+'%;background:'+col+'"></div>'+
-      '<div class="target" style="left:'+tpct+'%"></div></div></div>';
-  }).join('');
-
-  // category ledger
-  const sp=S.months[k].spend; let html='';
-  const groups=[['Needs','need'],['Wants','want']];
-  groups.forEach(([gl,gk])=>{
-    const gcur=bucket(k,gk), gtgt=CATS.filter(c=>c[0]===gk).reduce((t,c)=>t+c[4],0);
-    html+='<div class="grouphd"><span>'+gl+'</span><span class="num">'+money(gcur)+' / '+money(gtgt)+' target</span></div>';
-    CATS.filter(c=>c[0]===gk).forEach(c=>{
-      const key=c[2], cur=+sp[key]||0, d=cur-c[4];
-      html+='<div class="name">'+c[1]+' <span class="tgt num">·'+money(c[4])+'</span></div>'+
-        '<input data-k="'+key+'" value="'+cur+'" inputmode="numeric">'+
-        '<div class="delta '+(d>0?'up':'down')+' num">'+(d>0?'+':'')+money(d)+'</div>';
-    });
-  });
-  $('catTable').innerHTML=html;
-  document.querySelectorAll('#catTable input').forEach(i=>i.addEventListener('input',e=>{
-    S.months[k].spend[e.target.dataset.k]=parseFloat(e.target.value.replace(/[^0-9.]/g,''))||0; render();
-  }));
-
-  // subscriptions
-  let keep=0,keepct=0,save=0,sub='';
-  S.subs.forEach((s,i)=>{
-    if(s.keep){keep+=s.cost;keepct++;} else {save+=s.cost*12;}
-    const fl=s.flag==='dispute'?'<span class="flagdot dispute">dispute</span>':s.flag==='audit'?'<span class="flagdot audit">review</span>':'';
-    sub+='<div class="sub"><div class="sn">'+s.name+fl+'</div><div class="amt num">$'+s.cost+'</div>'+
-      '<button class="tog'+(s.keep?'':' off')+'" data-i="'+i+'"></button></div>';
-  });
-  $('subList').innerHTML=sub;
-  $('subKeep').textContent=money(keep);$('subKeepCt').textContent=keepct;$('subSave').textContent=money(save);
-  document.querySelectorAll('.tog').forEach(t=>t.addEventListener('click',e=>{
-    const i=+e.target.dataset.i; S.subs[i].keep=!S.subs[i].keep; render();
-  }));
-
-  // trend
-  const keys=Object.keys(S.months).sort();
-  const bals=keys.map(m=>({m,bal:income()-monthSpend(m)}));
-  const mx=Math.max(1,...bals.map(b=>Math.abs(b.bal)));
-  $('trend').innerHTML=bals.map(b=>{
-    const h=Math.max(3,Math.abs(b.bal)/mx*90);
-    return '<div class="tcol"><div class="tbar" style="height:'+h+'px;background:'+(b.bal<0?'var(--warn)':'var(--good)')+
-      '" title="'+money(b.bal)+'"></div><div class="tlab">'+b.m.split('-')[1]+'/'+b.m.slice(2,4)+'</div></div>';
-  }).join('');
-
-  // settings fields
-  $('sSalary').value=S.settings.salary;$('sGift').value=S.settings.gift;
-  $('sOther').value=S.settings.other;$('sSavings').value=S.settings.savings;
-
-  // footnote
-  const subTotalNow=S.subs.filter(s=>s.keep).reduce((t,s)=>t+s.cost,0);
-  $('footNote').innerHTML='Reset math: cutting Wants from '+money(bucket(k,'want'))+
-    ' to '+money(CATS.filter(c=>c[0]==='want').reduce((t,c)=>t+c[4],0))+
-    '/mo closes almost the whole gap without touching a single Need. '+
-    'The two <b style="color:var(--warn)">dispute</b> subscriptions (GMACST / GMRSHV, $100/mo) are unrecognized — call Chase first.';
+function wantsWeeklyPace(){ return S.buckets.filter(b=>b.bucket==="want").reduce((t,b)=>t+b.monthly,0)/WEEKS_PER_MONTH; }
+function wantsSpentWeek(wk){ return S.buckets.filter(b=>b.bucket==="want").reduce((t,b)=>t+spentBucketWeek(b.id,wk),0); }
+function starsFor(wk){
+  const pace=wantsWeeklyPace(), spent=wantsSpentWeek(wk);
+  if(pace<=0) return 3;
+  const r=spent/pace;
+  if(r<=0.75)return 5; if(r<=0.9)return 4; if(r<=1.0)return 3; if(r<=1.2)return 2; return 1;
 }
 
-/* ---------- events ---------- */
-['sSalary','sGift','sOther','sSavings'].forEach(id=>{
-  const map={sSalary:'salary',sGift:'gift',sOther:'other',sSavings:'savings'};
-  $(id).addEventListener('input',e=>{S.settings[map[id]]=parseFloat(e.target.value.replace(/[^0-9.]/g,''))||0;render();});
-});
-$('monthSel').addEventListener('change',e=>{S.current=e.target.value;render();});
-$('addMonth').addEventListener('click',()=>{
-  const keys=Object.keys(S.months).sort(); const last=keys[keys.length-1];
-  const[y,m]=last.split('-').map(Number); const nd=new Date(y,m,1); // next month
-  const nk=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0');
-  if(!S.months[nk]){const spend={};CATS.forEach(c=>spend[c[2]]=S.months[last].spend[c[2]]||c[3]);S.months[nk]={spend};}
-  S.current=nk; save(); render();
-});
-async function save(){await store(S);const m=$('savedMsg');m.style.opacity=1;setTimeout(()=>m.style.opacity=0,1400);}
-$('saveBtn').addEventListener('click',save);
-$('exportBtn').addEventListener('click',()=>{
-  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='washington-household-'+S.current+'.json';a.click();
-});
-$('importBtn').addEventListener('click',()=>$('fileIn').click());
-$('fileIn').addEventListener('change',e=>{
-  const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{S=JSON.parse(r.result);save();render();}catch(err){alert('That file could not be read.');}};
-  r.readAsText(f);
-});
+/* ---------- render ---------- */
+let viewWeek;
+function render(){
+  viewWeek=S.viewWeek;
+  const mk=monthKey(viewWeek);
+  $("houseTitle").textContent=S.house;
+  // week nav
+  const mon=new Date(viewWeek);
+  const thisWk=weekKey(new Date());
+  $("wLabel").childNodes[0].nodeValue = viewWeek===thisWk?"This week":"Week of";
+  $("wSub").textContent=fmtRange(mon)+" · "+monthLabel(mk);
+  $("wNext").style.visibility = viewWeek>=thisWk ? "hidden":"visible";
+
+  // hero verdict (discretionary/wants)
+  const pace=wantsWeeklyPace(), spent=wantsSpentWeek(viewWeek), diff=pace-spent;
+  const under=diff>=0;
+  const hero=$("hero"); hero.classList.toggle("over",!under);
+  $("heroVerdict").textContent = under ? "You stayed "+money(diff)+" under" : "You went "+money(-diff)+" over";
+  $("heroSub").textContent = under
+    ? "Nice — discretionary spending was inside your weekly pace."
+    : "Over your fun-money pace this week. One tweak and you're back.";
+  const st=starsFor(viewWeek);
+  $("heroStars").innerHTML = [1,2,3,4,5].map(i=>`<span class="s">${i<=st?"⭐":"☆"}</span>`).join("")
+    + `<span style="margin-left:8px;font-size:12px;opacity:.9;font-weight:700">${["","Tough week","Getting there","Solid","Great week","Perfect week"][st]}</span>`;
+  $("streakN").textContent=S.ritual.streak||0;
+  $("fWeek").textContent=money(spent);
+  $("fPace").textContent=money(pace);
+  const monthLeft=S.buckets.filter(b=>b.bucket==="want").reduce((t,b)=>t+bucketRemaining(b,mk),0);
+  $("fMonth").textContent=money(monthLeft);
+
+  // quest
+  const sav=+S.settings.savings||0, goal=+S.settings.goal||1;
+  const qp=Math.max(0,Math.min(100,sav/goal*100));
+  $("questVal").textContent=money(sav)+" / "+money(goal);
+  $("questFill").style.width=qp+"%";
+  $("questCap").textContent = sav>=goal ? "🎉 Cushion rebuilt! Goal reached." : money(goal-sav)+" to go · "+Math.round(qp)+"% there";
+
+  // envelopes
+  const wrap=$("envs"); wrap.innerHTML="";
+  S.buckets.forEach(b=>{
+    const avail=bucketAvailable(b,mk), rem=bucketRemaining(b,mk), wkSpent=spentBucketWeek(b.id,viewWeek);
+    const carry=bucketCarry(b,mk);
+    const ratio=avail>0?Math.max(0,rem/avail):0;
+    const dry=rem<0;
+    let bills=Math.round(ratio*MAXBILLS); if(rem>0&&bills<1)bills=1; if(dry)bills=0;
+    // who split of this week's pulls in this bucket
+    const wkPulls=S.pulls.filter(p=>p.bucketId===b.id&&weekKey(p.date)===viewWeek);
+    const byWho={}; wkPulls.forEach(p=>byWho[p.who]=(byWho[p.who]||0)+(+p.amount||0));
+    const wtot=Object.values(byWho).reduce((a,c)=>a+c,0);
+    const whoBar=wtot>0?S.people.map(pe=>{const v=byWho[pe.id]||0;return v>0?`<i style="width:${v/wtot*100}%;background:${pe.color}"></i>`:""}).join(""):"";
+    const el=document.createElement("button");
+    el.className="env"+(dry?" dry":""); el.dataset.bucket=b.id;
+    el.innerHTML=`
+      <div class="ehd"><span class="eemoji">${b.emoji}</span><span class="ename">${b.name}</span>
+        <span class="ebadge">${b.bucket==="need"?"need":"want"}</span></div>
+      <div class="cash ${dry?"empty":""}">
+        ${dry?`<div class="emptytag">EMPTY</div>`:Array.from({length:bills}).map(()=>`<div class="bill"></div>`).join("")}
+      </div>
+      <div class="enums">
+        <div class="eleft ${dry?"over":""}">${dry?money(rem)+" over":money(rem)+" left"}</div>
+        <div class="eweek">this wk <b>${money(wkSpent)}</b><br>of ${money(avail)}${carry>0?` · +${money(carry)} rolled`:""}</div>
+      </div>
+      <div class="whopull">${whoBar}</div>`;
+    wrap.appendChild(el);
+  });
+  save();
+}
+
+/* ---------- week nav ---------- */
+$("wPrev").onclick=()=>{ S.viewWeek=weekKey(addDays(new Date(S.viewWeek),-7)); render(); };
+$("wNext").onclick=()=>{ const nx=weekKey(addDays(new Date(S.viewWeek),7)); if(nx<=weekKey(new Date())){S.viewWeek=nx;render();} };
+
+/* ---------- sheets ---------- */
+function openSheet(el){ $("scrim").classList.add("show"); el.classList.add("show"); }
+function closeSheets(){ $("scrim").classList.remove("show"); document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("show")); }
+$("scrim").onclick=closeSheets;
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeSheets);
+
+/* ---------- add / edit pull ---------- */
+let editingPull=null;
+function whoChips(container,sel){
+  container.innerHTML=S.people.map(p=>`<button class="whochip ${p.id===sel?"on":""}" data-w="${p.id}">
+     <span class="dot" style="background:${p.color}">${p.short}</span>${p.name.split(" ")[0]}</button>`).join("");
+  container.querySelectorAll(".whochip").forEach(c=>c.onclick=()=>{
+    container.querySelectorAll(".whochip").forEach(x=>x.classList.remove("on")); c.classList.add("on");
+  });
+}
+function selectedWho(container){ const el=container.querySelector(".whochip.on"); return el?el.dataset.w:S.people[0].id; }
+function openPull(bucketId,pull){
+  editingPull=pull||null;
+  $("pullTitle").textContent=pull?"Edit pull":"Add a pull";
+  $("pullBucket").innerHTML=S.buckets.map(b=>`<option value="${b.id}">${b.emoji} ${b.name}</option>`).join("");
+  $("pullBucket").value = pull?pull.bucketId : (bucketId||S.buckets.find(b=>b.bucket==="want").id);
+  $("pullAmt").value = pull?pull.amount:"";
+  $("pullAmtDisplay").textContent = pull?Math.round(pull.amount).toLocaleString():"0";
+  $("pullNote").value = pull?pull.note||"":"";
+  $("pullDate").value = pull?pull.date:iso(new Date());
+  whoChips($("pullWho"), pull?pull.who:S.people[0].id);
+  $("deletePull").style.display = pull?"block":"none";
+  $("savePull").textContent = pull?"Save changes":"Pull from envelope";
+  openSheet($("pullSheet"));
+  if(!pull) setTimeout(()=>$("pullAmt").focus(),300);
+}
+$("pullAmt").addEventListener("input",e=>{ const v=parseFloat(e.target.value)||0; $("pullAmtDisplay").textContent=Math.round(v).toLocaleString(); });
+$("addPullBtn").onclick=()=>openPull();
+$("envs").addEventListener("click",e=>{ const el=e.target.closest(".env"); if(el) openPull(el.dataset.bucket); });
+$("savePull").onclick=()=>{
+  const amt=parseFloat($("pullAmt").value)||0;
+  if(amt<=0){ toast("Enter an amount"); return; }
+  const data={ bucketId:$("pullBucket").value, amount:amt, who:selectedWho($("pullWho")),
+    note:$("pullNote").value.trim(), date:$("pullDate").value||iso(new Date()) };
+  if(editingPull){ Object.assign(editingPull,data); }
+  else { S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),...data}); }
+  // jump view to the week of the pull so they see it drain
+  S.viewWeek=weekKey(data.date);
+  closeSheets(); render(); toast(editingPull?"Pull updated":"Pulled "+money(amt));
+  editingPull=null;
+};
+$("deletePull").onclick=()=>{ if(editingPull){ S.pulls=S.pulls.filter(p=>p!==editingPull); editingPull=null; closeSheets(); render(); toast("Pull deleted"); } };
+
+/* ============================================================
+   MONEY NIGHT — guided weekly ritual
+   ============================================================ */
+let mnStep=0; const MN_STEPS=5;
+let mnChange="";
+function openMoneyNight(){ mnStep=0; S.viewWeek=weekKey(new Date()); render(); renderMN(); $("mn").classList.add("show"); }
+function closeMoneyNight(){ $("mn").classList.remove("show"); }
+$("moneyNightBtn").onclick=openMoneyNight;
+$("mnClose").onclick=closeMoneyNight;
+
+function renderMN(){
+  $("mnProg").style.width=((mnStep+1)/MN_STEPS*100)+"%";
+  const wk=weekKey(new Date()), mk=monthKey(wk);
+  const body=$("mnBody"), foot=$("mnFoot");
+  const pace=wantsWeeklyPace(), spent=wantsSpentWeek(wk), diff=pace-spent, under=diff>=0, st=starsFor(wk);
+
+  if(mnStep===0){
+    body.innerHTML=`<div class="step">
+      <div class="bigemoji">💵</div>
+      <div class="kicker" style="text-align:center">Money Night</div>
+      <h2 class="mnt" style="text-align:center">Week of ${fmtRange(new Date(wk))}</h2>
+      <p class="mnp" style="text-align:center">20 minutes, the two of you. Let's see how the week went and set up next week.</p>
+      <div style="text-align:center;margin-top:6px">${S.people.map(p=>`<span class="badge"><span class="be" style="color:${p.color}">●</span>${p.name}</span>`).join("")}</div>
+    </div>`;
+    foot.innerHTML=`<button class="primary money" id="mnNext">Let's go →</button>`;
+  }
+  else if(mnStep===1){
+    // log this week's pulls
+    const rows=S.buckets.map(b=>{
+      const wkSpent=spentBucketWeek(b.id,wk);
+      return `<div class="qlog" data-b="${b.id}">
+        <div class="qtop2"><span class="qemoji">${b.emoji}</span><span class="qn">${b.name}</span>
+          <span class="qspent">this week: <b>${money(wkSpent)}</b></span></div>
+        <div class="qadd">
+          <input type="number" inputmode="decimal" placeholder="add $" data-amt>
+          <div class="who2">${S.people.map((p,i)=>`<button data-who="${p.id}" class="${i===0?"":"off"}" style="background:${p.color}">${p.short}</button>`).join("")}</div>
+          <button class="go" data-go>＋</button>
+        </div></div>`;
+    }).join("");
+    body.innerHTML=`<div class="step">
+      <div class="kicker">Step 1 · Catch up</div>
+      <h2 class="mnt">Log this week's spending</h2>
+      <p class="mnp">Add anything you haven't logged yet. Tap a name to tag who pulled it. Skip any that are already up to date.</p>
+      ${rows}</div>`;
+    body.querySelectorAll(".qlog").forEach(q=>{
+      const who2=q.querySelectorAll("[data-who]");
+      who2.forEach(w=>w.onclick=()=>{ who2.forEach(x=>x.classList.add("off")); w.classList.remove("off"); });
+      q.querySelector("[data-go]").onclick=()=>{
+        const amt=parseFloat(q.querySelector("[data-amt]").value)||0; if(amt<=0){toast("Enter an amount");return;}
+        const who=(q.querySelector("[data-who]:not(.off)")||who2[0]).dataset.who;
+        S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),bucketId:q.dataset.b,amount:amt,who,note:"",date:iso(new Date())});
+        save(); renderMN(); toast("Added "+money(amt));
+      };
+    });
+    foot.innerHTML=`<button class="primary" id="mnNext">See the verdict →</button>`;
+  }
+  else if(mnStep===2){
+    body.innerHTML=`<div class="step">
+      <div class="kicker" style="text-align:center">Step 2 · The verdict</div>
+      <div class="mnverdict" style="margin-top:20px">
+        <div class="bigemoji" style="margin:0">${under?(st>=4?"🎉":"👍"):"😅"}</div>
+        <div class="big" style="color:${under?"var(--good)":"var(--warn)"}">${under?money(diff)+" under":money(-diff)+" over"}</div>
+        <div class="mnstars">${[1,2,3,4,5].map(i=>i<=st?"⭐":"☆").join("")}</div>
+        <p class="mnp" style="text-align:center">Discretionary this week: <b>${money(spent)}</b> vs your <b>${money(pace)}</b> weekly pace.</p>
+      </div></div>`;
+    foot.innerHTML=`<button class="primary money" id="mnNext">What's tight? →</button>`;
+    if(under&&st>=4) burst();
+  }
+  else if(mnStep===3){
+    // flagged envelopes for the month
+    const flagged=S.buckets.map(b=>({b,rem:bucketRemaining(b,mk),avail:bucketAvailable(b,mk)}))
+      .filter(x=>x.rem<x.avail*0.15) // near-empty or over
+      .sort((a,b)=>a.rem-b.rem);
+    const cards = flagged.length ? flagged.map(({b,rem})=>`
+      <div class="flagcard"><div class="fn">${b.emoji} ${b.name}<span>${rem<0?money(rem)+" over":money(rem)+" left"}</span></div>
+      <div class="fc">${rem<0?"Envelope's empty for "+monthLabel(mk):"Running low — "+money(rem)+" left this month"}</div></div>`).join("")
+      : `<div class="okcard">✨ Nothing's tight — every envelope has room. Keep it up.</div>`;
+    body.innerHTML=`<div class="step">
+      <div class="kicker">Step 3 · What needs attention</div>
+      <h2 class="mnt">Where it's tight this month</h2>
+      <p class="mnp">Pick one thing to adjust next week — small and specific beats a total overhaul.</p>
+      ${cards}
+      <label class="fld">Our one change for next week</label>
+      <input class="in" id="mnChangeInput" placeholder="e.g. Cook 4 nights, cap dining at $250" value="${mnChange.replace(/"/g,'&quot;')}">
+    </div>`;
+    body.querySelector("#mnChangeInput").addEventListener("input",e=>mnChange=e.target.value);
+    foot.innerHTML=`<button class="primary" id="mnNext">Update savings →</button>`;
+  }
+  else if(mnStep===4){
+    body.innerHTML=`<div class="step">
+      <div class="kicker">Step 4 · The cushion</div>
+      <h2 class="mnt">Update your liquid savings</h2>
+      <p class="mnp">Check your accounts and drop in today's total (checking + brokerage). This feeds the $${(+S.settings.goal||50000).toLocaleString()} quest.</p>
+      <label class="fld">Liquid savings right now</label>
+      <input class="in" id="mnSavings" type="number" inputmode="decimal" value="${S.settings.savings||0}" style="font-size:22px;text-align:center">
+      <div id="mnBadges" style="margin-top:18px"></div>
+    </div>`;
+    foot.innerHTML=`<button class="primary money" id="mnNext">Finish Money Night ✓</button>`;
+  }
+  document.querySelectorAll("#mnNext").forEach(b=>b.onclick=mnNext);
+}
+function mnNext(){
+  if(mnStep===4){ finishMoneyNight(); return; }
+  if(mnStep===3){ /* keep mnChange */ }
+  mnStep++; renderMN();
+}
+function finishMoneyNight(){
+  const sv=parseFloat($("mnSavings").value); if(!isNaN(sv)) S.settings.savings=sv;
+  // streak: increment if last check-in was in a prior week; reset if a week was skipped (>13 days)
+  const wk=weekKey(new Date());
+  const last=S.ritual.lastCheckIn;
+  if(last){ const gapDays=Math.round((new Date(wk)-new Date(weekKey(last)))/86400000);
+    if(gapDays<=0){/* same week, keep */} else if(gapDays<=7){S.ritual.streak++;} else {S.ritual.streak=1;}
+  } else { S.ritual.streak=1; }
+  S.ritual.lastCheckIn=iso(new Date());
+  const st=starsFor(wk);
+  S.ritual.history.push({week:wk,stars:st,change:mnChange,savings:S.settings.savings});
+  // badges
+  const earned=awardBadges();
+  save();
+  // celebration screen
+  mnStep=99; $("mnProg").style.width="100%";
+  const sav=+S.settings.savings, goal=+S.settings.goal;
+  $("mnBody").innerHTML=`<div class="step" style="text-align:center">
+    <div class="bigemoji">🔥</div>
+    <div class="kicker">Money Night complete</div>
+    <h2 class="mnt">${S.ritual.streak}-week streak!</h2>
+    <p class="mnp">${mnChange?`This week's move: <b>"${mnChange}"</b>`:"See you next Sunday."}</p>
+    <div class="mnstars">${[1,2,3,4,5].map(i=>i<=st?"⭐":"☆").join("")}</div>
+    <div style="margin-top:14px">${sav>=goal?"🏦 Cushion goal reached!":"🏦 "+money(goal-sav)+" left to your cushion goal"}</div>
+    <div style="margin-top:16px">${(earned.length?earned:S.ritual.badges).map(b=>`<span class="badge ${earned.includes(b)?"new":""}"><span class="be">${b.e}</span>${b.t}</span>`).join("")}</div>
+  </div>`;
+  $("mnFoot").innerHTML=`<button class="primary money" id="mnDone">Done</button>`;
+  $("mnDone").onclick=()=>{ closeMoneyNight(); mnChange=""; render(); };
+  burst(); setTimeout(burst,400);
+}
+function hasBadge(id){ return S.ritual.badges.some(b=>b.id===id); }
+function addBadge(list,id,e,t){ if(!hasBadge(id)){ const b={id,e,t}; S.ritual.badges.push(b); list.push(b); } }
+function awardBadges(){
+  const earned=[]; const wk=weekKey(new Date());
+  addBadge(earned,"first","🌟","First Money Night");
+  if(S.ritual.streak>=3) addBadge(earned,"streak3","🔥","3-week streak");
+  if(S.ritual.streak>=8) addBadge(earned,"streak8","⚡","8-week streak");
+  if(starsFor(wk)>=5) addBadge(earned,"perfect","🏆","Perfect week");
+  const cancelled=0; // reserved for subscriptions feature
+  if((+S.settings.savings||0)>=(+S.settings.goal||50000)) addBadge(earned,"cushion","🏦","Cushion rebuilt");
+  const wantsOK=S.buckets.filter(b=>b.bucket==="want").every(b=>bucketRemaining(b,monthKey(wk))>=0);
+  if(wantsOK) addBadge(earned,"allgreen","✅","No envelope emptied");
+  return earned;
+}
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+$("gearBtn").onclick=()=>{ renderSettings(); openSheet($("setSheet")); };
+function renderSettings(){
+  const b=$("setBody"); const s=S.settings;
+  b.innerHTML=`
+    <div class="subhd">Income (take-home cash / month)</div>
+    <div class="setrow"><span class="se">💼</span><span class="sn">Salary — take-home</span><input class="mini" data-s="salary" value="${s.salary}"></div>
+    <div class="setrow"><span class="se">🎁</span><span class="sn">Family gift (50k ÷ 12)</span><input class="mini" data-s="gift" value="${s.gift}"></div>
+    <div class="setrow"><span class="se">➕</span><span class="sn">Other income</span><input class="mini" data-s="other" value="${s.other}"></div>
+    <div class="setrow"><span class="se">🏦</span><span class="sn">Liquid savings now</span><input class="mini" data-s="savings" value="${s.savings}"></div>
+    <div class="setrow"><span class="se">🎯</span><span class="sn">Cushion goal</span><input class="mini" data-s="goal" value="${s.goal}"></div>
+
+    <div class="subhd">Envelopes — monthly budget</div>
+    <div id="setBuckets"></div>
+    <button class="linkbtn" id="addBucket">＋ Add an envelope</button>
+
+    <div class="subhd">Household</div>
+    <div class="setrow"><span class="se">🏡</span><span class="sn">Name</span><input class="mini" style="width:150px;text-align:left" data-house value="${S.house.replace(/"/g,'&quot;')}"></div>
+
+    <div class="subhd">Your data (stays on this device)</div>
+    <button class="ghostbtn" id="exportBtn">⬇ Export backup</button>
+    <button class="ghostbtn" id="importBtn">⬆ Import backup</button>
+    <input type="file" id="fileIn" accept="application/json" hidden>
+    <button class="ghostbtn" id="resetBtn" style="color:var(--warn)">Reset everything</button>
+    <button class="ghostbtn" id="sampleBtn">Reload sample data</button>
+    <p class="qcap" style="margin:14px 2px 4px">Income & runway math is in take-home cash, not gross. Two dispute subs (GMACST/GMRSHV) were flagged in your statement — worth a call to Chase.</p>
+  `;
+  // buckets
+  const bb=b.querySelector("#setBuckets");
+  bb.innerHTML=["need","want"].map(grp=>`<div style="font-size:11px;font-weight:800;color:var(--muted);margin:8px 0 2px">${grp==="need"?"NEEDS":"WANTS"}</div>`+
+    S.buckets.filter(x=>x.bucket===grp).map(x=>`
+    <div class="setrow"><span class="se">${x.emoji}</span><span class="sn">${x.name}<div class="sb">${grp}</div></span>
+    <input class="mini" data-bud="${x.id}" value="${x.monthly}">
+    <button class="pdel" data-delb="${x.id}" style="color:var(--faint);font-size:15px">🗑</button></div>`).join("")).join("");
+
+  b.querySelectorAll("[data-s]").forEach(i=>i.addEventListener("input",e=>{ S.settings[e.target.dataset.s]=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; render(); }));
+  b.querySelector("[data-house]").addEventListener("input",e=>{ S.house=e.target.value; $("houseTitle").textContent=S.house||"Household"; save(); });
+  b.querySelectorAll("[data-bud]").forEach(i=>i.addEventListener("input",e=>{ const bk=S.buckets.find(x=>x.id===e.target.dataset.bud); bk.monthly=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; render(); }));
+  b.querySelectorAll("[data-delb]").forEach(btn=>btn.onclick=()=>{
+    const bk=S.buckets.find(x=>x.id===btn.dataset.delb);
+    const has=S.pulls.some(p=>p.bucketId===bk.id);
+    if(has&&!confirm(`"${bk.name}" has pulls logged. Delete the envelope anyway? Pulls stay but lose their envelope.`)) return;
+    S.buckets=S.buckets.filter(x=>x.id!==bk.id); render(); renderSettings();
+  });
+  b.querySelector("#addBucket").onclick=()=>{
+    const name=prompt("New envelope name:"); if(!name) return;
+    const grp=confirm("Is this a NEED? (Cancel = a Want)")?"need":"want";
+    const monthly=parseFloat(prompt("Monthly budget for it:","300"))||0;
+    S.buckets.push({id:"b"+Date.now(),name:name.trim(),emoji:grp==="need"?"📦":"✨",monthly,bucket:grp});
+    render(); renderSettings();
+  };
+  b.querySelector("#exportBtn").onclick=()=>{
+    const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="money-night-"+iso(new Date())+".json"; a.click();
+    toast("Backup downloaded");
+  };
+  b.querySelector("#importBtn").onclick=()=>b.querySelector("#fileIn").click();
+  b.querySelector("#fileIn").addEventListener("change",e=>{
+    const f=e.target.files[0]; if(!f)return; const r=new FileReader();
+    r.onload=()=>{ try{ const j=JSON.parse(r.result); if(!j.buckets)throw 0; if(!confirm("Replace all current data with this backup?"))return; S=j; if(!S.viewWeek)S.viewWeek=weekKey(new Date()); save(); closeSheets(); render(); toast("Backup imported"); }catch(err){ toast("Couldn't read that file"); } };
+    r.readAsText(f);
+  });
+  b.querySelector("#resetBtn").onclick=()=>{ if(!confirm("Erase everything on this device?"))return; if(!confirm("Really sure? Export a backup first if unsure."))return; S=seed(); S.pulls=[]; S.ritual={streak:0,lastCheckIn:null,badges:[],history:[]}; save(); closeSheets(); render(); toast("Reset"); };
+  b.querySelector("#sampleBtn").onclick=()=>{ if(!confirm("Reload the sample data? Replaces current."))return; S=seed(); save(); closeSheets(); render(); toast("Sample loaded"); };
+}
+
+/* ============================================================
+   CONFETTI + TOAST
+   ============================================================ */
+const cv=$("confetti"), cx=cv.getContext("2d"); let parts=[],raf=null;
+function sizeC(){ cv.width=innerWidth; cv.height=innerHeight; } sizeC(); addEventListener("resize",sizeC);
+function burst(){
+  const cols=["#0E7C6B","#12A08A","#C98A1E","#2E8B57","#C2547E","#2E6FB5"];
+  for(let i=0;i<130;i++) parts.push({x:innerWidth/2+(Math.random()-.5)*180,y:innerHeight*0.32,
+    vx:(Math.random()-.5)*13,vy:Math.random()*-13-3,r:4+Math.random()*6,c:cols[i%cols.length],a:1,rot:Math.random()*6,vr:(Math.random()-.5)*.4});
+  if(!raf) raf=requestAnimationFrame(confLoop);
+}
+function confLoop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  parts.forEach(p=>{ p.vy+=0.32;p.x+=p.vx;p.y+=p.vy;p.vx*=.99;p.rot+=p.vr;p.a-=.008;
+    cx.save();cx.globalAlpha=Math.max(0,p.a);cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;cx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6);cx.restore(); });
+  parts=parts.filter(p=>p.a>0&&p.y<cv.height+30);
+  if(parts.length) raf=requestAnimationFrame(confLoop); else {cx.clearRect(0,0,cv.width,cv.height);raf=null;}
+}
+let toastT=null;
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2000); }
 
 /* ---------- boot ---------- */
-(async()=>{ S=await load(); if(!S||!S.months){S=fresh();await store(S);} render(); })();
+render();
+
+/* ---------- service worker (offline / installable) ---------- */
+if("serviceWorker" in navigator){ addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{})); }
 </script>
 </body>
 </html>
