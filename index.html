@@ -308,6 +308,13 @@
   <div class="sbody" id="setBody"></div>
 </div>
 
+<!-- ONBOARDING — set the budget together -->
+<div class="mn" id="ob">
+  <div class="mnhead"><div style="width:34px;flex:none"></div><div class="prog"><i id="obProg"></i></div></div>
+  <div class="mnbody" id="obBody"></div>
+  <div class="mnfoot" id="obFoot"></div>
+</div>
+
 <!-- MONEY NIGHT -->
 <div class="mn" id="mn">
   <div class="mnhead">
@@ -349,34 +356,41 @@ function monthLabel(mk){ const[y,m]=mk.split("-"); return new Date(y,m-1,1).toLo
 const money=n=>{ const neg=n<0; n=Math.abs(Math.round(n)); return (neg?"-$":"$")+n.toLocaleString(); };
 const WEEKS_PER_MONTH=4.345;
 
-/* ---------- seed ---------- */
-function seed(){
-  const NEEDS=[["Mortgage","🏠",3350],["HOA","🏘️",240],["Childcare (nanny)","🍼",3800],["Utilities","💡",280],
+/* ---------- starter budget ---------- */
+function starterBuckets(){
+  const NEEDS=[["Mortgage","🏠",3350],["HOA","🏘️",240],["Childcare (nanny)","🍼",3800],
+    ["Baby Cleo","👶",400],["George (dog)","🐕",150],["Utilities","💡",280],
     ["Groceries","🛒",1300],["Car payment","🚗",579],["Insurance","🛡️",200],["Medical & health","🩺",750]];
   const WANTS=[["Dining & takeout","🍽️",1200],["Shopping & retail","🛍️",1500],["Salon & personal","💇",300],
     ["Travel","✈️",800],["Entertainment","🎬",500],["Subscriptions","📺",650],["Hobbies","⛳",600],["Rideshare & parking","🚕",450]];
-  let id=1; const mk=e=>e.map(([name,emoji,monthly])=>({id:"b"+(id++),name,emoji,monthly,bucket:null}));
-  const buckets=[...mk(NEEDS).map(b=>({...b,bucket:"need"})),...mk(WANTS).map(b=>({...b,bucket:"want"}))];
-  // a few sample pulls in the current week/month, tagged
-  const today=new Date();
-  const bid=n=>buckets.find(b=>b.name.startsWith(n)).id;
-  const p=(days,bn,who,amt,note)=>({id:"p"+(id++),date:iso(addDays(today,days)),bucketId:bid(bn),who,amount:amt,note});
-  const pulls=[
-    p(-1,"Dining","dray",64,"Pizza night"), p(-2,"Groceries","alex",148,"Costco"),
-    p(-3,"Shopping","alex",210,"Kids clothes"), p(-4,"Rideshare","dray",38,"Airport"),
-    p(-6,"Dining","alex",92,"Date night"), p(-9,"Groceries","dray",120,"Weekly run"),
-    p(-11,"Entertainment","dray",55,"Movies"), p(-1,"Mortgage","dray",3350,"July")
-  ];
+  let id=1; const mk=(e,grp)=>e.map(([name,emoji,monthly])=>({id:"b"+(id++),name,emoji,monthly,bucket:grp}));
+  return [...mk(NEEDS,"need"),...mk(WANTS,"want")];
+}
+function baseState(){
   return {
     house:"The Washingtons",
     people:[{id:"dray",name:"Draymond",short:"D",color:"#2E6FB5"},{id:"alex",name:"Alexandria",short:"A",color:"#C2547E"}],
     settings:{salary:11700,gift:4167,other:0,savings:33000,goal:50000},
-    buckets, pulls,
+    buckets:starterBuckets(), pulls:[],
     ritual:{streak:0,lastCheckIn:null,badges:[],history:[]},
-    viewWeek: weekKey(today)
+    viewWeek:weekKey(new Date()), setupDone:false
   };
 }
-let S=loadRaw()||seed();
+function sampleState(){
+  const s=baseState(); s.setupDone=true;
+  const today=new Date();
+  const bid=n=>s.buckets.find(b=>b.name.startsWith(n)).id;
+  let id=1; const p=(days,bn,who,amt,note)=>({id:"sp"+(id++),date:iso(addDays(today,days)),bucketId:bid(bn),who,amount:amt,note});
+  s.pulls=[
+    p(-1,"Dining","dray",64,"Pizza night"), p(-2,"Groceries","alex",148,"Costco"),
+    p(-3,"Shopping","alex",210,"Kids clothes"), p(-4,"Rideshare","dray",38,"Airport"),
+    p(-6,"Dining","alex",92,"Date night"), p(-9,"Groceries","dray",120,"Weekly run"),
+    p(-11,"Entertainment","dray",55,"Movies"), p(-1,"Mortgage","dray",3350,"July"),
+    p(-2,"Baby Cleo","alex",78,"Diapers & wipes"), p(-5,"George","dray",64,"Dog food + vet")
+  ];
+  return s;
+}
+let S=loadRaw()||baseState();
 if(!S.viewWeek) S.viewWeek=weekKey(new Date());
 
 /* ---------- computed ---------- */
@@ -707,6 +721,7 @@ function renderSettings(){
     <button class="ghostbtn" id="exportBtn">⬇ Export backup</button>
     <button class="ghostbtn" id="importBtn">⬆ Import backup</button>
     <input type="file" id="fileIn" accept="application/json" hidden>
+    <button class="ghostbtn" id="redoSetup">🧰 Set up our budget again</button>
     <button class="ghostbtn" id="resetBtn" style="color:var(--warn)">Reset everything</button>
     <button class="ghostbtn" id="sampleBtn">Reload sample data</button>
     <p class="qcap" style="margin:14px 2px 4px">Income & runway math is in take-home cash, not gross. Two dispute subs (GMACST/GMRSHV) were flagged in your statement — worth a call to Chase.</p>
@@ -746,8 +761,120 @@ function renderSettings(){
     r.onload=()=>{ try{ const j=JSON.parse(r.result); if(!j.buckets)throw 0; if(!confirm("Replace all current data with this backup?"))return; S=j; if(!S.viewWeek)S.viewWeek=weekKey(new Date()); save(); closeSheets(); render(); toast("Backup imported"); }catch(err){ toast("Couldn't read that file"); } };
     r.readAsText(f);
   });
-  b.querySelector("#resetBtn").onclick=()=>{ if(!confirm("Erase everything on this device?"))return; if(!confirm("Really sure? Export a backup first if unsure."))return; S=seed(); S.pulls=[]; S.ritual={streak:0,lastCheckIn:null,badges:[],history:[]}; save(); closeSheets(); render(); toast("Reset"); };
-  b.querySelector("#sampleBtn").onclick=()=>{ if(!confirm("Reload the sample data? Replaces current."))return; S=seed(); save(); closeSheets(); render(); toast("Sample loaded"); };
+  b.querySelector("#resetBtn").onclick=()=>{ if(!confirm("Erase everything on this device?"))return; if(!confirm("Really sure? Export a backup first if unsure."))return; S=baseState(); save(); closeSheets(); render(); openOnboarding(); toast("Reset — let's set up fresh"); };
+  b.querySelector("#sampleBtn").onclick=()=>{ if(!confirm("Reload the sample data? Replaces current."))return; S=sampleState(); save(); closeSheets(); render(); toast("Sample loaded"); };
+  b.querySelector("#redoSetup").onclick=()=>{ closeSheets(); openOnboarding(); };
+}
+
+/* ============================================================
+   ONBOARDING — "let's set our budget together"
+   ============================================================ */
+let obStep=0; const OB_STEPS=5;
+function openOnboarding(){ obStep=0; renderOB(); $("ob").classList.add("show"); }
+function closeOnboarding(){ $("ob").classList.remove("show"); }
+function obBucketRows(grp){
+  return S.buckets.filter(b=>b.bucket===grp).map(b=>`
+    <div class="setrow"><span class="se">${b.emoji}</span>
+      <span class="sn">${b.name}</span>
+      <span style="color:var(--muted);font-weight:800">$</span>
+      <input class="mini" data-obbud="${b.id}" value="${b.monthly}">
+      <button class="pdel" data-obdel="${b.id}" style="color:var(--faint);font-size:15px">🗑</button></div>`).join("");
+}
+function obPlanned(){ return S.buckets.reduce((t,b)=>t+(+b.monthly||0),0); }
+function renderOB(){
+  $("obProg").style.width=((obStep+1)/OB_STEPS*100)+"%";
+  const body=$("obBody"), foot=$("obFoot");
+  if(obStep===0){
+    body.innerHTML=`<div class="step" style="text-align:center">
+      <div class="bigemoji">👪</div>
+      <div class="kicker">Welcome to Money Night</div>
+      <h2 class="mnt">Let's set your budget — together</h2>
+      <p class="mnp">Grab ${S.people[1]?S.people[1].name.split(" ")[0]:"each other"} and ten minutes. You'll build your envelopes and set what each one holds every month. After that: upload the card Saturday night, and Sunday is Money Night. 💵</p>
+    </div>`;
+    foot.innerHTML=`<button class="primary money" id="obNext">Start setup →</button>
+      <button class="ghostbtn" id="obSkip">Skip — use the suggested budget</button>`;
+    $("obSkip").onclick=()=>{ S.setupDone=true; save(); closeOnboarding(); render(); toast("You're set — welcome!"); };
+  }
+  else if(obStep===1){
+    body.innerHTML=`<div class="step">
+      <div class="kicker">Step 1 · Who's in it</div>
+      <h2 class="mnt">Your household</h2>
+      <label class="fld">Household name</label>
+      <input class="in" id="obHouse" value="${S.house.replace(/"/g,'&quot;')}">
+      <label class="fld">The two of you (tagged on every purchase)</label>
+      ${S.people.map(p=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;background:${p.color}">${p.short}</span>
+        <input class="in" data-person="${p.id}" value="${p.name.replace(/"/g,'&quot;')}"></div>`).join("")}
+      <p class="mnp" style="margin-top:12px">Baby Cleo and George get their own envelopes on the next screen 🍼🐕</p>
+    </div>`;
+    $("obHouse").addEventListener("input",e=>{ S.house=e.target.value; });
+    body.querySelectorAll("[data-person]").forEach(i=>i.addEventListener("input",e=>{
+      const p=S.people.find(x=>x.id===e.target.dataset.person); p.name=e.target.value; p.short=(e.target.value.trim()[0]||"?").toUpperCase();
+    }));
+    foot.innerHTML=`<button class="primary" id="obNext">Next: envelopes →</button>`;
+  }
+  else if(obStep===2){
+    body.innerHTML=`<div class="step">
+      <div class="kicker">Step 2 · Your envelopes</div>
+      <h2 class="mnt">What do you spend on?</h2>
+      <p class="mnp">These monthly budgets are the cash that fills each envelope. Adjust the numbers together, remove what doesn't fit, add your own.</p>
+      <div class="subhd">Needs — the non-negotiables</div>
+      <div id="obNeeds">${obBucketRows("need")}</div>
+      <button class="linkbtn" data-obadd="need">＋ Add a need</button>
+      <div class="subhd">Wants — the fun money you steer</div>
+      <div id="obWants">${obBucketRows("want")}</div>
+      <button class="linkbtn" data-obadd="want">＋ Add a want</button>
+    </div>`;
+    wireOBBuckets(body);
+    foot.innerHTML=`<button class="primary" id="obNext">Next: income →</button>`;
+  }
+  else if(obStep===3){
+    const s=S.settings;
+    body.innerHTML=`<div class="step">
+      <div class="kicker">Step 3 · Money in & cushion</div>
+      <h2 class="mnt">Income & savings</h2>
+      <p class="mnp">Take-home cash that actually lands each month — not gross.</p>
+      <label class="fld">Salary — take-home / mo</label><input class="in" data-set="salary" value="${s.salary}" inputmode="decimal">
+      <label class="fld">Family gift / mo (50k ÷ 12)</label><input class="in" data-set="gift" value="${s.gift}" inputmode="decimal">
+      <label class="fld">Other income / mo</label><input class="in" data-set="other" value="${s.other}" inputmode="decimal">
+      <label class="fld">Liquid savings right now</label><input class="in" data-set="savings" value="${s.savings}" inputmode="decimal">
+      <label class="fld">Cushion goal</label><input class="in" data-set="goal" value="${s.goal}" inputmode="decimal">
+      <div id="obBalance" style="margin-top:16px;padding:14px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:13.5px"></div>
+    </div>`;
+    body.querySelectorAll("[data-set]").forEach(i=>i.addEventListener("input",e=>{ s[e.target.dataset.set]=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; obBalanceLine(); }));
+    obBalanceLine();
+    foot.innerHTML=`<button class="primary money" id="obNext">Looks good →</button>`;
+  }
+  else if(obStep===4){
+    body.innerHTML=`<div class="step" style="text-align:center">
+      <div class="bigemoji">🎉</div>
+      <div class="kicker">All set</div>
+      <h2 class="mnt">Your envelopes are full</h2>
+      <p class="mnp">${S.house} is ready for the month. Upload the card Saturday night and I'll have it sorted for your first Money Night — you two just swipe who spent what. See you Sunday.</p>
+    </div>`;
+    foot.innerHTML=`<button class="primary money" id="obNext">Enter the app →</button>`;
+  }
+  document.querySelectorAll("#obNext").forEach(b=>b.onclick=obNextFn);
+}
+function obBalanceLine(){
+  const el=$("obBalance"); if(!el) return;
+  const planned=obPlanned(), inc=income(), left=inc-planned;
+  el.innerHTML=`Planned <b class="num">${money(planned)}</b> across your envelopes vs <b class="num">${money(inc)}</b> coming in.<br>
+    <span style="color:${left<0?"var(--warn)":"var(--good)"};font-weight:800">${left<0?money(-left)+" over — trim a want or two":money(left)+" left to save or pad the cushion"}</span>`;
+}
+function wireOBBuckets(scope){
+  scope.querySelectorAll("[data-obbud]").forEach(i=>i.addEventListener("input",e=>{ const b=S.buckets.find(x=>x.id===e.target.dataset.obbud); b.monthly=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; }));
+  scope.querySelectorAll("[data-obdel]").forEach(btn=>btn.onclick=()=>{ S.buckets=S.buckets.filter(x=>x.id!==btn.dataset.obdel); renderOB(); });
+  scope.querySelectorAll("[data-obadd]").forEach(btn=>btn.onclick=()=>{
+    const grp=btn.dataset.obadd; const name=prompt(grp==="need"?"New need (e.g. Storage unit):":"New want (e.g. Golf):"); if(!name) return;
+    const monthly=parseFloat(prompt("Monthly budget for it:","200"))||0;
+    S.buckets.push({id:"b"+Date.now(),name:name.trim(),emoji:grp==="need"?"📦":"✨",monthly,bucket:grp});
+    renderOB();
+  });
+}
+function obNextFn(){
+  if(obStep===OB_STEPS-1){ S.setupDone=true; save(); closeOnboarding(); render(); burst(); toast("Budget set — welcome to Money Night!"); return; }
+  save(); obStep++; renderOB();
 }
 
 /* ============================================================
@@ -773,6 +900,7 @@ function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show");
 
 /* ---------- boot ---------- */
 render();
+if(!S.setupDone) openOnboarding();
 
 /* ---------- service worker (offline / installable) ---------- */
 if("serviceWorker" in navigator){ addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{})); }
