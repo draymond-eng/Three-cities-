@@ -1370,17 +1370,28 @@ function subscribeRealtime(){
       p=>{ if(p.new&&p.new.data) applyRemote(p.new.data); })
     .subscribe();
 }
+function pickRow(d){ return Array.isArray(d)?d[0]:d; }
+async function refreshJoinCode(){
+  if(CLOUD.joinCode||!CLOUD.householdId) return;
+  try{ const { data }=await CLOUD.sb.from("households").select("join_code").eq("id",CLOUD.householdId).single(); if(data) CLOUD.joinCode=data.join_code; }catch(e){}
+}
 async function cloudCreateHousehold(){
   const { data, error } = await CLOUD.sb.rpc("create_household",{ p_name:S.house });
   if(error) return error.message;
-  CLOUD.householdId=data.id; CLOUD.joinCode=data.join_code;
+  const h=pickRow(data);
+  if(!h||!h.id) return "Unexpected response creating the household.";
+  CLOUD.householdId=h.id; CLOUD.joinCode=h.join_code;
   try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); }catch(e){}
+  await refreshJoinCode();
   subscribeRealtime(); updateSyncUI(); return null;
 }
 async function cloudJoinHousehold(code){
   const { data, error } = await CLOUD.sb.rpc("join_household",{ p_code:(code||"").trim() });
   if(error) return error.message;
-  CLOUD.householdId=data.id; CLOUD.joinCode=data.join_code;
+  const h=pickRow(data);
+  if(!h||!h.id) return "That code didn't match a household.";
+  CLOUD.householdId=h.id; CLOUD.joinCode=h.join_code;
+  await refreshJoinCode();
   await cloudPull(); subscribeRealtime(); updateSyncUI(); return null;
 }
 async function cloudSignOut(){ try{ if(CLOUD.channel) CLOUD.sb.removeChannel(CLOUD.channel); await CLOUD.sb.auth.signOut(); }catch(e){} CLOUD.user=null; CLOUD.householdId=null; CLOUD.channel=null; updateSyncUI(); renderSyncSheet(); }
