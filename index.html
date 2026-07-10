@@ -822,39 +822,47 @@ function renderGoals(){
         <span class="qcap">${done?'🎉 Goal reached':money(Math.max(0,target-saved))+' to go · '+Math.round(pct)+'%'}</span>
         <span style="display:flex;gap:6px;align-items:center">
           <button data-addfunds="${g.id}" style="padding:6px 12px;border:1px solid var(--line);border-radius:9px;font-size:12.5px;font-weight:700;background:var(--card);color:var(--ink)">＋ Add funds</button>
-          ${g.fixed?'':`<button class="pdel" data-editgoal="${g.id}" style="color:var(--faint)">✎</button><button class="pdel" data-delgoal="${g.id}" style="color:var(--bad)">🗑</button>`}
+          ${g.fixed?'':`<button class="pdel" data-editgoal="${g.id}" style="color:var(--faint)">✎</button>`}
         </span>
       </div></div>`;
   }).join("");
   el.querySelectorAll("[data-addfunds]").forEach(b=>b.onclick=()=>addFunds(b.dataset.addfunds));
   el.querySelectorAll("[data-editgoal]").forEach(b=>b.onclick=()=>editGoal(b.dataset.editgoal));
-  el.querySelectorAll("[data-delgoal]").forEach(b=>b.onclick=()=>{ if(confirm("Delete this goal?")){ S.goals=S.goals.filter(x=>x.id!==b.dataset.delgoal); save(); renderGoals(); } });
   el.querySelector("#addGoal").onclick=newGoal;
 }
-function goalById(id){ return id==="cushion" ? {get saved(){return +S.settings.savings||0}, get target(){return +S.settings.goal||0}} : S.goals.find(x=>x.id===id); }
+const GOAL_EMOJIS=["🎯","✈️","🏝️","🚗","🏠","🎓","💍","🏦","🛟","💻","🎸","👶","🎉","⛵"];
 function addFunds(id){
-  const amt=parseFloat(prompt("Add how much to this goal?","")); if(!amt||amt<=0) return;
-  if(id==="cushion"){ S.settings.savings=(+S.settings.savings||0)+amt; }
-  else { const g=S.goals.find(x=>x.id===id); if(g) g.saved=(+g.saved||0)+amt; }
-  save(); renderGoals(); render();
-  const saved=id==="cushion"?(+S.settings.savings||0):((S.goals.find(x=>x.id===id)||{}).saved||0);
-  const target=id==="cushion"?(+S.settings.goal||0):((S.goals.find(x=>x.id===id)||{}).target||0);
-  if(target>0 && saved>=target){ burst(); toast("🎉 Goal reached!"); }
+  const g=id==="cushion"?{name:"Emergency cushion"}:S.goals.find(x=>x.id===id);
+  openForm({title:"Add to “"+(g?g.name:"goal")+"”", fields:[{key:"amt",label:"Amount to add",type:"number",placeholder:"0.00"}],
+    submit:"Add funds", onSubmit:v=>{ if(!v.amt||v.amt<=0){toast("Enter an amount");return false;}
+      if(id==="cushion") S.settings.savings=(+S.settings.savings||0)+v.amt; else { const gg=S.goals.find(x=>x.id===id); if(gg) gg.saved=(+gg.saved||0)+v.amt; }
+      save(); renderGoals(); render();
+      const saved=id==="cushion"?(+S.settings.savings||0):((S.goals.find(x=>x.id===id)||{}).saved||0);
+      const target=id==="cushion"?(+S.settings.goal||0):((S.goals.find(x=>x.id===id)||{}).target||0);
+      if(target>0&&saved>=target){ burst(); toast("🎉 Goal reached!"); }
+    }});
 }
 function newGoal(){
-  const name=prompt("What are you saving for? (e.g. Family trip)"); if(!name) return;
-  const target=parseFloat(prompt("Target amount:","1000"))||0;
-  const emoji=prompt("An emoji for it:","🎯")||"🎯";
-  const colors=["#38BDF8","#8267C9","#E8A22E","#C2547E","#16B091","#F4736A"];
-  S.goals.push({id:"g"+Date.now(),name:name.trim(),emoji:emoji.trim().slice(0,2),target,saved:0,color:colors[S.goals.length%colors.length]});
-  save(); renderGoals();
+  openForm({title:"New savings goal", fields:[
+    {key:"name",label:"What are you saving for?",type:"text",placeholder:"e.g. Family trip"},
+    {key:"emoji",label:"Icon",type:"emoji",value:"🎯",options:GOAL_EMOJIS},
+    {key:"target",label:"Target amount",type:"number",value:1000}
+  ], submit:"Create goal", onSubmit:v=>{ if(!v.name){toast("Give it a name");return false;}
+    const colors=["#38BDF8","#8267C9","#E8A22E","#C2547E","#16B091","#F4736A"];
+    S.goals.push({id:"g"+Date.now(),name:v.name,emoji:v.emoji||"🎯",target:v.target,saved:0,color:colors[S.goals.length%colors.length]});
+    save(); renderGoals();
+  }});
 }
 function editGoal(id){
   const g=S.goals.find(x=>x.id===id); if(!g) return;
-  const name=prompt("Goal name:",g.name); if(name===null) return;
-  const target=parseFloat(prompt("Target amount:",g.target)); if(!isNaN(target)) g.target=target;
-  const saved=parseFloat(prompt("Saved so far:",g.saved)); if(!isNaN(saved)) g.saved=saved;
-  g.name=name.trim()||g.name; save(); renderGoals();
+  openForm({title:"Edit goal", fields:[
+    {key:"name",label:"Goal name",type:"text",value:g.name},
+    {key:"emoji",label:"Icon",type:"emoji",value:g.emoji,options:GOAL_EMOJIS},
+    {key:"target",label:"Target amount",type:"number",value:g.target},
+    {key:"saved",label:"Saved so far",type:"number",value:g.saved}
+  ], submit:"Save", danger:"Delete this goal",
+  onSubmit:v=>{ if(!v.name){toast("Give it a name");return false;} g.name=v.name; g.emoji=v.emoji||g.emoji; g.target=v.target; g.saved=v.saved; save(); renderGoals(); },
+  onDanger:()=>{ S.goals=S.goals.filter(x=>x.id!==id); save(); renderGoals(); }});
 }
 
 /* ---------- month-end sweep: roll over or allot leftovers to goals ---------- */
@@ -988,16 +996,24 @@ function renderRecurring(){
   el.querySelector("#subKeepAmt").textContent=money(subsKeep);
   el.querySelector("#subSaveAmt").textContent=money(S.subs.filter(s=>!s.keep).reduce((t,s)=>t+s.cost*12,0));
   el.querySelector("#subTag2").textContent=money(subsKeep)+"/mo";
-  el.querySelector("#addSub").onclick=()=>{ const name=prompt("Subscription name:"); if(!name)return; const cost=parseFloat(prompt("Monthly cost:","10"))||0; S.subs.push({id:"s"+Date.now(),name:name.trim(),cost,keep:true,flag:null}); save(); renderRecurring(); };
+  el.querySelector("#addSub").onclick=()=>openForm({title:"Add a subscription",
+    fields:[{key:"name",label:"Name",type:"text",placeholder:"e.g. Netflix"},{key:"cost",label:"Monthly cost",type:"number",value:0}],
+    submit:"Add", onSubmit:v=>{ if(!v.name){toast("Name it");return false;} S.subs.push({id:"s"+Date.now(),name:v.name,cost:v.cost,keep:true,flag:null}); save(); renderRecurring(); }});
 }
 function editBill(bill){
-  const editing=!!bill;
-  const name=prompt(editing?"Bill name:":"New bill name:", editing?bill.name:""); if(name===null) return;
-  const amount=parseFloat(prompt("Monthly amount:", editing?bill.amount:"0"))||0;
-  const autopay=confirm("On autopay?  (OK = yes, Cancel = no)");
-  if(editing){ bill.name=name.trim()||bill.name; bill.amount=amount; bill.autopay=autopay; }
-  else { S.recurring.push({id:"r"+Date.now(),name:name.trim()||"Bill",emoji:"🧾",amount,autopay,paid:{}}); }
-  save(); renderRecurring();
+  const editing=!!bill; const b=bill||{name:"",amount:0,autopay:true};
+  openForm({title:editing?"Edit bill":"Add a bill",
+    fields:[
+      {key:"name",label:"Bill name",type:"text",value:b.name,placeholder:"e.g. Freedom Boat Club"},
+      {key:"amount",label:"Monthly amount",type:"number",value:b.amount},
+      {key:"autopay",label:"On autopay?",type:"toggle",value:b.autopay}
+    ],
+    submit:editing?"Save":"Add bill", danger:editing?"Delete this bill":null,
+    onSubmit:v=>{ if(!v.name){toast("Name it");return false;}
+      if(editing){ bill.name=v.name; bill.amount=v.amount; bill.autopay=v.autopay; }
+      else { S.recurring.push({id:"r"+Date.now(),name:v.name,emoji:"🧾",amount:v.amount,autopay:v.autopay,paid:{}}); }
+      save(); renderRecurring(); },
+    onDanger:editing?()=>{ S.recurring=S.recurring.filter(x=>x.id!==bill.id); save(); renderRecurring(); }:null});
 }
 
 /* ---------- sheets ---------- */
@@ -1061,11 +1077,11 @@ function openMoneyNight(){
   const wk=weekKey(new Date());
   $("mniSub").textContent=(S.house||"Your household")+" · Week of "+fmtRange(new Date(wk));
   const intro=$("mnIntro"); intro.classList.add("show");
-  let done=false; const go=()=>{ if(done)return; done=true; intro.classList.remove("show"); };
+  let done=false; const go=()=>{ if(done)return; done=true; intro.classList.remove("show"); stopRain(); };
   intro.onclick=go; clearTimeout(_mniT); _mniT=setTimeout(go,3800);
-  setTimeout(burst,450);
+  setTimeout(burst,450); confettiRain(3800);
 }
-function closeMoneyNight(){ $("mn").classList.remove("show"); $("mnIntro").classList.remove("show"); clearTimeout(_mniT); }
+function closeMoneyNight(){ $("mn").classList.remove("show"); $("mnIntro").classList.remove("show"); clearTimeout(_mniT); stopRain(); }
 $("moneyNightBtn").onclick=openMoneyNight;
 $("mnClose").onclick=closeMoneyNight;
 
@@ -1214,6 +1230,23 @@ function awardBadges(){
    SETTINGS
    ============================================================ */
 $("gearBtn").onclick=()=>{ renderSettings(); openSheet($("setSheet")); };
+const ENV_EMOJIS=["🛒","🍽️","🛍️","👕","✈️","🎬","⛳","🚕","💇","🩺","🎁","👶","🐕","🎨","📦","✨","☕","🏠","💡","🎮","🐾","🍼"];
+function editBucket(bk){
+  const editing=!!bk; const b=bk||{name:"",monthly:0,bucket:"want",emoji:"✨"};
+  openForm({title:editing?"Edit envelope":"Add an envelope",
+    fields:[
+      {key:"name",label:"Name",type:"text",value:b.name,placeholder:"e.g. Coffee"},
+      {key:"emoji",label:"Icon",type:"emoji",value:b.emoji||"✨",options:ENV_EMOJIS},
+      {key:"bucket",label:"Type",type:"select",value:b.bucket,options:[{value:"need",label:"Need (fixed-ish)"},{value:"want",label:"Want (counts in your star grade)"}]},
+      {key:"monthly",label:"Monthly budget",type:"number",value:b.monthly}
+    ],
+    submit:editing?"Save":"Add envelope", danger:editing?"Delete this envelope":null,
+    onSubmit:v=>{ if(!v.name){toast("Name it");return false;}
+      if(editing){ bk.name=v.name; bk.emoji=v.emoji; bk.bucket=v.bucket; bk.monthly=v.monthly; }
+      else { S.buckets.push({id:"b"+Date.now(),name:v.name,emoji:v.emoji||"✨",monthly:v.monthly,bucket:v.bucket}); }
+      render(); renderSettings(); },
+    onDanger:editing?()=>{ S.buckets=S.buckets.filter(x=>x.id!==bk.id); render(); renderSettings(); }:null});
+}
 function renderSettings(){
   const b=$("setBody"); const s=S.settings;
   b.innerHTML=`
@@ -1256,24 +1289,13 @@ function renderSettings(){
     S.buckets.filter(x=>x.bucket===grp).map(x=>`
     <div class="setrow"><span class="se">${x.emoji}</span><span class="sn">${x.name}<div class="sb">${grp}</div></span>
     <input class="mini" data-bud="${x.id}" value="${x.monthly}">
-    <button class="pdel" data-delb="${x.id}" style="color:var(--faint);font-size:15px">🗑</button></div>`).join("")).join("");
+    <button class="pdel" data-editb="${x.id}" style="color:var(--faint);font-size:15px">✎</button></div>`).join("")).join("");
 
   b.querySelectorAll("[data-s]").forEach(i=>i.addEventListener("input",e=>{ S.settings[e.target.dataset.s]=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; render(); }));
   b.querySelector("[data-house]").addEventListener("input",e=>{ S.house=e.target.value; $("houseTitle").textContent=S.house||"Household"; save(); });
   b.querySelectorAll("[data-bud]").forEach(i=>i.addEventListener("input",e=>{ const bk=S.buckets.find(x=>x.id===e.target.dataset.bud); bk.monthly=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; render(); }));
-  b.querySelectorAll("[data-delb]").forEach(btn=>btn.onclick=()=>{
-    const bk=S.buckets.find(x=>x.id===btn.dataset.delb);
-    const has=S.pulls.some(p=>p.bucketId===bk.id);
-    if(has&&!confirm(`"${bk.name}" has pulls logged. Delete the envelope anyway? Pulls stay but lose their envelope.`)) return;
-    S.buckets=S.buckets.filter(x=>x.id!==bk.id); render(); renderSettings();
-  });
-  b.querySelector("#addBucket").onclick=()=>{
-    const name=prompt("New envelope name:"); if(!name) return;
-    const grp=confirm("Is this a NEED? (Cancel = a Want)")?"need":"want";
-    const monthly=parseFloat(prompt("Monthly budget for it:","300"))||0;
-    S.buckets.push({id:"b"+Date.now(),name:name.trim(),emoji:grp==="need"?"📦":"✨",monthly,bucket:grp});
-    render(); renderSettings();
-  };
+  b.querySelectorAll("[data-editb]").forEach(btn=>btn.onclick=()=>editBucket(S.buckets.find(x=>x.id===btn.dataset.editb)));
+  b.querySelector("#addBucket").onclick=()=>editBucket(null);
   b.querySelector("#exportBtn").onclick=()=>{
     const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="klepcake-"+iso(new Date())+".json"; a.click();
@@ -1318,7 +1340,9 @@ function obBillRows(){
 function wireOBBills(scope){
   scope.querySelectorAll("[data-obbill]").forEach(i=>i.addEventListener("input",e=>{ const b=S.recurring.find(x=>x.id===e.target.dataset.obbill); b.amount=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; }));
   scope.querySelectorAll("[data-obbilldel]").forEach(btn=>btn.onclick=()=>{ S.recurring=S.recurring.filter(x=>x.id!==btn.dataset.obbilldel); renderOB(); });
-  const add=scope.querySelector("[data-obaddbill]"); if(add) add.onclick=()=>{ const name=prompt("Bill name:"); if(!name)return; const amount=parseFloat(prompt("Monthly amount:","200"))||0; S.recurring.push({id:"r"+Date.now(),name:name.trim(),emoji:"🧾",amount,autopay:true,paid:{}}); renderOB(); };
+  const add=scope.querySelector("[data-obaddbill]"); if(add) add.onclick=()=>openForm({title:"Add a bill",
+    fields:[{key:"name",label:"Bill name",type:"text",placeholder:"e.g. Freedom Boat Club"},{key:"amount",label:"Monthly amount",type:"number",value:0}],
+    submit:"Add bill", onSubmit:v=>{ if(!v.name){toast("Name it");return false;} S.recurring.push({id:"r"+Date.now(),name:v.name,emoji:"🧾",amount:v.amount,autopay:true,paid:{}}); renderOB(); }});
 }
 function obPlanned(){ return S.buckets.reduce((t,b)=>t+(+b.monthly||0),0)+recurringMonthly()+subsKeepMonthly(); }
 function renderOB(){
@@ -1417,10 +1441,12 @@ function wireOBBuckets(scope){
   scope.querySelectorAll("[data-obbud]").forEach(i=>i.addEventListener("input",e=>{ const b=S.buckets.find(x=>x.id===e.target.dataset.obbud); b.monthly=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; }));
   scope.querySelectorAll("[data-obdel]").forEach(btn=>btn.onclick=()=>{ S.buckets=S.buckets.filter(x=>x.id!==btn.dataset.obdel); renderOB(); });
   scope.querySelectorAll("[data-obadd]").forEach(btn=>btn.onclick=()=>{
-    const grp=btn.dataset.obadd; const name=prompt(grp==="need"?"New need (e.g. Storage unit):":"New want (e.g. Golf):"); if(!name) return;
-    const monthly=parseFloat(prompt("Monthly budget for it:","200"))||0;
-    S.buckets.push({id:"b"+Date.now(),name:name.trim(),emoji:grp==="need"?"📦":"✨",monthly,bucket:grp});
-    renderOB();
+    const grp=btn.dataset.obadd;
+    openForm({title:grp==="need"?"Add a need":"Add a want",
+      fields:[{key:"name",label:"Name",type:"text",placeholder:grp==="need"?"e.g. Storage unit":"e.g. Golf"},
+        {key:"emoji",label:"Icon",type:"emoji",value:grp==="need"?"📦":"✨",options:ENV_EMOJIS},
+        {key:"monthly",label:"Monthly budget",type:"number",value:0}],
+      submit:"Add", onSubmit:v=>{ if(!v.name){toast("Name it");return false;} S.buckets.push({id:"b"+Date.now(),name:v.name,emoji:v.emoji||(grp==="need"?"📦":"✨"),monthly:v.monthly,bucket:grp}); renderOB(); }});
   });
 }
 function obNextFn(){
@@ -1680,13 +1706,63 @@ function burst(){
 }
 function confLoop(){
   cx.clearRect(0,0,cv.width,cv.height);
-  parts.forEach(p=>{ p.vy+=0.32;p.x+=p.vx;p.y+=p.vy;p.vx*=.99;p.rot+=p.vr;p.a-=.008;
+  parts.forEach(p=>{ p.vy+=(p.rain?0.06:0.32);p.x+=p.vx;p.y+=p.vy;p.vx*=.99;p.rot+=p.vr;p.a-=(p.rain?0.004:0.008);
     cx.save();cx.globalAlpha=Math.max(0,p.a);cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;cx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6);cx.restore(); });
   parts=parts.filter(p=>p.a>0&&p.y<cv.height+30);
   if(parts.length) raf=requestAnimationFrame(confLoop); else {cx.clearRect(0,0,cv.width,cv.height);raf=null;}
 }
+// continuous confetti rain (used for the Money Night intro)
+let rainT=null;
+function confettiRain(ms){
+  const cols=["#0E7C6B","#12A08A","#C98A1E","#2E8B57","#C2547E","#2E6FB5","#ffce3a"];
+  clearInterval(rainT); const stop=Date.now()+ms;
+  rainT=setInterval(()=>{
+    if(Date.now()>stop){ clearInterval(rainT); rainT=null; return; }
+    for(let i=0;i<5;i++) parts.push({x:Math.random()*innerWidth,y:-12,vx:(Math.random()-.5)*2.4,vy:Math.random()*2+1,
+      r:4+Math.random()*5,c:cols[(Math.random()*cols.length)|0],a:1,rot:Math.random()*6,vr:(Math.random()-.5)*.3,rain:true});
+    if(!raf) raf=requestAnimationFrame(confLoop);
+  },110);
+}
+function stopRain(){ clearInterval(rainT); rainT=null; }
 let toastT=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2000); }
+
+/* ---------- reusable form sheet (replaces browser prompts) ---------- */
+function fieldHTML(f){
+  const v=(f.value!==undefined&&f.value!==null)?String(f.value):"";
+  if(f.type==="select") return `<label class="fld">${f.label}</label><select class="in" data-f="${f.key}">${f.options.map(o=>`<option value="${o.value}" ${String(o.value)===v?"selected":""}>${o.label}</option>`).join("")}</select>`;
+  if(f.type==="toggle") return `<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 4px"><span class="fld" style="margin:0">${f.label}</span><button type="button" class="tog2 ${f.value?"":"off"}" data-toggle="${f.key}"></button></div>`;
+  if(f.type==="emoji") return `<label class="fld">${f.label}</label><div class="chipset" data-emoji="${f.key}">${f.options.map(e=>`<button type="button" class="${e===f.value?"on":""}">${e}</button>`).join("")}</div>`;
+  return `<label class="fld">${f.label}</label><input class="in" data-f="${f.key}" type="${f.type==="number"?"number":"text"}" ${f.type==="number"?'inputmode="decimal" step="any"':""} value="${v.replace(/"/g,"&quot;")}" placeholder="${f.placeholder||""}">`;
+}
+function openForm(opts){
+  const ov=document.createElement("div"); ov.className="scrim show"; ov.style.zIndex="88";
+  const box=document.createElement("div"); box.className="sheet"; box.style.zIndex="89";
+  box.innerHTML=`<div class="grab"></div>
+    <div class="shead"><h3>${opts.title}</h3><button class="x" data-x>✕</button></div>
+    <div class="sbody">
+      ${opts.fields.map(fieldHTML).join("")}
+      <button class="primary money" data-submit style="margin-top:18px">${opts.submit||"Save"}</button>
+      ${opts.danger?`<button class="ghostbtn" data-danger style="color:var(--warn);margin-top:10px">${opts.danger}</button>`:""}
+    </div>`;
+  document.body.appendChild(ov); document.body.appendChild(box);
+  requestAnimationFrame(()=>box.classList.add("show"));
+  const close=()=>{ box.classList.remove("show"); ov.classList.remove("show"); setTimeout(()=>{ov.remove();box.remove();},250); };
+  ov.onclick=close; box.querySelector("[data-x]").onclick=close;
+  box.querySelectorAll("[data-emoji]").forEach(w=>w.querySelectorAll("button").forEach(bn=>bn.onclick=()=>{ w.querySelectorAll("button").forEach(x=>x.classList.remove("on")); bn.classList.add("on"); }));
+  box.querySelectorAll("[data-toggle]").forEach(t=>t.onclick=()=>t.classList.toggle("off"));
+  box.querySelector("[data-submit]").onclick=()=>{
+    const vals={};
+    opts.fields.forEach(f=>{
+      if(f.type==="toggle"){ vals[f.key]=!box.querySelector(`[data-toggle="${f.key}"]`).classList.contains("off"); }
+      else if(f.type==="emoji"){ const on=box.querySelector(`[data-emoji="${f.key}"] button.on`); vals[f.key]=on?on.textContent:f.value; }
+      else { const el=box.querySelector(`[data-f="${f.key}"]`); vals[f.key]=f.type==="number"?(parseFloat(el.value)||0):el.value.trim(); }
+    });
+    if(opts.onSubmit(vals)!==false) close();
+  };
+  if(opts.danger&&opts.onDanger) box.querySelector("[data-danger]").onclick=()=>{ opts.onDanger(); close(); };
+  const first=box.querySelector("input,select"); if(first) setTimeout(()=>first.focus(),320);
+}
 
 /* ============================================================
    CLOUD SYNC (Supabase) — optional, local-first
