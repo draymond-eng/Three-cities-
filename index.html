@@ -607,6 +607,7 @@ function ensureShape(s){
   if(!Array.isArray(s.pulls)) s.pulls=[];
   if(!s.merchantRules) s.merchantRules={};
   if(!s.whoRules) s.whoRules={};
+  if(!Array.isArray(s.catRules)) s.catRules=[];
   if(!Array.isArray(s.goals)) s.goals=[];
   if(!s.closes) s.closes={};
   if(!s.ritual) s.ritual={streak:0,lastCheckIn:null,badges:[],history:[]};
@@ -1305,6 +1306,21 @@ function editBucket(bk){
       render(); renderSettings(); },
     onDanger:editing?()=>{ S.buckets=S.buckets.filter(x=>x.id!==bk.id); render(); renderSettings(); }:null});
 }
+function editRule(rule){
+  const editing=!!rule; const r=rule||{match:"",bucketId:(S.buckets[0]||{}).id,who:""};
+  openForm({title:editing?"Edit rule":"New categorize rule",
+    fields:[
+      {key:"match",label:"When a charge contains…",type:"text",value:r.match,placeholder:"e.g. Amazon, Costco, Shell"},
+      {key:"bucketId",label:"Put it in this envelope",type:"select",value:r.bucketId,options:S.buckets.map(b=>({value:b.id,label:b.emoji+" "+b.name}))},
+      {key:"who",label:"Tag who spent it (optional)",type:"select",value:r.who||"",options:[{value:"",label:"Leave it to me"}].concat(S.people.map(p=>({value:p.id,label:p.name})))}
+    ],
+    submit:editing?"Save rule":"Add rule", danger:editing?"Delete this rule":null,
+    onSubmit:v=>{ if(!v.match.trim()){toast("Type what to match");return false;}
+      if(editing){ r.match=v.match.trim(); r.bucketId=v.bucketId; r.who=v.who; }
+      else { S.catRules.push({id:"cr"+Date.now(),match:v.match.trim(),bucketId:v.bucketId,who:v.who}); }
+      save(); renderSettings(); },
+    onDanger:editing?()=>{ S.catRules=S.catRules.filter(x=>x.id!==r.id); save(); renderSettings(); }:null});
+}
 function renderSettings(){
   const b=$("setBody"); const s=S.settings;
   b.innerHTML=`
@@ -1328,6 +1344,12 @@ function renderSettings(){
     <div class="subhd">Envelopes — monthly budget</div>
     <div id="setBuckets"></div>
     <button class="linkbtn" id="addBucket">＋ Add an envelope</button>
+
+    <div class="subhd">Smart rules — auto-sort your imports</div>
+    <p class="qcap" style="margin:0 2px 8px">Teach Klepcake once. When an imported charge contains your text, it drops into the right envelope automatically.</p>
+    <div id="setRules"></div>
+    <button class="linkbtn" id="addRule">＋ Add a rule</button>
+    <div id="learnedNote"></div>
 
     <div class="subhd">Household</div>
     <div class="setrow"><span class="se">🏡</span><span class="sn">Name</span><input class="mini" style="width:150px;text-align:left" data-house value="${S.house.replace(/"/g,'&quot;')}"></div>
@@ -1355,6 +1377,19 @@ function renderSettings(){
   b.querySelectorAll("[data-bud]").forEach(i=>i.addEventListener("input",e=>{ const bk=S.buckets.find(x=>x.id===e.target.dataset.bud); bk.monthly=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; render(); }));
   b.querySelectorAll("[data-editb]").forEach(btn=>btn.onclick=()=>editBucket(S.buckets.find(x=>x.id===btn.dataset.editb)));
   b.querySelector("#addBucket").onclick=()=>editBucket(null);
+  // smart rules
+  const rl=b.querySelector("#setRules");
+  rl.innerHTML=(S.catRules||[]).length ? S.catRules.map(r=>{
+    const bk=S.buckets.find(x=>x.id===r.bucketId), pe=S.people.find(p=>p.id===r.who);
+    return `<div class="setrow"><span class="se">🏷️</span>
+      <span class="sn">“${(r.match||"").replace(/</g,"&lt;")}” → ${bk?bk.emoji+" "+bk.name:"—"}<div class="sb">${pe?"always "+pe.name.split(" ")[0]:"envelope only"}</div></span>
+      <button class="pdel" data-editrule="${r.id}" style="color:var(--faint);font-size:15px">✎</button></div>`;
+  }).join("") : `<p class="qcap" style="margin:2px 2px 6px;opacity:.8">No rules yet. Add one like “Amazon → Shopping.”</p>`;
+  rl.querySelectorAll("[data-editrule]").forEach(btn=>btn.onclick=()=>editRule(S.catRules.find(x=>x.id===btn.dataset.editrule)));
+  b.querySelector("#addRule").onclick=()=>editRule(null);
+  const learned=Object.keys(S.merchantRules||{}).length;
+  b.querySelector("#learnedNote").innerHTML = learned ? `<p class="qcap" style="margin:8px 2px 0">Plus ${learned} merchant${learned===1?"":"s"} learned from your swipes. <button class="linkbtn" id="forgetLearned" style="padding:0">Forget them</button></p>` : "";
+  const fl=b.querySelector("#forgetLearned"); if(fl) fl.onclick=()=>{ S.merchantRules={}; S.whoRules={}; save(); renderSettings(); toast("Cleared learned merchants"); };
   b.querySelector("#exportBtn").onclick=()=>{
     const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="klepcake-"+iso(new Date())+".json"; a.click();
@@ -1628,7 +1663,11 @@ function bucketByName(n){ return S.buckets.find(b=>b.name.startsWith(n)); }
 function categorize(raw){
   const key=merchantKey(raw);
   if(S.merchantRules[key]) return {bucketId:S.merchantRules[key], who:S.whoRules[key]||null};
-  const m=raw.toUpperCase(); const rule=CAT_RULES.find(([re])=>re.test(m));
+  const m=raw.toUpperCase();
+  // your own "when it contains ___" rules win over the built-in guesses
+  const cr=(S.catRules||[]).find(r=>r.match && m.includes(r.match.toUpperCase()));
+  if(cr && S.buckets.some(b=>b.id===cr.bucketId)) return {bucketId:cr.bucketId, who:cr.who||S.whoRules[key]||null};
+  const rule=CAT_RULES.find(([re])=>re.test(m));
   let bucketId=null; if(rule){ const bk=bucketByName(rule[1]); if(bk) bucketId=bk.id; }
   return {bucketId, who:S.whoRules[key]||null};
 }
