@@ -199,12 +199,13 @@
   .qlog .qemoji{font-size:17px}
   .qlog .qn{font-size:13.5px;font-weight:700;flex:1}
   .qlog .qspent{font-size:12px;color:var(--muted);font-weight:600}
-  .qlog .qadd{display:flex;gap:7px;margin-top:9px}
-  .qlog .qadd input{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:15px;background:var(--paper)}
-  .qlog .qadd .who2{display:flex;gap:4px}
-  .qlog .qadd .who2 button{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--line);font-size:12px;font-weight:800;color:#fff}
+  .qlog .qadd{display:flex;flex-direction:column;gap:8px;margin-top:9px}
+  .qlog .qadd .qaddtop{display:flex;gap:7px}
+  .qlog .qadd input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:15px;background:var(--paper)}
+  .qlog .qadd .who2{display:flex;gap:6px}
+  .qlog .qadd .who2 button{flex:1;min-width:0;height:36px;border-radius:9px;border:1.5px solid var(--line);font-size:13px;font-weight:800;color:#fff}
   .qlog .qadd .who2 button.off{opacity:.35}
-  .qlog .qadd .go{width:36px;height:34px;border-radius:9px;background:var(--ink);color:#fff;font-size:18px}
+  .qlog .qadd .go{flex:none;width:46px;height:38px;border-radius:10px;background:var(--ink);color:#fff;font-size:18px}
 
   .flagcard{background:var(--warn-soft);border:1px solid #e6b7ac;border-radius:14px;padding:13px 15px;margin-bottom:10px}
   .flagcard .fn{font-weight:800;font-size:14px;display:flex;justify-content:space-between}
@@ -521,7 +522,10 @@ const KEY="money-night:v1";
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} cloudPush(); }
+// updatedAt is the sync clock: every real save stamps it (but not while we're
+// applying a remote copy). The reconcile below never lets an OLDER remote copy
+// overwrite a NEWER local one, so an add can't vanish before it finishes syncing.
+function save(){ if(!CLOUD.applying) S.updatedAt=Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} cloudPush(); }
 function loadRaw(){ try{ const r=localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
 
 /* ---------- date helpers ---------- */
@@ -613,6 +617,9 @@ function ensureShape(s){
   return s;
 }
 let S=ensureShape(loadRaw()||baseState());
+// snapshot of the on-disk sync clock at launch, before any render bumps it —
+// used so the first cloud pull only adopts server data that's genuinely newer.
+const BOOT_STAMP=(+S.updatedAt||0);
 
 /* ---------- computed ---------- */
 function income(){ const s=S.settings; return (+s.salary||0)+(+s.gift||0)+(+s.other||0); }
@@ -1157,9 +1164,11 @@ function renderMN(){
         <div class="qtop2"><span class="qemoji">${b.emoji}</span><span class="qn">${b.name}</span>
           <span class="qspent">this week: <b>${money(wkSpent)}</b></span></div>
         <div class="qadd">
-          <input type="number" inputmode="decimal" placeholder="add $" data-amt>
+          <div class="qaddtop">
+            <input type="number" inputmode="decimal" placeholder="add $" data-amt>
+            <button class="go" data-go>＋</button>
+          </div>
           <div class="who2">${S.people.map(p=>`<button data-who="${p.id}" class="${p.id==="family"?"":"off"}" style="background:${p.color}">${p.short}</button>`).join("")}</div>
-          <button class="go" data-go>＋</button>
         </div></div>`;
     }).join("");
     body.innerHTML=`<div class="step">
@@ -1968,37 +1977,47 @@ async function onSignedIn(user){
   CLOUD.user=user;
   try{
     const { data:mem } = await CLOUD.sb.from("household_members").select("household_id").limit(1);
-    if(mem&&mem.length){ CLOUD.householdId=mem[0].household_id; await cloudPull(); subscribeRealtime(); }
+    if(mem&&mem.length){ CLOUD.householdId=mem[0].household_id; await cloudPull(false, BOOT_STAMP); subscribeRealtime(); }
   }catch(e){}
   updateSyncUI(); if(typeof renderSyncSheet==="function"&&$("syncSheet").classList.contains("show")) renderSyncSheet();
 }
-function applyRemote(data){
+function applyRemote(data, force, cmp){
   if(!data) return;
+  const rstamp=+data.updatedAt||0;
+  const base=(cmp!==undefined)?cmp:(+S.updatedAt||0);
+  // Only adopt the remote copy if it's genuinely newer (or we're force-adopting,
+  // e.g. right after joining). Otherwise keep local and make sure the server has it.
+  if(!force && rstamp<=base){ cloudPush(); return; }
   CLOUD.applying=true;
   S=ensureShape(data);
   try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
-  CLOUD.applying=false;
   if(S.setupDone) closeOnboarding();
   render(); if(activeTab==="recurring") renderRecurring();
+  CLOUD.applying=false;
 }
-async function cloudPull(){
+async function cloudPull(force, cmp){
   if(!CLOUD.householdId) return;
   try{
     const { data } = await CLOUD.sb.from("households").select("data,join_code").eq("id",CLOUD.householdId).single();
-    if(data){ CLOUD.joinCode=data.join_code; if(data.data && Object.keys(data.data).length) applyRemote(data.data); }
+    if(data){ CLOUD.joinCode=data.join_code; if(data.data && Object.keys(data.data).length) applyRemote(data.data, force, cmp); }
   }catch(e){}
 }
 function cloudPush(){
   if(!CLOUD.on||!CLOUD.householdId||CLOUD.applying) return;
   clearTimeout(CLOUD.pushT);
-  CLOUD.pushT=setTimeout(async()=>{ try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); }catch(e){} }, 800);
+  CLOUD.pushT=setTimeout(cloudFlush, 400);
+}
+async function cloudFlush(){
+  clearTimeout(CLOUD.pushT); CLOUD.pushT=null;
+  if(!CLOUD.on||!CLOUD.householdId||CLOUD.applying) return;
+  try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); }catch(e){}
 }
 function subscribeRealtime(){
   if(!CLOUD.householdId) return;
   if(CLOUD.channel){ try{ CLOUD.sb.removeChannel(CLOUD.channel); }catch(e){} }
   CLOUD.channel=CLOUD.sb.channel("hh-"+CLOUD.householdId)
     .on("postgres_changes",{event:"UPDATE",schema:"public",table:"households",filter:"id=eq."+CLOUD.householdId},
-      p=>{ if(p.new&&p.new.data) applyRemote(p.new.data); })
+      p=>{ if(p.new&&p.new.data) applyRemote(p.new.data, false); })
     .subscribe();
 }
 function pickRow(d){ return Array.isArray(d)?d[0]:d; }
@@ -2023,7 +2042,7 @@ async function cloudJoinHousehold(code){
   if(!h||!h.id) return "That code didn't match a household.";
   CLOUD.householdId=h.id; CLOUD.joinCode=h.join_code;
   await refreshJoinCode();
-  await cloudPull(); subscribeRealtime(); updateSyncUI(); return null;
+  await cloudPull(true); subscribeRealtime(); updateSyncUI(); return null;   // force-adopt the household on join
 }
 function newJoinCode(){ const cs="ABCDEFGHJKMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<8;i++) s+=cs[Math.floor(Math.random()*cs.length)]; return s; }
 async function rotateCode(){
@@ -2109,6 +2128,10 @@ function renderSyncSheet(){
 render();
 if(!S.setupDone) openOnboarding();
 cloudInit();
+// flush any pending cloud write before the app is backgrounded or closed,
+// so a fresh add always reaches the server before the next launch pulls.
+addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") cloudFlush&&cloudFlush(); });
+addEventListener("pagehide",()=>{ cloudFlush&&cloudFlush(); });
 
 /* ---------- service worker (offline / installable) ---------- */
 if("serviceWorker" in navigator){ addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{})); }
