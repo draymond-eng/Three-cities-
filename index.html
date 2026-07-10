@@ -846,6 +846,34 @@ function editAccount(acct,kind){
       save(); renderAccounts(); },
     onDanger:editing?()=>{ S.accounts=S.accounts.filter(x=>x.id!==a.id); save(); renderAccounts(); }:null});
 }
+/* ---------- on-device insights (no data leaves the phone) ---------- */
+function insightsHTML(){
+  const ins=[]; const curM=monthKey(new Date());
+  let mk=curM;
+  if(!S.pulls.some(p=>monthKey(p.date)===curM)){ const ms=[...new Set(S.pulls.map(p=>monthKey(p.date)))].sort(); mk=ms[ms.length-1]||curM; }
+  const monthPulls=S.pulls.filter(p=>monthKey(p.date)===mk);
+  const variable=monthPulls.reduce((t,p)=>t+(+p.amount||0),0);
+  if(monthPulls.length){
+    const byB={}; monthPulls.forEach(p=>byB[p.bucketId]=(byB[p.bucketId]||0)+(+p.amount||0));
+    const top=Object.entries(byB).sort((a,b)=>b[1]-a[1])[0]; const bk=bktById(top[0]);
+    if(bk) ins.push({e:bk.emoji,t:`<b>${bk.name}</b> is your biggest category ${mk===curM?"this month":"in "+monthLabel(mk)} at <b>${money(top[1])}</b>.`});
+  }
+  const inc=income(), fixed=recurringMonthly()+subsKeepMonthly(), net=inc-fixed-variable;
+  if(inc>0){
+    if(net>=0) ins.push({e:"💵",t:`After bills and logged spending you're keeping about <b>${money(net)}</b> this month (~${Math.round(net/inc*100)}% of income).`});
+    else ins.push({e:"⚠️",t:`You're about <b>${money(-net)}</b> past your income this month once bills and spending are counted.`});
+  }
+  const goal=+S.settings.goal||0, sav=+S.settings.savings||0;
+  if(goal>sav && net>0){ const mo=Math.ceil((goal-sav)/net); if(mo>0&&mo<600) ins.push({e:"🏦",t:`At this pace you'll reach your <b>${money(goal)}</b> cushion in about <b>${mo} month${mo===1?"":"s"}</b>.`}); }
+  if(S.nwHistory.length>=2){ const d=S.nwHistory[S.nwHistory.length-1].value-S.nwHistory[0].value; if(d!==0) ins.push({e:d>0?"📈":"📉",t:`Net worth is ${d>0?"up":"down"} <b>${money(Math.abs(d))}</b> since you started tracking.`}); }
+  if((S.ritual.streak||0)>=2) ins.push({e:"🔥",t:`You're on a <b>${S.ritual.streak}-week</b> Money Night streak — keep it going.`});
+  if(!ins.length) return "";
+  const rows=ins.slice(0,4);
+  return `<div class="sec" style="margin-top:2px"><h2>Insights</h2><span class="tag">on-device · private</span></div>
+    <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:4px 16px;margin-bottom:16px">
+      ${rows.map((x,i)=>`<div style="display:flex;gap:11px;align-items:flex-start;padding:11px 0;${i<rows.length-1?"border-bottom:1px solid var(--line2)":""}"><span style="font-size:18px;flex:none">${x.e}</span><span style="font-size:13.5px;line-height:1.5">${x.t}</span></div>`).join("")}
+    </div>`;
+}
 function renderTrends(){
   const el=$("trendsTab");
   const months=monthsBack(6);
@@ -855,6 +883,7 @@ function renderTrends(){
   const curM=monthKey(new Date());
   el.innerHTML=`
     ${netWorthCardHTML()}
+    ${insightsHTML()}
     <div class="sec" style="margin-top:2px"><h2>Spending trend</h2></div>
     <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px">
       <select class="in" id="trendCat" style="margin-bottom:14px">
