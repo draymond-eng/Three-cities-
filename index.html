@@ -973,17 +973,20 @@ function renderScoreboard(){
   const el=$("scoreboard"); if(!el) return;
   const totals={};
   S.pulls.filter(p=>weekKey(p.date)===viewWeek).forEach(p=>{ totals[p.who]=(totals[p.who]||0)+(+p.amount||0); });
-  const rows=S.people.map(p=>({p,amt:totals[p.id]||0})).filter(r=>r.amt>0).sort((a,b)=>b.amt-a.amt);
-  if(!rows.length){ el.innerHTML=""; return; }
-  const max=Math.max(...rows.map(r=>r.amt));
+  // scoreboard counts only charges tagged to a specific person; "Family" = shared/untagged
+  const rows=S.people.filter(p=>p.id!=="family").map(p=>({p,amt:totals[p.id]||0})).filter(r=>r.amt>0).sort((a,b)=>b.amt-a.amt);
+  const shared=totals["family"]||0;
+  if(!rows.length && !shared){ el.innerHTML=""; return; }
+  const max=rows.length?Math.max(...rows.map(r=>r.amt)):1;
   el.innerHTML=`<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:15px 16px;margin-bottom:14px">
     <div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:15px;margin-bottom:12px">Who spent what · this week</div>
-    ${rows.map(({p,amt})=>`<div style="display:flex;align-items:center;gap:10px;margin:9px 0">
+    ${rows.length?rows.map(({p,amt})=>`<div style="display:flex;align-items:center;gap:10px;margin:9px 0">
       <span style="width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;background:${p.color};font-size:13px">${p.short}</span>
       <span style="width:80px;font-size:13px;font-weight:600">${p.name.split(" ")[0]}</span>
       <span style="flex:1;height:9px;border-radius:6px;background:var(--line2);overflow:hidden"><i style="display:block;height:100%;width:${amt/max*100}%;background:${p.color};border-radius:6px"></i></span>
       <span class="num" style="font-weight:800;font-size:14px;min-width:60px;text-align:right">${money(amt)}</span>
-    </div>`).join("")}
+    </div>`).join(""):`<div class="qcap" style="margin:2px 0 6px">No one tagged yet — it's all shared so far. Tag a purchase to a name anytime you want to keep score. 😊</div>`}
+    ${shared>0?`<div class="qcap" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line2)">👪 ${money(shared)} logged as shared / family</div>`:``}
   </div>`;
 }
 $("tabs").addEventListener("click",e=>{ const b=e.target.closest("button[data-tab]"); if(b) setTab(b.dataset.tab); });
@@ -1155,21 +1158,21 @@ function renderMN(){
           <span class="qspent">this week: <b>${money(wkSpent)}</b></span></div>
         <div class="qadd">
           <input type="number" inputmode="decimal" placeholder="add $" data-amt>
-          <div class="who2">${S.people.map((p,i)=>`<button data-who="${p.id}" class="${i===0?"":"off"}" style="background:${p.color}">${p.short}</button>`).join("")}</div>
+          <div class="who2">${S.people.map(p=>`<button data-who="${p.id}" class="${p.id==="family"?"":"off"}" style="background:${p.color}">${p.short}</button>`).join("")}</div>
           <button class="go" data-go>＋</button>
         </div></div>`;
     }).join("");
     body.innerHTML=`<div class="step">
       <div class="kicker">Step 1 · Catch up</div>
       <h2 class="mnt">Log this week's spending</h2>
-      <p class="mnp">Add anything you haven't logged yet. Tap a name to tag who pulled it. Skip any that are already up to date.</p>
+      <p class="mnp">Add anything you haven't logged yet. It goes to the whole family unless you tap a name — tagging who spent it is totally optional.</p>
       ${rows}</div>`;
     body.querySelectorAll(".qlog").forEach(q=>{
       const who2=q.querySelectorAll("[data-who]");
       who2.forEach(w=>w.onclick=()=>{ who2.forEach(x=>x.classList.add("off")); w.classList.remove("off"); });
       q.querySelector("[data-go]").onclick=()=>{
         const amt=parseFloat(q.querySelector("[data-amt]").value)||0; if(amt<=0){toast("Enter an amount");return;}
-        const who=(q.querySelector("[data-who]:not(.off)")||who2[0]).dataset.who;
+        const who=(q.querySelector("[data-who]:not(.off)")||q.querySelector('[data-who="family"]')||who2[0]).dataset.who;
         S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),bucketId:q.dataset.b,amount:amt,who,note:"",date:iso(new Date())});
         save(); renderMN(); toast("Added "+money(amt));
       };
@@ -1634,7 +1637,7 @@ function renderDeck(){
   const hint = impIdx===0 && (impDemo || !S.importHintSeen);
   $("impBody").innerHTML=`<div class="deckwrap">
     <div class="deckprog"><div class="pbar"><i style="width:${impIdx/total*100}%"></i></div><div class="pcount">${impIdx} of ${total} sorted · ${money(impDeck[impIdx].amount)} up next</div></div>
-    ${impDemo?`<div class="demopill">🎮 Demo · tap whoever spent each charge — nothing's saved</div>`:``}
+    ${impDemo?`<div class="demopill">🎮 Demo · tap who spent it — or 👪 Family if it doesn't matter · nothing's saved</div>`:``}
     <div class="names${hint?" pulse":""}" id="nameTargets"></div>
     <div class="deck" id="deck">${hint?`<div class="demohand">👆</div>`:``}</div>
     <div class="deckfoot">
