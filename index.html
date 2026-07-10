@@ -475,7 +475,7 @@ function starterBuckets(){
     ["George (dog)","🐕",100,"#5AA0A6"],["Cleo — activities","🎨",150,"#f472b6"],["Cleo — supplies","👶",100,"#fbbf24"]];
   const WANTS=[["Dining & takeout","🍽️",250,"#fb923c"],["Shopping & household","🛍️",200,"#38bdf8"],
     ["Clothing","👕",150,"#c084fc"],["Salon & personal","💇",80,"#f9a8d4"],["Travel","✈️",150,"#22d3ee"],
-    ["Entertainment","🎬",100,"#a78bfa"],["Hobbies (golf)","⛳",100,"#4ade80"],
+    ["Entertainment","🎬",100,"#a78bfa"],["Dray — hobbies","⛳",100,"#4ade80"],["Ali — misc","✨",80,"#f472b6"],
     ["Rideshare & transport","🚕",80,"#facc15"],["Gifts & giving","🎁",60,"#f87171"]];
   let id=1; const mk=(e,grp)=>e.map(([name,emoji,monthly,color])=>({id:"b"+(id++),name,emoji,monthly,bucket:grp,color}));
   return [...mk(NEEDS,"need"),...mk(WANTS,"want")];
@@ -1468,7 +1468,7 @@ function normDate(d){ d=(d||"").trim();
 const CAT_RULES=[
   [/KRISER|CHEWY|PETCO|PETSMART|BANFIELD|\bVCA\b|\bVET\b/,"George"],
   [/FOSS SWIM|BUBBLES ACAD|SWIM SCHOOL|DAYCARE|PEDIATRIC|CARTER|BABY|TONIES|CHILDREN/,"Cleo"],
-  [/COG HILL|GOLF|NEWCLUB|TOPGOLF|PGA TOUR/,"Hobbies"],
+  [/COG HILL|GOLF|NEWCLUB|TOPGOLF|PGA TOUR/,"Dray — hobbies"],
   [/UBER \*EATS|DOORDASH|GRUBHUB|TST\*|SQ \*|CHIPOTLE|MCDONALD|WINGSTOP|PIZZA|RESTAURANT|CAFE|COFFEE|STARBUCK|DUNKIN|GRILL|TAVERN|KITCHEN|SUSHI|TACO| WINE|DINER|BISTRO|COOKUNITY|TRADER TODD|ANN SATHER|WICKLOW|GRACIE|TIPPING POINT|TRAVELERS TABLE|LOCAL FOODS|MIXTECO|RODEO|MCDONALD/,"Dining"],
   [/UBER \*TRIP|UBER \*ONE|LYFT|PARKING|SPOTHERO|METRA|VENTRA|\bCTA\b/,"Rideshare"],
   [/AMERICAN AIR|UNITED|DELTA|SOUTHWEST|AIRLINE|EXPEDIA|VIATOR|TRIPADVISOR|VACAY|AIRBNB|HOTEL|MARRIOTT|HILTON/,"Travel"],
