@@ -298,6 +298,27 @@
   .wlc-p{font-size:15.5px;font-weight:600;color:#eafaf5;line-height:1.5;opacity:0;animation:mniFade .6s .8s forwards}
   .wlc-tap{margin-top:26px;font-size:13px;color:#bfeee2;font-weight:600;opacity:0;animation:mniFade .6s 1.5s forwards,mniPulse 1.8s 2s infinite}
 
+  .coach{position:fixed;inset:0;z-index:96;opacity:0;pointer-events:none;transition:opacity .25s}
+  .coach.show{opacity:1;pointer-events:auto}
+  .coach-ring{position:fixed;border-radius:16px;border:2px solid #ffce3a;pointer-events:none;
+    box-shadow:0 0 0 9999px rgba(6,10,20,.74),0 0 0 5px rgba(255,206,58,.28);
+    transition:top .32s cubic-bezier(.4,0,.2,1),left .32s cubic-bezier(.4,0,.2,1),width .32s cubic-bezier(.4,0,.2,1),height .32s cubic-bezier(.4,0,.2,1)}
+  .coach-pop{position:fixed;left:50%;transform:translateX(-50%);width:min(340px,calc(100vw - 32px));
+    background:var(--card);color:var(--ink);border-radius:16px;padding:16px 16px 14px;box-shadow:0 18px 50px rgba(0,0,0,.4);
+    opacity:0;transition:opacity .25s,top .32s cubic-bezier(.4,0,.2,1)}
+  .coach-pop.in{opacity:1}
+  .coach-pop .ck{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--good);font-weight:800}
+  .coach-pop h4{font-size:18px;font-weight:800;margin:3px 0 6px;font-family:"Bricolage Grotesque"}
+  .coach-pop p{font-size:14px;line-height:1.5;color:var(--muted);font-weight:500}
+  .coach-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+  .coach-dots{display:flex;gap:5px}
+  .coach-dots i{width:6px;height:6px;border-radius:50%;background:var(--line);display:block}
+  .coach-dots i.on{background:var(--good);width:16px;border-radius:3px}
+  .coach-btns{display:flex;gap:8px}
+  .coach-btns button{border:none;border-radius:10px;font-weight:700;font-size:13.5px;padding:9px 14px;cursor:pointer}
+  .coach-skip{background:none;color:var(--muted);padding:9px 6px!important}
+  .coach-next{background:var(--good);color:#fff}
+
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
   .toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(30px);
     background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:95;box-shadow:var(--shadow-lg)}
@@ -459,6 +480,11 @@
     <div class="mni-sub" id="mniSub">Your household</div>
     <div class="mni-tap">tap to begin →</div>
   </div>
+</div>
+
+<div class="coach" id="coach">
+  <div class="coach-ring" id="coachRing"></div>
+  <div class="coach-pop" id="coachPop"></div>
 </div>
 
 <canvas id="confetti"></canvas>
@@ -1287,6 +1313,7 @@ function renderSettings(){
     <button class="ghostbtn" id="exportBtn">⬇ Export backup</button>
     <button class="ghostbtn" id="importBtn">⬆ Import backup</button>
     <input type="file" id="fileIn" accept="application/json" hidden>
+    <button class="ghostbtn" id="tourBtn">🧭 Replay the app tour</button>
     <button class="ghostbtn" id="redoSetup">🧰 Set up our budget again</button>
     <button class="ghostbtn" id="resetBtn" style="color:var(--warn)">Reset everything</button>
     <button class="ghostbtn" id="sampleBtn">Reload sample data</button>
@@ -1318,6 +1345,7 @@ function renderSettings(){
   });
   b.querySelector("#resetBtn").onclick=()=>{ if(!confirm("Erase everything on this device?"))return; if(!confirm("Really sure? Export a backup first if unsure."))return; S=ensureShape(baseState()); save(); closeSheets(); render(); openOnboarding(); toast("Reset — let's set up fresh"); };
   b.querySelector("#sampleBtn").onclick=()=>{ if(!confirm("Reload the sample data? Replaces current."))return; S=ensureShape(sampleState()); save(); closeSheets(); render(); toast("Sample loaded"); };
+  b.querySelector("#tourBtn").onclick=()=>{ closeSheets(); setTimeout(startCoach,320); };
   b.querySelector("#redoSetup").onclick=()=>{ closeSheets(); openOnboarding(); };
   b.querySelector("#openSyncBtn").onclick=openSync;
   b.querySelector("#remindBtn").onclick=downloadReminderICS;
@@ -1459,7 +1487,7 @@ function wireOBBuckets(scope){
   });
 }
 function obNextFn(){
-  if(obStep===OB_STEPS-1){ S.setupDone=true; save(); closeOnboarding(); render(); burst(); toast("Budget set — welcome to Klepcake! 🍰"); return; }
+  if(obStep===OB_STEPS-1){ S.setupDone=true; save(); closeOnboarding(); render(); burst(); toast("Budget set — welcome to Klepcake! 🍰"); if(!S.coachDone) setTimeout(startCoach,900); return; }
   save(); obStep++; renderOB();
 }
 
@@ -1733,7 +1761,7 @@ function confettiRain(ms){
   },110);
 }
 function stopRain(){ clearInterval(rainT); rainT=null; }
-function showWelcome(headline, sub, emoji){
+function showWelcome(headline, sub, emoji, onDone){
   const ov=document.createElement("div"); ov.className="wlc";
   ov.innerHTML=`<div class="wlc-in"><div class="wlc-emoji">${emoji||"🎉"}</div>
     <div class="wlc-h">${headline}</div><div class="wlc-p">${sub}</div>
@@ -1741,9 +1769,70 @@ function showWelcome(headline, sub, emoji){
   document.body.appendChild(ov);
   requestAnimationFrame(()=>ov.classList.add("show"));
   setTimeout(burst,300); confettiRain(4200);
-  let done=false; const go=()=>{ if(done)return; done=true; ov.classList.remove("show"); stopRain(); setTimeout(()=>ov.remove(),450); };
+  let done=false; const go=()=>{ if(done)return; done=true; ov.classList.remove("show"); stopRain(); setTimeout(()=>{ov.remove(); if(typeof onDone==="function") onDone();},450); };
   ov.onclick=go; setTimeout(go,4800);
 }
+
+/* ---------- first-run coach (guided tour) ---------- */
+const COACH_STEPS=[
+  {sel:"#tabs",     ck:"Getting around", title:"Four simple tabs", body:"<b>Week</b> is right now. <b>Bills</b> are the fixed monthly stuff. <b>Goals</b> is what you're saving toward. <b>Trends</b> shows how you're doing over time."},
+  {sel:"#hero",     ck:"This week",       title:"Your weekly verdict", body:"Green means you stayed inside your fun-money pace. The stars are your grade — and 🔥 is your Money Night streak together."},
+  {sel:"#quest",    ck:"The big goal",    title:"Your shared cushion", body:"Leftover money funnels here toward your savings goal. Watch the bar climb a little every week."},
+  {sel:"#importOpen",ck:"Fastest way in", title:"Import your spending", body:"Upload a card or bank export and swipe each charge onto whoever spent it. Klepcake remembers — so it gets quicker every week."},
+  {sel:"#envs .env", ck:"Where money lives", title:"Your envelopes", body:"Each envelope is a monthly budget. The little cash bills thin out as you spend — tap any envelope to log a purchase."},
+  {sel:"#moneyNightBtn",ck:"Every Sunday", title:"Start Money Night", body:"Tap here together each week — a quick 5-step ritual to catch up, see your verdict, pick one change, and celebrate the streak. That's the whole point. 🍰"}
+];
+let coachIdx=0;
+function startCoach(){
+  if(typeof setTab==="function") setTab("home");
+  coachIdx=0; $("coach").classList.add("show"); coachAt(0);
+}
+function endCoach(finished){
+  $("coach").classList.remove("show"); $("coachPop").classList.remove("in");
+  if(finished){ S.coachDone=true; save(); toast("You're all set — enjoy Money Night 🍰"); }
+}
+function coachAt(i){
+  if(i<0) i=0;
+  if(i>=COACH_STEPS.length){ endCoach(true); return; }
+  const step=COACH_STEPS[i]; const el=document.querySelector(step.sel);
+  if(!el){ coachAt(i+1); return; } // skip anything not on screen
+  coachIdx=i;
+  el.scrollIntoView({block:"center",inline:"nearest"});
+  setTimeout(()=>{
+    const r=el.getBoundingClientRect();
+    if(r.height<4){ coachAt(i+1); return; }
+    const pad=8, vw=innerWidth, vh=innerHeight;
+    const top=Math.max(6,r.top-pad), left=Math.max(6,r.left-pad);
+    const w=Math.min(vw-12,r.width+pad*2), h=Math.min(vh-top-8,r.height+pad*2);
+    const ring=$("coachRing");
+    const rad=parseFloat(getComputedStyle(el).borderRadius)||14;
+    ring.style.borderRadius=Math.min(26,rad+pad)+"px";
+    ring.style.top=top+"px"; ring.style.left=left+"px"; ring.style.width=w+"px"; ring.style.height=h+"px";
+    const pop=$("coachPop");
+    const last=i===COACH_STEPS.length-1;
+    pop.innerHTML=`<div class="ck">${step.ck} · ${i+1} of ${COACH_STEPS.length}</div>
+      <h4>${step.title}</h4><p>${step.body}</p>
+      <div class="coach-row">
+        <div class="coach-dots">${COACH_STEPS.map((_,j)=>`<i class="${j===i?"on":""}"></i>`).join("")}</div>
+        <div class="coach-btns">
+          <button class="coach-skip" data-cskip>${last?"":"Skip"}</button>
+          <button class="coach-next" data-cnext>${last?"Got it 🎉":"Next"}</button>
+        </div></div>`;
+    // place pop below the ring if the target sits in the top ~55%, else above
+    const belowSpace=vh-(top+h);
+    pop.classList.add("in");
+    requestAnimationFrame(()=>{
+      const ph=pop.offsetHeight;
+      let py;
+      if(belowSpace>ph+24 || (top+h/2)<vh*0.55) py=Math.min(vh-ph-10, top+h+16);
+      else py=Math.max(10, top-ph-16);
+      pop.style.top=py+"px";
+    });
+    pop.querySelector("[data-cnext]").onclick=e=>{ e.stopPropagation(); coachAt(coachIdx+1); };
+    pop.querySelector("[data-cskip]").onclick=e=>{ e.stopPropagation(); endCoach(false); };
+  },240);
+}
+$("coach").onclick=e=>{ if(e.target.id==="coach") coachAt(coachIdx+1); };
 let toastT=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2000); }
 
@@ -1908,7 +1997,7 @@ function renderSyncSheet(){
       <div id="syncMsg" class="qcap" style="text-align:center;margin-top:10px"></div>
       <button class="ghostbtn" id="signOutBtn" style="margin-top:14px">Sign out</button>`;
     $("createHH").onclick=async()=>{ $("createHH").textContent="Creating…"; const err=await cloudCreateHousehold(); if(err){$("syncMsg").textContent=err;$("createHH").textContent="Create our household";} else { renderSyncSheet(); toast("Household created 🎉"); } };
-    $("joinHH").onclick=async()=>{ const c=$("joinCode").value; if(!c){toast("Enter a code");return;} $("syncMsg").textContent="Joining…"; const err=await cloudJoinHousehold(c); if(err){$("syncMsg").textContent=err;} else { renderSyncSheet(); closeSheets(); const host=S.people[0]?S.people[0].name.split(" ")[0]:"your family"; showWelcome("You're in!","You and "+host+" now share Klepcake — every envelope, goal, and Money Night stays in sync across your phones.","💚"); } };
+    $("joinHH").onclick=async()=>{ const c=$("joinCode").value; if(!c){toast("Enter a code");return;} $("syncMsg").textContent="Joining…"; const err=await cloudJoinHousehold(c); if(err){$("syncMsg").textContent=err;} else { renderSyncSheet(); closeSheets(); const host=S.people[0]?S.people[0].name.split(" ")[0]:"your family"; showWelcome("You're in!","You and "+host+" now share Klepcake — every envelope, goal, and Money Night stays in sync across your phones.","💚",()=>{ if(!S.coachDone) startCoach(); }); } };
     $("signOutBtn").onclick=cloudSignOut;
     return;
   }
