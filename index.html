@@ -1634,7 +1634,7 @@ function renderDeck(){
   const hint = impIdx===0 && (impDemo || !S.importHintSeen);
   $("impBody").innerHTML=`<div class="deckwrap">
     <div class="deckprog"><div class="pbar"><i style="width:${impIdx/total*100}%"></i></div><div class="pcount">${impIdx} of ${total} sorted · ${money(impDeck[impIdx].amount)} up next</div></div>
-    ${impDemo?`<div class="demopill">🎮 Demo · flick a card up onto whoever spent it — nothing's saved</div>`:``}
+    ${impDemo?`<div class="demopill">🎮 Demo · tap whoever spent each charge — nothing's saved</div>`:``}
     <div class="names${hint?" pulse":""}" id="nameTargets"></div>
     <div class="deck" id="deck">${hint?`<div class="demohand">👆</div>`:``}</div>
     <div class="deckfoot">
@@ -1756,18 +1756,24 @@ function openSplit(k){
   draw();
 }
 function enableDrag(){
-  const c=topCard(); if(!c) return; let drag=false,sx,sy,dx=0,dy=0;
+  const c=topCard(); if(!c) return;
+  let drag=false,sx,sy,dx=0,dy=0,ly=0,lt=0,vy=0,downT=0;
   const clearHi=()=>document.querySelectorAll(".nametarget").forEach(n=>n.style.outline="");
   const targetUnder=(x,y)=>document.elementsFromPoint(x,y).find(el=>el.dataset&&el.dataset.assign);
   const nearestName=x=>{ let best=null,bd=1e9; document.querySelectorAll(".nametarget").forEach(t=>{ const r=t.getBoundingClientRect(), cx=r.left+r.width/2, d=Math.abs(cx-x); if(d<bd){bd=d;best=t;} }); return best; };
-  c.onpointerdown=e=>{ if(e.target.closest("button,select,input,a")) return; drag=true; sx=e.clientX; sy=e.clientY; dx=dy=0;
+  c.onpointerdown=e=>{ if(e.target.closest("button,select,input,a")) return; drag=true; sx=e.clientX; sy=ly=e.clientY; dx=dy=0; vy=0; lt=downT=e.timeStamp;
     try{c.setPointerCapture(e.pointerId);}catch(_){} c.style.transition="none"; const h=document.querySelector(".demohand"); if(h) h.style.display="none"; };
-  c.onpointermove=e=>{ if(!drag)return; dx=e.clientX-sx; dy=e.clientY-sy;
+  c.onpointermove=e=>{ if(!drag)return;
+    const dt=e.timeStamp-lt; if(dt>0) vy=(e.clientY-ly)/dt;   // px/ms, negative = moving up
+    ly=e.clientY; lt=e.timeStamp; dx=e.clientX-sx; dy=e.clientY-sy;
     c.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*0.03}deg)`;
-    clearHi(); let el=targetUnder(e.clientX,e.clientY); if(!el && dy<-40) el=nearestName(e.clientX); if(el) el.style.outline="3px solid #1B2430"; };
+    clearHi(); let el=targetUnder(e.clientX,e.clientY); if(!el && dy<-22) el=nearestName(e.clientX); if(el) el.style.outline="3px solid #1B2430"; };
   c.onpointerup=e=>{ if(!drag)return; drag=false; clearHi();
+    const dur=e.timeStamp-downT;
+    const flick = vy<-0.35 || (dur<260 && dy<-16);   // fast upward flick (velocity OR quick short swipe)
+    const draggedUp = dy<-52;                          // or a slower deliberate drag up
     let el=targetUnder(e.clientX,e.clientY);
-    if(!el && dy<-70) el=nearestName(e.clientX); // flicked up → nearest name
+    if(!el && (flick||draggedUp)) el=nearestName(e.clientX);
     if(el && el.dataset && el.dataset.assign) assignTop(el.dataset.assign);
     else { c.style.transition="transform .2s"; c.style.transform=""; } };
 }
@@ -1778,7 +1784,7 @@ function renderImportDone(){
     $("impBody").innerHTML=`<div class="impscroll" style="text-align:center">
       <div class="bigemoji">🎉</div>
       <h2 class="mnt">That's it — you've got it!</h2>
-      <p class="mnp">Each charge, flicked onto whoever spent it. <b>Nothing from the demo was saved.</b> When you're ready, upload a real statement and do it for keeps — Klepcake pre-sorts the envelopes and learns as you go.</p>
+      <p class="mnp">Each charge, tapped onto whoever spent it. <b>Nothing from the demo was saved.</b> When you're ready, upload a real statement and do it for keeps — Klepcake pre-sorts the envelopes and learns as you go.</p>
       <button class="primary money" id="impRealNow">Import real spending</button>
       <button class="ghostbtn" id="impDemoAgain">Run the demo again</button>
       <button class="ghostbtn" id="impFinish">Back to Klepcake</button>
