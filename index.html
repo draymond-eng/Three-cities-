@@ -206,6 +206,17 @@
   .qlog .qadd .who2 button{flex:1;min-width:0;height:36px;border-radius:9px;border:1.5px solid var(--line);font-size:13px;font-weight:800;color:#fff}
   .qlog .qadd .who2 button.off{opacity:.35}
   .qlog .qadd .go{flex:none;width:46px;height:38px;border-radius:10px;background:var(--ink);color:#fff;font-size:18px}
+  /* money-night suggestion chips + recap cards */
+  .mnchips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px}
+  .mnchip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 14px;font-size:13px;font-weight:700}
+  .mnchip.on{background:var(--good);color:#fff;border-color:var(--good)}
+  .recapcard{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+  .recapcard .rh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .recapcard .rwk{font-weight:800;font-size:14px}
+  .recapcard .rst{font-size:13px;letter-spacing:1px;flex:none}
+  .recapcard .rchange{font-size:14px;font-weight:700;margin:8px 0 4px;line-height:1.4}
+  .recapcard .rmeta{font-size:12px;color:var(--muted);line-height:1.55}
+  .routcome{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
 
   .flagcard{background:var(--warn-soft);border:1px solid #e6b7ac;border-radius:14px;padding:13px 15px;margin-bottom:10px}
   .flagcard .fn{font-weight:800;font-size:14px;display:flex;justify-content:space-between}
@@ -460,6 +471,13 @@
   <div class="grab"></div>
   <div class="shead"><h3>🏦 Net worth</h3><button class="x" data-close>✕</button></div>
   <div class="sbody" id="acctBody"></div>
+</div>
+
+<!-- PAST MONEY NIGHTS (RECAPS) SHEET -->
+<div class="sheet" id="recapSheet">
+  <div class="grab"></div>
+  <div class="shead"><h3>📖 Past Money Nights</h3><button class="x" data-close>✕</button></div>
+  <div class="sbody" id="recapBody"></div>
 </div>
 
 <!-- IMPORT — upload statement & swipe who spent what -->
@@ -884,6 +902,11 @@ function renderTrends(){
   el.innerHTML=`
     ${netWorthCardHTML()}
     ${insightsHTML()}
+    <button class="importcard" id="recapOpen" style="margin-bottom:16px">
+      <div class="ie">📖</div>
+      <div class="it"><b>Past Money Nights</b><span>${(S.ritual.history||[]).length?`${S.ritual.history.length} recap${S.ritual.history.length===1?"":"s"} · your streak & the changes you agreed on`:"Your weekly recaps show up here"}</span></div>
+      <div class="arrow">→</div>
+    </button>
     <div class="sec" style="margin-top:2px"><h2>Spending trend</h2></div>
     <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px">
       <select class="in" id="trendCat" style="margin-bottom:14px">
@@ -909,6 +932,7 @@ function renderTrends(){
     <div id="histList"></div>`;
   const nwe=$("nwEdit"); if(nwe) nwe.onclick=openAccounts;
   const nws=$("nwStart"); if(nws) nws.onclick=openAccounts;
+  const ro=$("recapOpen"); if(ro) ro.onclick=openRecaps;
   $("trendCat").onchange=e=>{ trendCat=e.target.value; renderTrends(); };
   $("histSearch").oninput=e=>{ historyQuery=e.target.value; renderHistList(); };
   el.querySelectorAll("[data-hw]").forEach(b=>b.onclick=()=>{ historyWho=b.dataset.hw; renderTrends(); });
@@ -1249,6 +1273,44 @@ $("deletePull").onclick=()=>{ if(editingPull){ S.pulls=S.pulls.filter(p=>p!==edi
 let mnStep=0; const MN_STEPS=5;
 let mnChange="";
 let _mniT=null;
+function topCategoryName(wk){
+  const by={}; S.pulls.filter(p=>weekKey(p.date)===wk).forEach(p=>by[p.bucketId]=(by[p.bucketId]||0)+(+p.amount||0));
+  const top=Object.entries(by).sort((a,b)=>b[1]-a[1])[0]; const bk=top&&bktById(top[0]); return bk?bk.name:null;
+}
+function lastRecap(){ const h=S.ritual.history||[]; for(let i=h.length-1;i>=0;i--){ if(h[i].change) return h[i]; } return null; }
+function changeSuggestions(flagged){
+  const out=[]; const push=s=>{ if(s && !out.includes(s) && out.length<5) out.push(s); };
+  (flagged||[]).slice(0,2).forEach(({b})=>{
+    const n=b.name.toLowerCase(); const cap=Math.max(50,Math.round((+b.monthly||100)*0.85/25)*25);
+    if(/dining|takeout|food|restaurant/.test(n)){ push("Cook 4 nights this week"); push("Cap "+b.name+" at "+money(cap)); push("No weekday takeout"); }
+    else if(/grocer/.test(n)){ push("Meal-plan before shopping"); push("Stick to the list"); }
+    else if(/shop|cloth|retail/.test(n)){ push("Pause non-essential shopping"); }
+    else if(/ride|transport|transit|car/.test(n)){ push("Walk or transit when we can"); }
+    else if(/salon|personal|hair/.test(n)){ push("Push the next appointment a week"); }
+    else push("Ease up on "+b.name);
+  });
+  push("One no-spend day midweek");
+  return out.slice(0,5);
+}
+function openRecaps(){ renderRecaps(); openSheet($("recapSheet")); }
+function renderRecaps(){
+  const body=$("recapBody"); const h=[...(S.ritual.history||[])].reverse();
+  if(!h.length){ body.innerHTML=`<p class="qcap" style="text-align:center;padding:24px">No Money Nights yet. Finish your first one and it lands here — with the change you agreed on, how it went, and your net worth that week.</p>`; return; }
+  const OC={nailed:["👍 Nailed it","var(--good)"],sorta:["😬 Sort of","#C98A1E"],missed:["👎 Missed it","var(--warn)"]};
+  body.innerHTML=`<p class="qcap" style="margin:0 2px 12px">${h.length} week${h.length===1?"":"s"} of Money Nights together 💚</p>`+h.map(r=>{
+    const stars=[1,2,3,4,5].map(i=>i<=(r.stars||0)?"⭐":"☆").join("");
+    const o=r.outcome&&OC[r.outcome];
+    const verdict=(r.spent!=null&&r.pace!=null)?`${money(r.spent)} spent vs ${money(r.pace)} pace`:"";
+    const line1=[verdict, r.topCat?`${r.topCat} biggest`:""].filter(Boolean).join(" · ");
+    const line2=[r.netWorth!=null?`Net worth ${money(r.netWorth)}`:"", r.streak?`🔥 ${r.streak}-wk streak`:""].filter(Boolean).join(" · ");
+    return `<div class="recapcard">
+      <div class="rh"><span class="rwk">Week of ${fmtRange(new Date(r.week))}</span><span class="rst">${stars}</span></div>
+      ${r.change?`<div class="rchange">“${r.change.replace(/</g,"&lt;")}” ${o?`<span class="routcome" style="background:${o[1]};color:#fff">${o[0]}</span>`:""}</div>`:""}
+      ${line1?`<div class="rmeta">${line1}</div>`:""}
+      ${line2?`<div class="rmeta">${line2}</div>`:""}
+    </div>`;
+  }).join("");
+}
 function openMoneyNight(){
   mnStep=0; S.viewWeek=weekKey(new Date()); render();
   renderMN(); $("mn").classList.add("show");
@@ -1263,6 +1325,7 @@ function openMoneyNight(){
 function closeMoneyNight(){ $("mn").classList.remove("show"); $("mnIntro").classList.remove("show"); clearTimeout(_mniT); stopRain(); }
 $("moneyNightBtn").onclick=openMoneyNight;
 $("mnClose").onclick=closeMoneyNight;
+(function(){ const sc=$("streakChip"); if(sc){ sc.style.cursor="pointer"; sc.title="Past Money Nights"; sc.onclick=openRecaps; } })();
 
 function renderMN(){
   $("mnProg").style.width=((mnStep+1)/MN_STEPS*100)+"%";
@@ -1271,13 +1334,32 @@ function renderMN(){
   const pace=wantsWeeklyPace(), spent=wantsSpentWeek(wk), diff=pace-spent, under=diff>=0, st=starsFor(wk);
 
   if(mnStep===0){
+    const lr=lastRecap();
+    const followHTML=(lr && !lr.outcome)?`
+      <div class="okcard" style="text-align:left;margin-top:18px">
+        <div style="font-weight:800;font-size:12.5px;color:var(--good);text-transform:uppercase;letter-spacing:.08em">Last week you agreed</div>
+        <div style="font-weight:800;font-size:15px;margin:4px 0 10px">“${(lr.change||"").replace(/</g,"&lt;")}”</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:8px">How'd it go?</div>
+        <div class="mnchips" id="mnFollow">
+          <button class="mnchip" data-oc="nailed">👍 Nailed it</button>
+          <button class="mnchip" data-oc="sorta">😬 Sort of</button>
+          <button class="mnchip" data-oc="missed">👎 Not really</button>
+        </div>
+      </div>`:"";
     body.innerHTML=`<div class="step">
       <div class="bigemoji">💵</div>
       <div class="kicker" style="text-align:center">Money Night</div>
       <h2 class="mnt" style="text-align:center">Week of ${fmtRange(new Date(wk))}</h2>
       <p class="mnp" style="text-align:center">20 minutes, the two of you. Let's see how the week went and set up next week.</p>
       <div style="text-align:center;margin-top:6px">${S.people.map(p=>`<span class="badge"><span class="be" style="color:${p.color}">●</span>${p.name}</span>`).join("")}</div>
+      ${followHTML}
     </div>`;
+    if(lr && !lr.outcome){
+      body.querySelectorAll("#mnFollow [data-oc]").forEach(btn=>btn.onclick=()=>{
+        body.querySelectorAll("#mnFollow [data-oc]").forEach(x=>x.classList.remove("on"));
+        btn.classList.add("on"); lr.outcome=btn.dataset.oc; save();
+      });
+    }
     foot.innerHTML=`<button class="primary money" id="mnNext">Let's go →</button>`;
   }
   else if(mnStep===1){
@@ -1333,15 +1415,31 @@ function renderMN(){
       <div class="flagcard"><div class="fn">${b.emoji} ${b.name}<span>${rem<0?money(rem)+" over":money(rem)+" left"}</span></div>
       <div class="fc">${rem<0?"Envelope's empty for "+monthLabel(mk):"Running low — "+money(rem)+" left this month"}</div></div>`).join("")
       : `<div class="okcard">✨ Nothing's tight — every envelope has room. Keep it up.</div>`;
+    const sugg=changeSuggestions(flagged);
+    const custom=mnChange && !sugg.includes(mnChange);
     body.innerHTML=`<div class="step">
       <div class="kicker">Step 3 · What needs attention</div>
       <h2 class="mnt">Where it's tight this month</h2>
-      <p class="mnp">Pick one thing to adjust next week — small and specific beats a total overhaul.</p>
+      <p class="mnp">Pick one thing to try next week — tap a suggestion or write your own. Small and specific beats a total overhaul.</p>
       ${cards}
       <label class="fld">Our one change for next week</label>
-      <input class="in" id="mnChangeInput" placeholder="e.g. Cook 4 nights, cap dining at $250" value="${mnChange.replace(/"/g,'&quot;')}">
+      <div class="mnchips" id="mnSugg">
+        ${sugg.map(s=>`<button class="mnchip ${mnChange===s?"on":""}" data-sugg="${s.replace(/"/g,"&quot;")}">${s}</button>`).join("")}
+        <button class="mnchip ${custom?"on":""}" id="mnWriteOwn">✍️ Write our own</button>
+      </div>
+      <input class="in" id="mnChangeInput" placeholder="e.g. Cook 4 nights, cap dining at $250" value="${mnChange.replace(/"/g,'&quot;')}" style="display:${custom?"block":"none"}">
     </div>`;
-    body.querySelector("#mnChangeInput").addEventListener("input",e=>mnChange=e.target.value);
+    const inp=body.querySelector("#mnChangeInput");
+    body.querySelectorAll("#mnSugg [data-sugg]").forEach(btn=>btn.onclick=()=>{
+      mnChange=btn.dataset.sugg; inp.style.display="none";
+      body.querySelectorAll("#mnSugg .mnchip").forEach(x=>x.classList.remove("on")); btn.classList.add("on");
+    });
+    body.querySelector("#mnWriteOwn").onclick=()=>{
+      body.querySelectorAll("#mnSugg .mnchip").forEach(x=>x.classList.remove("on"));
+      body.querySelector("#mnWriteOwn").classList.add("on");
+      inp.style.display="block"; inp.focus();
+    };
+    inp.addEventListener("input",e=>{ mnChange=e.target.value; body.querySelectorAll("#mnSugg [data-sugg]").forEach(x=>x.classList.remove("on")); });
     foot.innerHTML=`<button class="primary" id="mnNext">Update savings →</button>`;
   }
   else if(mnStep===4){
@@ -1372,7 +1470,9 @@ function finishMoneyNight(){
   } else { S.ritual.streak=1; }
   S.ritual.lastCheckIn=iso(new Date());
   const st=starsFor(wk);
-  S.ritual.history.push({week:wk,stars:st,change:mnChange,savings:S.settings.savings});
+  snapshotNetWorth();  // auto-capture net worth each Money Night so the trend fills itself
+  S.ritual.history.push({week:wk,stars:st,change:mnChange,savings:S.settings.savings,
+    spent:wantsSpentWeek(wk),pace:wantsWeeklyPace(),topCat:topCategoryName(wk),netWorth:netWorth(),streak:S.ritual.streak});
   // badges
   const earned=awardBadges();
   save();
@@ -1388,8 +1488,9 @@ function finishMoneyNight(){
     <div style="margin-top:14px">${sav>=goal?"🏦 Cushion goal reached!":"🏦 "+money(goal-sav)+" left to your cushion goal"}</div>
     <div style="margin-top:16px">${(earned.length?earned:S.ritual.badges).map(b=>`<span class="badge ${earned.includes(b)?"new":""}"><span class="be">${b.e}</span>${b.t}</span>`).join("")}</div>
   </div>`;
-  $("mnFoot").innerHTML=`<button class="primary money" id="mnDone">Done</button>`;
+  $("mnFoot").innerHTML=`<button class="primary money" id="mnDone">Done</button><button class="ghostbtn" id="mnSeeRecaps">📖 See past Money Nights</button>`;
   $("mnDone").onclick=()=>{ closeMoneyNight(); mnChange=""; render(); };
+  $("mnSeeRecaps").onclick=()=>{ closeMoneyNight(); mnChange=""; render(); openRecaps(); };
   burst(); setTimeout(burst,400); confettiRain(3200);
 }
 function hasBadge(id){ return S.ritual.badges.some(b=>b.id===id); }
