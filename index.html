@@ -824,6 +824,8 @@ function monthLeftover(b,m){ return Math.round((bucketAvailable(b,m)-spentBucket
 function closeableMonth(){
   const prev=addMonthKey(monthKey(new Date()),-1);
   if(S.closes[prev]) return null;
+  // only offer to close a month you actually used
+  if(!S.pulls.some(p=>monthKey(p.date)===prev)) return null;
   return S.buckets.some(b=>monthLeftover(b,prev)>0) ? prev : null;
 }
 function renderCloseCard(){
