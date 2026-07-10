@@ -455,6 +455,13 @@
   <div class="sbody" id="setBody"></div>
 </div>
 
+<!-- NET WORTH / ACCOUNTS SHEET -->
+<div class="sheet" id="acctSheet">
+  <div class="grab"></div>
+  <div class="shead"><h3>🏦 Net worth</h3><button class="x" data-close>✕</button></div>
+  <div class="sbody" id="acctBody"></div>
+</div>
+
 <!-- IMPORT — upload statement & swipe who spent what -->
 <div class="imp" id="imp">
   <div class="imphead">
@@ -608,6 +615,8 @@ function ensureShape(s){
   if(!s.merchantRules) s.merchantRules={};
   if(!s.whoRules) s.whoRules={};
   if(!Array.isArray(s.catRules)) s.catRules=[];
+  if(!Array.isArray(s.accounts)) s.accounts=[];
+  if(!Array.isArray(s.nwHistory)) s.nwHistory=[];
   if(!Array.isArray(s.goals)) s.goals=[];
   if(!s.closes) s.closes={};
   if(!s.ritual) s.ritual={streak:0,lastCheckIn:null,badges:[],history:[]};
@@ -756,6 +765,87 @@ function monthShort(mk){ const p=mk.split("-"); return new Date(p[0],p[1]-1,1).t
 function monthsBack(n){ const out=[]; let m=monthKey(new Date()); for(let i=0;i<n;i++){ out.unshift(m); m=addMonthKey(m,-1); } return out; }
 function spentAllMonth(mk,catId){ return S.pulls.filter(p=>monthKey(p.date)===mk && (catId==="all"||p.bucketId===catId)).reduce((t,p)=>t+(+p.amount||0),0); }
 function bktById(id){ return S.buckets.find(b=>b.id===id); }
+
+/* ---------- net worth (manual balances, no bank login) ---------- */
+const NW_STARTER=[
+  {name:"Checking",emoji:"🏦",kind:"asset"},{name:"Savings",emoji:"💰",kind:"asset"},
+  {name:"Brokerage / investments",emoji:"📈",kind:"asset"},{name:"Retirement (401k/IRA)",emoji:"🪙",kind:"asset"},
+  {name:"Home value",emoji:"🏠",kind:"asset"},
+  {name:"Mortgage",emoji:"🏠",kind:"liability"},{name:"Car loan",emoji:"🚗",kind:"liability"},{name:"Credit cards",emoji:"💳",kind:"liability"}
+];
+function nwAssets(){ return S.accounts.filter(a=>a.kind==="asset").reduce((t,a)=>t+(+a.balance||0),0); }
+function nwLiab(){ return S.accounts.filter(a=>a.kind==="liability").reduce((t,a)=>t+(+a.balance||0),0); }
+function netWorth(){ return nwAssets()-nwLiab(); }
+function snapshotNetWorth(){
+  const d=iso(new Date()), v=netWorth();
+  S.nwHistory=S.nwHistory.filter(h=>h.date!==d); S.nwHistory.push({date:d,value:v});
+  S.nwHistory.sort((a,b)=>a.date.localeCompare(b.date));
+  if(S.nwHistory.length>60) S.nwHistory=S.nwHistory.slice(-60);
+}
+function netWorthCardHTML(){
+  const nw=netWorth(), hist=S.nwHistory.slice(-8);
+  const prev=hist.length>1?hist[hist.length-2].value:null;
+  const delta=prev!==null?nw-prev:null;
+  const set=S.accounts.length;
+  const spark=(()=>{
+    if(hist.length<2) return "";
+    const vs=hist.map(h=>h.value), lo=Math.min(...vs), hi=Math.max(...vs), rng=(hi-lo)||1;
+    return `<div style="display:flex;align-items:flex-end;gap:4px;height:40px;margin-top:12px">${hist.map(h=>{
+      const ht=Math.max(4,((h.value-lo)/rng)*40);
+      return `<div style="flex:1;height:${ht}px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--good2),var(--good));opacity:.85"></div>`;}).join("")}</div>`;
+  })();
+  return `<div class="sec" style="margin-top:2px"><h2>Net worth</h2><span class="tag" id="nwEdit" style="cursor:pointer">update balances</span></div>
+    <div style="background:linear-gradient(160deg,#0E7C6B,#12A08A);color:#fff;border-radius:18px;box-shadow:var(--shadow-lg);padding:18px 18px 16px;margin-bottom:16px">
+      ${set? `<div style="font-size:12.5px;font-weight:700;opacity:.85">Everything you own minus everything you owe</div>
+        <div style="font-family:'Bricolage Grotesque';font-weight:800;font-size:38px;letter-spacing:-.02em;margin-top:2px">${money(nw)}</div>
+        ${delta!==null?`<div style="font-size:12.5px;font-weight:700;opacity:.92;margin-top:2px">${delta>=0?"▲ "+money(delta):"▼ "+money(-delta)} since last update</div>`:`<div style="font-size:12px;opacity:.8;margin-top:2px">Update again next Money Night to see the trend.</div>`}
+        <div style="display:flex;gap:16px;margin-top:12px;font-size:12.5px;font-weight:700">
+          <div><div style="opacity:.75;font-size:11px">Assets</div>${money(nwAssets())}</div>
+          <div><div style="opacity:.75;font-size:11px">Debts</div>${money(nwLiab())}</div>
+        </div>${spark}`
+      : `<div style="font-size:15px;font-weight:800">See your net worth</div>
+         <p style="font-size:13px;opacity:.9;line-height:1.5;margin:6px 0 12px">Add your accounts and balances — checking, savings, investments, minus loans and cards. No bank login; you just punch in the numbers and update them at Money Night.</p>
+         <button class="primary" id="nwStart" style="width:auto;margin:0;background:#fff;color:#0E7C6B">Set up net worth</button>`}
+    </div>`;
+}
+function openAccounts(){ renderAccounts(); openSheet($("acctSheet")); }
+function renderAccounts(){
+  const body=$("acctBody");
+  const group=k=>S.accounts.filter(a=>a.kind===k).map(a=>`
+    <div class="setrow"><span class="se">${a.emoji||(k==="asset"?"💵":"💳")}</span>
+      <span class="sn">${a.name}</span>
+      <input class="mini" data-abal="${a.id}" inputmode="decimal" value="${a.balance||0}">
+      <button class="pdel" data-edita="${a.id}" style="color:var(--faint);font-size:15px">✎</button></div>`).join("")
+      || `<p class="qcap" style="margin:2px 2px 6px;opacity:.8">None yet.</p>`;
+  body.innerHTML=`
+    <div class="okcard" style="margin-bottom:12px">Net worth <b>${money(netWorth())}</b> · assets ${money(nwAssets())} − debts ${money(nwLiab())}</div>
+    <div class="subhd">Assets — what you own</div>${group("asset")}
+    <button class="linkbtn" data-addacct="asset">＋ Add an asset</button>
+    <div class="subhd">Debts — what you owe</div>${group("liability")}
+    <button class="linkbtn" data-addacct="liability">＋ Add a debt</button>
+    ${S.accounts.length?`<button class="primary money" id="nwSave" style="margin-top:16px">Save & snapshot</button>`:""}
+    ${!S.accounts.length?`<button class="ghostbtn" id="nwSeed">Start from a common list</button>`:""}`;
+  body.querySelectorAll("[data-abal]").forEach(i=>i.addEventListener("input",e=>{ const a=S.accounts.find(x=>x.id===e.target.dataset.abal); if(a){ a.balance=parseFloat(e.target.value.replace(/[^0-9.\-]/g,""))||0; body.querySelector(".okcard").innerHTML=`Net worth <b>${money(netWorth())}</b> · assets ${money(nwAssets())} − debts ${money(nwLiab())}`; } }));
+  body.querySelectorAll("[data-edita]").forEach(btn=>btn.onclick=()=>editAccount(S.accounts.find(x=>x.id===btn.dataset.edita)));
+  body.querySelectorAll("[data-addacct]").forEach(btn=>btn.onclick=()=>editAccount(null,btn.dataset.addacct));
+  const seed=body.querySelector("#nwSeed"); if(seed) seed.onclick=()=>{ S.accounts=NW_STARTER.map((a,i)=>({id:"ac"+Date.now()+i,name:a.name,emoji:a.emoji,kind:a.kind,balance:0})); save(); renderAccounts(); };
+  const sv=body.querySelector("#nwSave"); if(sv) sv.onclick=()=>{ snapshotNetWorth(); save(); closeSheets(); refreshTab(); toast("Net worth updated 📈"); };
+}
+function editAccount(acct,kind){
+  const editing=!!acct; const a=acct||{name:"",emoji:kind==="liability"?"💳":"💵",kind:kind||"asset",balance:0};
+  openForm({title:editing?"Edit account":(a.kind==="liability"?"Add a debt":"Add an asset"),
+    fields:[
+      {key:"name",label:"Account name",type:"text",value:a.name,placeholder:a.kind==="liability"?"e.g. Car loan":"e.g. Savings"},
+      {key:"kind",label:"Type",type:"select",value:a.kind,options:[{value:"asset",label:"Asset (you own)"},{value:"liability",label:"Debt (you owe)"}]},
+      {key:"balance",label:"Current balance",type:"number",value:a.balance}
+    ],
+    submit:editing?"Save":"Add", danger:editing?"Delete this account":null,
+    onSubmit:v=>{ if(!v.name.trim()){toast("Name it");return false;}
+      if(editing){ a.name=v.name.trim(); a.kind=v.kind; a.balance=v.balance; }
+      else { S.accounts.push({id:"ac"+Date.now(),name:v.name.trim(),emoji:a.emoji,kind:v.kind,balance:v.balance}); }
+      save(); renderAccounts(); },
+    onDanger:editing?()=>{ S.accounts=S.accounts.filter(x=>x.id!==a.id); save(); renderAccounts(); }:null});
+}
 function renderTrends(){
   const el=$("trendsTab");
   const months=monthsBack(6);
@@ -764,6 +854,7 @@ function renderTrends(){
   const avg=vals.reduce((t,x)=>t+x.v,0)/vals.length;
   const curM=monthKey(new Date());
   el.innerHTML=`
+    ${netWorthCardHTML()}
     <div class="sec" style="margin-top:2px"><h2>Spending trend</h2></div>
     <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px">
       <select class="in" id="trendCat" style="margin-bottom:14px">
@@ -787,6 +878,8 @@ function renderTrends(){
       ${S.people.map(p=>`<button class="ebadge" data-hw="${p.id}" style="cursor:pointer;padding:6px 11px;${historyWho===p.id?"background:"+p.color+";color:#fff":""}">${p.short} ${p.name.split(" ")[0]}</button>`).join("")}
     </div>
     <div id="histList"></div>`;
+  const nwe=$("nwEdit"); if(nwe) nwe.onclick=openAccounts;
+  const nws=$("nwStart"); if(nws) nws.onclick=openAccounts;
   $("trendCat").onchange=e=>{ trendCat=e.target.value; renderTrends(); };
   $("histSearch").oninput=e=>{ historyQuery=e.target.value; renderHistList(); };
   el.querySelectorAll("[data-hw]").forEach(b=>b.onclick=()=>{ historyWho=b.dataset.hw; renderTrends(); });
