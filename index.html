@@ -471,10 +471,13 @@ function starterSubs(){
   let id=1; return L.map(([name,cost,flag])=>({id:"s"+(id++),name,cost,keep:true,flag}));
 }
 function starterBuckets(){
-  const NEEDS=[["Groceries","🛒",400],["Medical & health","🩺",150],["Baby Cleo","👶",200],["George (dog)","🐕",100]];
-  const WANTS=[["Dining & takeout","🍽️",250],["Shopping & retail","🛍️",200],["Salon & personal","💇",80],
-    ["Travel","✈️",150],["Entertainment","🎬",100],["Hobbies","⛳",100],["Rideshare & parking","🚕",80]];
-  let id=1; const mk=(e,grp)=>e.map(([name,emoji,monthly])=>({id:"b"+(id++),name,emoji,monthly,bucket:grp}));
+  const NEEDS=[["Groceries","🛒",400,"#34d399"],["Medical & dental","🩺",150,"#60a5fa"],
+    ["George (dog)","🐕",100,"#5AA0A6"],["Cleo — activities","🎨",150,"#f472b6"],["Cleo — supplies","👶",100,"#fbbf24"]];
+  const WANTS=[["Dining & takeout","🍽️",250,"#fb923c"],["Shopping & household","🛍️",200,"#38bdf8"],
+    ["Clothing","👕",150,"#c084fc"],["Salon & personal","💇",80,"#f9a8d4"],["Travel","✈️",150,"#22d3ee"],
+    ["Entertainment","🎬",100,"#a78bfa"],["Hobbies (golf)","⛳",100,"#4ade80"],
+    ["Rideshare & transport","🚕",80,"#facc15"],["Gifts & giving","🎁",60,"#f87171"]];
+  let id=1; const mk=(e,grp)=>e.map(([name,emoji,monthly,color])=>({id:"b"+(id++),name,emoji,monthly,bucket:grp,color}));
   return [...mk(NEEDS,"need"),...mk(WANTS,"want")];
 }
 function baseState(){
@@ -507,7 +510,7 @@ function sampleState(){
     p(-3,"Shopping","alex",210,"Kids clothes"), p(-4,"Rideshare","dray",38,"Airport"),
     p(-6,"Dining","alex",92,"Date night"), p(-9,"Groceries","dray",120,"Weekly run"),
     p(-11,"Entertainment","dray",55,"Movies"),
-    p(-2,"Baby Cleo","alex",78,"Diapers & wipes"), p(-5,"George","dray",64,"Dog food + vet")
+    p(-2,"Cleo","alex",78,"Diapers & wipes"), p(-5,"George","dray",64,"Dog food + vet")
   ];
   return s;
 }
@@ -1464,7 +1467,7 @@ function normDate(d){ d=(d||"").trim();
 /* ---- categorization + learning ---- */
 const CAT_RULES=[
   [/KRISER|CHEWY|PETCO|PETSMART|BANFIELD|\bVCA\b|\bVET\b/,"George"],
-  [/FOSS SWIM|BUBBLES ACAD|SWIM SCHOOL|DAYCARE|PEDIATRIC|CARTER|BABY|TONIES|CHILDREN/,"Baby Cleo"],
+  [/FOSS SWIM|BUBBLES ACAD|SWIM SCHOOL|DAYCARE|PEDIATRIC|CARTER|BABY|TONIES|CHILDREN/,"Cleo"],
   [/COG HILL|GOLF|NEWCLUB|TOPGOLF|PGA TOUR/,"Hobbies"],
   [/UBER \*EATS|DOORDASH|GRUBHUB|TST\*|SQ \*|CHIPOTLE|MCDONALD|WINGSTOP|PIZZA|RESTAURANT|CAFE|COFFEE|STARBUCK|DUNKIN|GRILL|TAVERN|KITCHEN|SUSHI|TACO| WINE|DINER|BISTRO|COOKUNITY|TRADER TODD|ANN SATHER|WICKLOW|GRACIE|TIPPING POINT|TRAVELERS TABLE|LOCAL FOODS|MIXTECO|RODEO|MCDONALD/,"Dining"],
   [/UBER \*TRIP|UBER \*ONE|LYFT|PARKING|SPOTHERO|METRA|VENTRA|\bCTA\b/,"Rideshare"],
