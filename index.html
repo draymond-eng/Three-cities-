@@ -269,6 +269,16 @@
   .deckfoot{display:flex;justify-content:center;gap:10px;padding:0 16px 6px}
   .skipbtn{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:11px;padding:9px 16px;font-weight:700;font-size:13px}
 
+  /* demo / first-time gesture hint */
+  .demopill{display:flex;align-items:center;gap:8px;justify-content:center;margin:0 auto 2px;max-width:360px;
+    background:linear-gradient(90deg,#0E7C6B,#12A08A);color:#fff;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:999px;box-shadow:0 6px 18px rgba(14,124,107,.35)}
+  .demohand{position:absolute;left:50%;top:46%;font-size:38px;pointer-events:none;z-index:60;
+    filter:drop-shadow(0 6px 12px rgba(0,0,0,.35));animation:demoHand 2.3s ease-in-out infinite}
+  @keyframes demoHand{0%{transform:translate(-50%,10px) rotate(-6deg);opacity:0}
+    20%{opacity:1}75%{transform:translate(-50%,-92px) rotate(4deg);opacity:1}100%{transform:translate(-50%,-116px) rotate(4deg);opacity:0}}
+  .names.pulse .nametarget{animation:tgPulse 1.9s ease-in-out infinite}
+  @keyframes tgPulse{0%,100%{transform:none;box-shadow:none}50%{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.18)}}
+
   /* Money Night cinematic intro */
   .mnintro{position:fixed;inset:0;z-index:80;background:radial-gradient(1200px 620px at 50% -5%,#14324a,#0a0f1a 58%,#05070d);
     display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .45s ease;overflow:hidden}
@@ -1494,10 +1504,20 @@ function obNextFn(){
 /* ============================================================
    IMPORT — statement -> auto-categorize -> swipe who spent what
    ============================================================ */
-let impDeck=null, impIdx=0, impStage="choose", impAdded=0;
+let impDeck=null, impIdx=0, impStage="choose", impAdded=0, impDemo=false, impHistory=[];
 $("importOpen").onclick=openImport;
 $("impClose").onclick=closeImport;
-function openImport(){ impStage="choose"; renderImport(); $("imp").classList.add("show"); }
+function openImport(){ impStage="choose"; impDemo=false; impHistory=[]; renderImport(); $("imp").classList.add("show"); }
+function startImportDemo(){
+  const pick=arr=>{ for(const n of arr){ const b=S.buckets.find(x=>x.name.toLowerCase().includes(n)); if(b) return b.id; } return S.buckets[0]&&S.buckets[0].id; };
+  impDeck=[
+    {merchant:"WHOLE FOODS MARKET", amount:86.40, date:"07/08", bucketId:pick(["groc"])},
+    {merchant:"CHIPOTLE 0421",       amount:18.75, date:"07/08", bucketId:pick(["dining","takeout","food"])},
+    {merchant:"UBER *TRIP",          amount:23.40, date:"07/07", bucketId:pick(["ride","transport","transit","car"])},
+    {merchant:"NETFLIX.COM",         amount:22.99, date:"07/06", bucketId:pick(["entertain","stream","subscription"])}
+  ];
+  impDemo=true; impIdx=0; impAdded=0; impHistory=[]; impStage="deck"; renderImport();
+}
 function closeImport(){ $("imp").classList.remove("show"); }
 
 function renderImport(){
@@ -1515,9 +1535,13 @@ function renderImport(){
       <textarea class="pastebox" id="impPaste" placeholder="Paste rows like:   03/07  KRISERS BUCKTOWN CHICAGO IL  11.44"></textarea>
       <button class="ghostbtn" id="impParsePaste">Read pasted text</button>
       <div id="impMsg" class="qcap" style="text-align:center;margin-top:10px"></div>
+      <div style="text-align:center;margin:18px 0 6px;color:var(--muted);font-size:12px">— first time? —</div>
+      <button class="primary" id="impDemoBtn" style="background:var(--ink)">👀 Show me how it works</button>
+      <p class="qcap" style="text-align:center;margin-top:8px">A quick demo with pretend charges. Nothing gets saved.</p>
     </div>`;
     $("impPick").onclick=()=>$("impFile").click();
     $("impParsePaste").onclick=()=>{ const t=$("impPaste").value; if(!t.trim()){toast("Paste some rows first");return;} handleParsed(parseText(t)); };
+    $("impDemoBtn").onclick=startImportDemo;
   } else if(impStage==="deck"){ renderDeck(); }
   else { renderImportDone(); }
 }
@@ -1607,12 +1631,18 @@ function renderDeck(){
   $("impTitle").textContent="Who spent what?";
   const total=impDeck.length;
   if(impIdx>=total){ impStage="done"; renderImport(); return; }
+  const hint = impIdx===0 && (impDemo || !S.importHintSeen);
   $("impBody").innerHTML=`<div class="deckwrap">
     <div class="deckprog"><div class="pbar"><i style="width:${impIdx/total*100}%"></i></div><div class="pcount">${impIdx} of ${total} sorted · ${money(impDeck[impIdx].amount)} up next</div></div>
-    <div class="deck" id="deck"></div>
-    <div class="deckfoot"><button class="skipbtn" id="skipCard">Not ours — skip</button></div>
-    <div class="names" id="nameTargets"></div>
+    ${impDemo?`<div class="demopill">🎮 Demo · flick a card up onto whoever spent it — nothing's saved</div>`:``}
+    <div class="names${hint?" pulse":""}" id="nameTargets"></div>
+    <div class="deck" id="deck">${hint?`<div class="demohand">👆</div>`:``}</div>
+    <div class="deckfoot">
+      <button class="skipbtn" id="undoCard" ${impHistory.length?"":`style="visibility:hidden"`}>↩ Undo</button>
+      <button class="skipbtn" id="skipCard">Not ours — skip</button>
+    </div>
   </div>`;
+  if(hint && !impDemo){ S.importHintSeen=true; }
   const deck=$("deck");
   for(let k=Math.min(impIdx+2,total-1);k>=impIdx;k--){
     const t=impDeck[k], depth=k-impIdx;
@@ -1630,6 +1660,7 @@ function renderDeck(){
   $("nameTargets").innerHTML=S.people.map(p=>`<button class="nametarget" data-assign="${p.id}" style="background:${p.color}"><span class="av">${p.short}</span>${p.name.split(" ")[0]}</button>`).join("");
   $("nameTargets").querySelectorAll("[data-assign]").forEach(btn=>btn.onclick=()=>assignTop(btn.dataset.assign));
   $("skipCard").onclick=advance;
+  $("undoCard").onclick=undoLast;
   deck.querySelectorAll("[data-envpick]").forEach(btn=>btn.onclick=ev=>{ ev.stopPropagation(); pickEnvelope(+btn.dataset.envpick); });
   deck.querySelectorAll("[data-split]").forEach(btn=>btn.onclick=ev=>{ ev.stopPropagation(); openSplit(+btn.dataset.split); });
   enableDrag();
@@ -1638,14 +1669,27 @@ function topCard(){ const d=$("deck"); return d?d.querySelector(`.swcard[data-k=
 function assignTop(personId){
   const t=impDeck[impIdx];
   if(!t.bucketId){ toast("Pick an envelope first"); const c=topCard(); if(c){c.style.transition="transform .2s";c.style.transform="";} return; }
-  S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),date:t.date,bucketId:t.bucketId,who:personId,amount:t.amount,note:t.merchant.slice(0,40),source:"import"});
-  const key=merchantKey(t.merchant); S.merchantRules[key]=t.bucketId; S.whoRules[key]=personId;
-  impAdded++; save();
+  // fling the card UP toward the person's spot
   const c=topCard(); const p=S.people.findIndex(x=>x.id===personId); const n=S.people.length; const dir=n>1?(p-(n-1)/2)/((n-1)/2):0;
-  if(c){ c.classList.add("gone"); c.style.transform=`translate(${dir*140}%,-55%) rotate(${dir*16}deg)`; c.style.opacity="0"; }
+  if(c){ c.classList.add("gone"); c.style.transform=`translate(${dir*55}%,-135%) rotate(${dir*10}deg)`; c.style.opacity="0"; }
+  if(impDemo){ impHistory.push({idx:impIdx,pullIds:[]}); impAdded++; setTimeout(advance,300); return; }
+  const key=merchantKey(t.merchant), prevB=S.merchantRules[key], prevW=S.whoRules[key];
+  const pull={id:"p"+Date.now()+Math.random().toString(36).slice(2,5),date:t.date,bucketId:t.bucketId,who:personId,amount:t.amount,note:t.merchant.slice(0,40),source:"import"};
+  S.pulls.push(pull);
+  S.merchantRules[key]=t.bucketId; S.whoRules[key]=personId;
+  impHistory.push({idx:impIdx,pullIds:[pull.id],key,prevB,prevW});
+  impAdded++; save();
   setTimeout(advance,300);
 }
 function advance(){ impIdx++; renderImport(); }
+function undoLast(){
+  if(!impHistory.length) return;
+  const a=impHistory.pop();
+  if(a.pullIds && a.pullIds.length) a.pullIds.forEach(id=>{ const i=S.pulls.findIndex(p=>p.id===id); if(i>=0) S.pulls.splice(i,1); });
+  if("key" in a){ if(a.prevB===undefined) delete S.merchantRules[a.key]; else S.merchantRules[a.key]=a.prevB;
+    if(a.prevW===undefined) delete S.whoRules[a.key]; else S.whoRules[a.key]=a.prevW; }
+  impAdded=Math.max(0,impAdded-1); impIdx=a.idx; if(!impDemo) save(); renderImport();
+}
 function pickEnvelope(k){
   const ov=document.createElement("div"); ov.className="scrim show"; ov.style.zIndex="85";
   const box=document.createElement("div");
@@ -1702,24 +1746,48 @@ function openSplit(k){
     box.querySelector("#cancelSplit").onclick=close;
     box.querySelector("#saveSplit").onclick=()=>{
       if(Math.abs(remainder())>0.01){ toast("Amounts must add up to "+money(t.amount)); return; }
-      rows.forEach(r=>{ if((+r.amount||0)>0 && r.bucketId){ S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,6),date:t.date,bucketId:r.bucketId,who:r.who,amount:+r.amount,note:t.merchant.slice(0,40),source:"import-split"}); } });
-      impAdded++; save(); close(); advance();
+      if(impDemo){ impHistory.push({idx:impIdx,pullIds:[]}); impAdded++; close(); advance(); return; }
+      const ids=[];
+      rows.forEach((r,ri)=>{ if((+r.amount||0)>0 && r.bucketId){ const pull={id:"p"+Date.now()+ri+Math.random().toString(36).slice(2,6),date:t.date,bucketId:r.bucketId,who:r.who,amount:+r.amount,note:t.merchant.slice(0,40),source:"import-split"}; S.pulls.push(pull); ids.push(pull.id); } });
+      impHistory.push({idx:impIdx,pullIds:ids}); impAdded++; save(); close(); advance();
     };
     updateRem();
   }
   draw();
 }
 function enableDrag(){
-  const c=topCard(); if(!c) return; let drag=false,sx,sy;
-  c.onpointerdown=e=>{ if(e.target.closest("button,select,input,a")) return; drag=true; sx=e.clientX; sy=e.clientY; try{c.setPointerCapture(e.pointerId);}catch(_){} c.style.transition="none"; };
-  c.onpointermove=e=>{ if(!drag)return; const dx=e.clientX-sx,dy=e.clientY-sy; c.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*0.03}deg)`;
-    document.querySelectorAll(".nametarget").forEach(n=>n.style.outline=""); const el=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.dataset&&x.dataset.assign); if(el) el.style.outline="3px solid #1B2430"; };
-  c.onpointerup=e=>{ if(!drag)return; drag=false; document.querySelectorAll(".nametarget").forEach(n=>n.style.outline="");
-    const el=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.dataset&&x.dataset.assign);
-    if(el) assignTop(el.dataset.assign); else { c.style.transition="transform .2s"; c.style.transform=""; } };
+  const c=topCard(); if(!c) return; let drag=false,sx,sy,dx=0,dy=0;
+  const clearHi=()=>document.querySelectorAll(".nametarget").forEach(n=>n.style.outline="");
+  const targetUnder=(x,y)=>document.elementsFromPoint(x,y).find(el=>el.dataset&&el.dataset.assign);
+  const nearestName=x=>{ let best=null,bd=1e9; document.querySelectorAll(".nametarget").forEach(t=>{ const r=t.getBoundingClientRect(), cx=r.left+r.width/2, d=Math.abs(cx-x); if(d<bd){bd=d;best=t;} }); return best; };
+  c.onpointerdown=e=>{ if(e.target.closest("button,select,input,a")) return; drag=true; sx=e.clientX; sy=e.clientY; dx=dy=0;
+    try{c.setPointerCapture(e.pointerId);}catch(_){} c.style.transition="none"; const h=document.querySelector(".demohand"); if(h) h.style.display="none"; };
+  c.onpointermove=e=>{ if(!drag)return; dx=e.clientX-sx; dy=e.clientY-sy;
+    c.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*0.03}deg)`;
+    clearHi(); let el=targetUnder(e.clientX,e.clientY); if(!el && dy<-40) el=nearestName(e.clientX); if(el) el.style.outline="3px solid #1B2430"; };
+  c.onpointerup=e=>{ if(!drag)return; drag=false; clearHi();
+    let el=targetUnder(e.clientX,e.clientY);
+    if(!el && dy<-70) el=nearestName(e.clientX); // flicked up → nearest name
+    if(el && el.dataset && el.dataset.assign) assignTop(el.dataset.assign);
+    else { c.style.transition="transform .2s"; c.style.transform=""; } };
 }
 function renderImportDone(){
   $("impTitle").textContent="All sorted";
+  if(impDemo){
+    $("impTitle").textContent="That's the whole game";
+    $("impBody").innerHTML=`<div class="impscroll" style="text-align:center">
+      <div class="bigemoji">🎉</div>
+      <h2 class="mnt">That's it — you've got it!</h2>
+      <p class="mnp">Each charge, flicked onto whoever spent it. <b>Nothing from the demo was saved.</b> When you're ready, upload a real statement and do it for keeps — Klepcake pre-sorts the envelopes and learns as you go.</p>
+      <button class="primary money" id="impRealNow">Import real spending</button>
+      <button class="ghostbtn" id="impDemoAgain">Run the demo again</button>
+      <button class="ghostbtn" id="impFinish">Back to Klepcake</button>
+    </div>`;
+    $("impRealNow").onclick=()=>{ impDemo=false; impStage="choose"; impHistory=[]; renderImport(); };
+    $("impDemoAgain").onclick=startImportDemo;
+    $("impFinish").onclick=()=>{ impDemo=false; closeImport(); render(); };
+    return;
+  }
   $("impBody").innerHTML=`<div class="impscroll" style="text-align:center">
     <div class="bigemoji">🎉</div>
     <h2 class="mnt">${impAdded} charge${impAdded===1?"":"s"} sorted</h2>
