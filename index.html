@@ -288,6 +288,16 @@
   @keyframes mniFade{to{opacity:1}}
   @keyframes mniPulse{0%,100%{opacity:.45}50%{opacity:1}}
 
+  .wlc{position:fixed;inset:0;z-index:82;background:radial-gradient(1000px 560px at 50% 6%,#12A08A,#0E7C6B 55%,#0a5346);
+    display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s ease;overflow:hidden}
+  .wlc.show{opacity:1;pointer-events:auto}
+  .wlc-in{position:relative;text-align:center;color:#fff;padding:26px;max-width:360px}
+  .wlc-emoji{font-size:66px;display:inline-block;opacity:0;animation:wlcPop .8s .1s cubic-bezier(.2,1.4,.3,1) forwards}
+  @keyframes wlcPop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+  .wlc-h{font-family:"Bricolage Grotesque";font-weight:800;font-size:34px;line-height:1.05;margin:14px 0 10px;opacity:0;animation:mniFade .6s .5s forwards}
+  .wlc-p{font-size:15.5px;font-weight:600;color:#eafaf5;line-height:1.5;opacity:0;animation:mniFade .6s .8s forwards}
+  .wlc-tap{margin-top:26px;font-size:13px;color:#bfeee2;font-weight:600;opacity:0;animation:mniFade .6s 1.5s forwards,mniPulse 1.8s 2s infinite}
+
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
   .toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(30px);
     background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:95;box-shadow:var(--shadow-lg)}
@@ -647,7 +657,6 @@ function render(){
   const wrap=$("envs"); wrap.innerHTML="";
   S.buckets.forEach(b=>{
     const avail=bucketAvailable(b,mk), rem=bucketRemaining(b,mk), wkSpent=spentBucketWeek(b.id,viewWeek);
-    const carry=bucketCarry(b,mk);
     const ratio=avail>0?Math.max(0,rem/avail):0;
     const dry=rem<0;
     let bills=Math.round(ratio*MAXBILLS); if(rem>0&&bills<1)bills=1; if(dry)bills=0;
@@ -666,7 +675,7 @@ function render(){
       </div>
       <div class="enums">
         <div class="eleft ${dry?"over":""}">${dry?money(rem)+" over":money(rem)+" left"}</div>
-        <div class="eweek">this wk <b>${money(wkSpent)}</b><br>of ${money(avail)}${carry>0?` · +${money(carry)} rolled`:""}</div>
+        <div class="eweek">this wk <b>${money(wkSpent)}</b><br>of ${money(avail)}</div>
       </div>
       <div class="whopull">${whoBar}</div>`;
     wrap.appendChild(el);
@@ -1209,7 +1218,7 @@ function finishMoneyNight(){
   </div>`;
   $("mnFoot").innerHTML=`<button class="primary money" id="mnDone">Done</button>`;
   $("mnDone").onclick=()=>{ closeMoneyNight(); mnChange=""; render(); };
-  burst(); setTimeout(burst,400);
+  burst(); setTimeout(burst,400); confettiRain(3200);
 }
 function hasBadge(id){ return S.ritual.badges.some(b=>b.id===id); }
 function addBadge(list,id,e,t){ if(!hasBadge(id)){ const b={id,e,t}; S.ritual.badges.push(b); list.push(b); } }
@@ -1724,6 +1733,17 @@ function confettiRain(ms){
   },110);
 }
 function stopRain(){ clearInterval(rainT); rainT=null; }
+function showWelcome(headline, sub, emoji){
+  const ov=document.createElement("div"); ov.className="wlc";
+  ov.innerHTML=`<div class="wlc-in"><div class="wlc-emoji">${emoji||"🎉"}</div>
+    <div class="wlc-h">${headline}</div><div class="wlc-p">${sub}</div>
+    <div class="wlc-tap">tap to continue</div></div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add("show"));
+  setTimeout(burst,300); confettiRain(4200);
+  let done=false; const go=()=>{ if(done)return; done=true; ov.classList.remove("show"); stopRain(); setTimeout(()=>ov.remove(),450); };
+  ov.onclick=go; setTimeout(go,4800);
+}
 let toastT=null;
 function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2000); }
 
@@ -1888,7 +1908,7 @@ function renderSyncSheet(){
       <div id="syncMsg" class="qcap" style="text-align:center;margin-top:10px"></div>
       <button class="ghostbtn" id="signOutBtn" style="margin-top:14px">Sign out</button>`;
     $("createHH").onclick=async()=>{ $("createHH").textContent="Creating…"; const err=await cloudCreateHousehold(); if(err){$("syncMsg").textContent=err;$("createHH").textContent="Create our household";} else { renderSyncSheet(); toast("Household created 🎉"); } };
-    $("joinHH").onclick=async()=>{ const c=$("joinCode").value; if(!c){toast("Enter a code");return;} $("syncMsg").textContent="Joining…"; const err=await cloudJoinHousehold(c); if(err){$("syncMsg").textContent=err;} else { renderSyncSheet(); toast("Joined! Pulling your envelopes…"); } };
+    $("joinHH").onclick=async()=>{ const c=$("joinCode").value; if(!c){toast("Enter a code");return;} $("syncMsg").textContent="Joining…"; const err=await cloudJoinHousehold(c); if(err){$("syncMsg").textContent=err;} else { renderSyncSheet(); closeSheets(); const host=S.people[0]?S.people[0].name.split(" ")[0]:"your family"; showWelcome("You're in!","You and "+host+" now share Klepcake — every envelope, goal, and Money Night stays in sync across your phones.","💚"); } };
     $("signOutBtn").onclick=cloudSignOut;
     return;
   }
