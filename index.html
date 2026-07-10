@@ -269,6 +269,25 @@
   .deckfoot{display:flex;justify-content:center;gap:10px;padding:0 16px 6px}
   .skipbtn{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:11px;padding:9px 16px;font-weight:700;font-size:13px}
 
+  /* Money Night cinematic intro */
+  .mnintro{position:fixed;inset:0;z-index:80;background:radial-gradient(1200px 620px at 50% -5%,#14324a,#0a0f1a 58%,#05070d);
+    display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .45s ease;overflow:hidden}
+  .mnintro.show{opacity:1;pointer-events:auto}
+  .mni-lights{position:absolute;inset:-30%;background:conic-gradient(from 200deg at 50% 115%,rgba(255,206,58,.12),transparent 28%,rgba(56,189,248,.12),transparent 58%,rgba(255,206,58,.12));animation:mniSpin 14s linear infinite}
+  @keyframes mniSpin{to{transform:rotate(360deg)}}
+  .mni-inner{position:relative;text-align:center;color:#fff;padding:24px}
+  .mni-kicker{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:#ffce3a;font-weight:800;opacity:0;animation:mniFade .6s .2s forwards}
+  .mni-clap{font-size:40px;opacity:0;animation:mniFade .5s .1s forwards, mniBob 2.4s 1s ease-in-out infinite}
+  @keyframes mniBob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-6px) rotate(4deg)}}
+  .mni-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:62px;line-height:.92;letter-spacing:.02em;margin:10px 0 8px;
+    background:linear-gradient(180deg,#fff,#ffe9a8 42%,#e3b23c);-webkit-background-clip:text;background-clip:text;color:transparent;
+    transform:scale(1.45);opacity:0;filter:drop-shadow(0 8px 26px rgba(227,178,60,.45));animation:mniPop .85s .35s cubic-bezier(.2,1.35,.3,1) forwards}
+  @keyframes mniPop{to{transform:scale(1);opacity:1}}
+  .mni-sub{font-size:15.5px;font-weight:700;color:#dfe7f5;opacity:0;animation:mniFade .6s 1s forwards}
+  .mni-tap{margin-top:28px;font-size:13px;color:#9fb0d0;font-weight:600;opacity:0;animation:mniFade .6s 1.7s forwards,mniPulse 1.8s 2.3s infinite}
+  @keyframes mniFade{to{opacity:1}}
+  @keyframes mniPulse{0%,100%{opacity:.45}50%{opacity:1}}
+
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
   .toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(30px);
     background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:95;box-shadow:var(--shadow-lg)}
@@ -418,6 +437,18 @@
   </div>
   <div class="mnbody" id="mnBody"></div>
   <div class="mnfoot" id="mnFoot"></div>
+</div>
+
+<!-- Money Night cinematic intro -->
+<div class="mnintro" id="mnIntro">
+  <div class="mni-lights"></div>
+  <div class="mni-inner">
+    <div class="mni-clap">🎬</div>
+    <div class="mni-kicker">Tonight on Klepcake</div>
+    <div class="mni-title">MONEY<br>NIGHT</div>
+    <div class="mni-sub" id="mniSub">Your household</div>
+    <div class="mni-tap">tap to begin →</div>
+  </div>
 </div>
 
 <canvas id="confetti"></canvas>
@@ -581,14 +612,24 @@ function render(){
   // hero verdict (discretionary/wants)
   const pace=wantsWeeklyPace(), spent=wantsSpentWeek(viewWeek), diff=pace-spent;
   const under=diff>=0;
-  const hero=$("hero"); hero.classList.toggle("over",!under);
-  $("heroVerdict").textContent = under ? "You stayed "+money(diff)+" under" : "You went "+money(-diff)+" over";
-  $("heroSub").textContent = under
-    ? "Nice — discretionary spending was inside your weekly pace."
-    : "Over your fun-money pace this week. One tweak and you're back.";
-  const st=starsFor(viewWeek);
-  $("heroStars").innerHTML = [1,2,3,4,5].map(i=>`<span class="s">${i<=st?"⭐":"☆"}</span>`).join("")
-    + `<span style="margin-left:8px;font-size:12px;opacity:.9;font-weight:700">${["","Tough week","Getting there","Solid","Great week","Perfect week"][st]}</span>`;
+  const anyThisWeek=S.pulls.some(p=>weekKey(p.date)===viewWeek);
+  const hero=$("hero");
+  if(!anyThisWeek){
+    // fresh week — nothing logged yet
+    hero.classList.remove("over");
+    $("heroVerdict").textContent="A fresh week";
+    $("heroSub").textContent="Nothing logged yet. Import your card or add a pull to see how you're tracking.";
+    $("heroStars").innerHTML=`<span style="font-size:13px;opacity:.9;font-weight:700">You've got ${money(pace)} of fun money this week ✨</span>`;
+  } else {
+    hero.classList.toggle("over",!under);
+    $("heroVerdict").textContent = under ? "You stayed "+money(diff)+" under" : "You went "+money(-diff)+" over";
+    $("heroSub").textContent = under
+      ? "Nice — discretionary spending was inside your weekly pace."
+      : "Over your fun-money pace this week. One tweak and you're back.";
+    const st=starsFor(viewWeek);
+    $("heroStars").innerHTML = [1,2,3,4,5].map(i=>`<span class="s">${i<=st?"⭐":"☆"}</span>`).join("")
+      + `<span style="margin-left:8px;font-size:12px;opacity:.9;font-weight:700">${["","Tough week","Getting there","Solid","Great week","Perfect week"][st]}</span>`;
+  }
   $("streakN").textContent=S.ritual.streak||0;
   $("fWeek").textContent=money(spent);
   $("fPace").textContent=money(pace);
@@ -1012,8 +1053,19 @@ $("deletePull").onclick=()=>{ if(editingPull){ S.pulls=S.pulls.filter(p=>p!==edi
    ============================================================ */
 let mnStep=0; const MN_STEPS=5;
 let mnChange="";
-function openMoneyNight(){ mnStep=0; S.viewWeek=weekKey(new Date()); render(); renderMN(); $("mn").classList.add("show"); }
-function closeMoneyNight(){ $("mn").classList.remove("show"); }
+let _mniT=null;
+function openMoneyNight(){
+  mnStep=0; S.viewWeek=weekKey(new Date()); render();
+  renderMN(); $("mn").classList.add("show");
+  // cinematic title-card intro
+  const wk=weekKey(new Date());
+  $("mniSub").textContent=(S.house||"Your household")+" · Week of "+fmtRange(new Date(wk));
+  const intro=$("mnIntro"); intro.classList.add("show");
+  let done=false; const go=()=>{ if(done)return; done=true; intro.classList.remove("show"); };
+  intro.onclick=go; clearTimeout(_mniT); _mniT=setTimeout(go,3800);
+  setTimeout(burst,450);
+}
+function closeMoneyNight(){ $("mn").classList.remove("show"); $("mnIntro").classList.remove("show"); clearTimeout(_mniT); }
 $("moneyNightBtn").onclick=openMoneyNight;
 $("mnClose").onclick=closeMoneyNight;
 
