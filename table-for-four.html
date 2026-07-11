@@ -490,6 +490,7 @@ const DB = (() => {
     async updateEvent(id,patch){ return this._q(c=>c.from('events').update(patch).eq('id',id).select().single()); },
     seedIfEmpty(){},
     async magicLink(email){ const c=await this._client(); return c.auth.signInWithOtp({email, options:{emailRedirectTo:location.origin+location.pathname}}); },
+    async passwordSignIn(email,password){ const c=await this._client(); const {data,error}=await c.auth.signInWithPassword({email,password}); if(error)throw error; return data.session; },
     async session(){ const c=await this._client(); const {data}=await c.auth.getSession(); return data.session; },
     async signOut(){ const c=await this._client(); return c.auth.signOut(); },
     async coupleHome(token){ const c=await this._client(); const {data,error}=await c.rpc('couple_home',{p_token:token}); if(error)throw error; return data; },
@@ -1167,13 +1168,29 @@ async function loadConsoleData(){
 /* login */
 function renderLogin(){
   const app=$('#app'); app.innerHTML='';
+  if(USE_SUPABASE){
+    app.appendChild(el(`
+      <div class="login-wrap"><div class="login-card">
+        <div class="mono">${MARK_CREAM}</div>
+        <h1>Concierge sign-in</h1>
+        <p>The console is private. Sign in with your admin email and password.</p>
+        <div class="field"><label>Admin email</label><input type="email" id="l_email" value="${esc(ADMIN_EMAIL)}" placeholder="you@threecitiessocial.com" /></div>
+        <div class="field"><label>Password</label><input type="password" id="l_pass" placeholder="Your password" /></div>
+        <button class="btn block" id="l_send">Sign in</button>
+        <div id="l_note" class="note">First time? In Supabase → Authentication → Users → Add user, create this email with a password (check "Auto Confirm").</div>
+        <div style="margin-top:18px"><a href="#/" class="link-btn">← Back to the front door</a></div>
+      </div></div>`));
+    $('#l_send').onclick=doLogin;
+    $('#l_pass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+    return;
+  }
   app.appendChild(el(`
     <div class="login-wrap"><div class="login-card">
       <div class="mono">${MARK_CREAM}</div>
       <h1>Concierge sign-in</h1>
-      <p>The console is private. Enter the admin email to get a sign-in link.</p>
+      <p>The console is private. Enter the admin email to continue.</p>
       <div class="field"><label>Admin email</label><input type="email" id="l_email" placeholder="you@threecitiessocial.com" /></div>
-      <button class="btn block" id="l_send">Send me a link</button>
+      <button class="btn block" id="l_send">Continue</button>
       <div id="l_note" class="note">Logged-out visitors can't see any applications.</div>
       <div style="margin-top:18px"><a href="#/" class="link-btn">← Back to the front door</a></div>
     </div></div>`));
@@ -1183,20 +1200,15 @@ function renderLogin(){
 async function doLogin(){
   const email=$('#l_email').value.trim().toLowerCase(); const note=$('#l_note');
   if(email!==ADMIN_EMAIL.toLowerCase()){ note.style.color='var(--rust-d)'; note.textContent='That email isn’t on the admin list.'; return; }
-  if(USE_SUPABASE){ try{ note.style.color='var(--muted)'; note.textContent='Sending your link…'; await DB.magicLink(ADMIN_EMAIL); note.textContent='Check your inbox for a sign-in link, then return here.'; }
-    catch(e){ note.style.color='var(--rust-d)'; note.textContent='Could not send the link. Check Supabase auth settings.'; } return; }
-  const card=$('.login-card');
-  card.innerHTML=`
-    <div class="mono" style="margin:0 auto 18px">${MARK_CREAM}</div>
-    <h1>Check your inbox</h1>
-    <p>We sent a sign-in link to <b>${esc(ADMIN_EMAIL)}</b>.</p>
-    <div style="background:#faf3e6;border:1px solid var(--line);border-radius:14px;padding:16px;margin:6px 0 4px;text-align:left">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Demo inbox</div>
-      <div style="font-size:14px;line-height:1.5">Subject: <b>Your Kith Club sign-in link</b><br><span style="color:var(--muted)">This build has no mail server, so tap the link to continue.</span></div>
-      <button class="btn block forest" id="l_go" style="margin-top:12px">Tap to sign in →</button>
-    </div>
-    <div class="note">Only <b>${esc(ADMIN_EMAIL)}</b> can reach the console.</div>`;
-  $('#l_go').onclick=()=>{ sessionStorage.setItem(AUTH_KEY,'1'); consoleState.tab='applications'; renderConsole(); };
+  if(USE_SUPABASE){
+    const pass=$('#l_pass').value;
+    if(!pass){ note.style.color='var(--rust-d)'; note.textContent='Enter your password.'; return; }
+    try{ note.style.color='var(--muted)'; note.textContent='Signing in…'; await DB.passwordSignIn(ADMIN_EMAIL, pass); sbChecked=false; await refreshSbSession();
+      if(isAuthed()){ consoleState.tab='applications'; renderConsole(); } else { note.style.color='var(--rust-d)'; note.textContent='Signed in, but not recognized as admin. Check the email.'; } }
+    catch(e){ note.style.color='var(--rust-d)'; note.textContent='Wrong email or password (or the user doesn’t exist yet in Supabase).'; }
+    return;
+  }
+  sessionStorage.setItem(AUTH_KEY,'1'); consoleState.tab='applications'; renderConsole();
 }
 
 function statusBadge(s){ return `<span class="badge b-${esc(s)}">${esc(s)}</span>`; }
