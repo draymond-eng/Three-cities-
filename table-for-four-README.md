@@ -1,8 +1,8 @@
-# The Fourtop
+# Kith
 
 Chicago's curated club for couple friends — for couples who find it hard to
-make another couple or parent friends. A "four-top" is the restaurant term for
-a table of four: two couples, one table.
+make another couple or parent friends. *kith* /kɪθ/ · the friends who become
+family.
 
 **One file, no build step:** [`table-for-four.html`](./table-for-four.html).
 Open it in a browser or host it on any static host.
