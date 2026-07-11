@@ -75,6 +75,8 @@
   .kicker{font-size:11.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);}
   .kicker.rustk{color:var(--rust-d)}
 
+  .hero.has-art{padding-top:0;overflow:hidden}
+  .hero-art{display:block;width:calc(100% + 60px);margin:-34px -30px 20px;background:linear-gradient(180deg,#fbf3e6,#fffdf8);border-bottom:1px solid var(--line)}
   .hero h1{font-size:37px;line-height:1.1;margin:14px 0 0;letter-spacing:.1px}
   .hero .lede{color:var(--ink2);font-size:16.5px;line-height:1.6;margin:18px 0 0}
   .hero .lede em{color:var(--rust-d);font-style:italic}
@@ -413,10 +415,44 @@ const DB = (() => {
     async listEvents(){ return this._read(EKEY).sort((a,b)=> (b.scheduled_at||'').localeCompare(a.scheduled_at||'')); },
     async insertEvent(row){ const r={...row,id:uid(),created_at:nowISO(),roster:row.roster||[]}; const all=this._read(EKEY); all.push(r); this._write(EKEY,all); return r; },
     async updateEvent(id,patch){ const all=this._read(EKEY); const i=all.findIndex(x=>x.id===id); if(i>=0){ all[i]={...all[i],...patch}; this._write(EKEY,all); return all[i]; } },
+    async invitePublic(eventId, token){
+      const apps=this._read(AKEY), events=this._read(EKEY);
+      const me=apps.find(a=>a.token===token), ev=events.find(e=>e.id===eventId);
+      if(!me||!ev) return null;
+      const roster=arr(ev.roster), happened=ev.status==='happened', mine=roster.find(r=>r.couple_id===me.id)||{};
+      const others=roster.filter(r=>r.couple_id!==me.id).map(r=>{ const a=apps.find(x=>x.id===r.couple_id); if(!a) return null;
+        return { couple_id:a.id, couple_name:happened?a.couple_name:null, neighborhood:a.neighborhood, teaser:coupleTeaser(a), rsvp:r.rsvp||null }; }).filter(Boolean);
+      return { event:{id:ev.id,title:ev.title,venue:ev.venue,scheduled_at:ev.scheduled_at,status:ev.status},
+        me:{couple_id:me.id,partner1:me.partner1_name,partner2:me.partner2_name},
+        mine:{rsvp:mine.rsvp||null,likes:arr(mine.likes),rating:mine.rating||null}, others };
+    },
+    async setRsvp(eventId, token, val){
+      const apps=this._read(AKEY), events=this._read(EKEY);
+      const me=apps.find(a=>a.token===token), ei=events.findIndex(e=>e.id===eventId); if(!me||ei<0) return;
+      const roster=arr(events[ei].roster); let r=roster.find(x=>x.couple_id===me.id); if(!r){ r={couple_id:me.id,attended:false,likes:[]}; roster.push(r); }
+      r.rsvp=val; events[ei].roster=roster; this._write(EKEY,events);
+      if(val==='yes'){ const ai=apps.findIndex(a=>a.id===me.id); if(ai>=0&&(apps[ai].status==='new'||apps[ai].status==='invited')){ apps[ai].status='invited'; this._write(AKEY,apps); } }
+    },
+    async submitPicks(eventId, token, likes, rating){
+      const apps=this._read(AKEY), events=this._read(EKEY);
+      const me=apps.find(a=>a.token===token), ei=events.findIndex(e=>e.id===eventId); if(!me||ei<0) return;
+      const roster=arr(events[ei].roster); let r=roster.find(x=>x.couple_id===me.id); if(!r){ r={couple_id:me.id,attended:true,likes:[]}; roster.push(r); }
+      r.likes=arr(likes); r.attended=true; r.rsvp=r.rsvp||'yes'; r.rating=rating||''; events[ei].roster=roster; this._write(EKEY,events);
+      const ai=apps.findIndex(a=>a.id===me.id); if(ai>=0&&apps[ai].status!=='paired'){ apps[ai].status='attended'; this._write(AKEY,apps); }
+    },
+    async coupleHome(token){
+      const apps=this._read(AKEY); const me=apps.find(a=>a.token===token); if(!me) return null;
+      const events=this._read(EKEY), tables=this._read(TKEY);
+      const upcoming=events.filter(e=>e.status==='upcoming'&&arr(e.roster).some(r=>r.couple_id===me.id)).sort((a,b)=>(a.scheduled_at||'').localeCompare(b.scheduled_at||''))[0]||null;
+      const intros=tables.filter(t=>arr(t.couple_ids).includes(me.id)).map(t=>({ status:t.status, place:t.place, scheduled_at:t.scheduled_at, format:t.format,
+        others:arr(t.couple_ids).filter(id=>id!==me.id).map(id=>{const a=apps.find(x=>x.id===id);return a?a.couple_name:'a couple';}) }));
+      return { couple_name:me.couple_name, partner1:me.partner1_name, partner2:me.partner2_name, status:me.status,
+        upcoming: upcoming?{title:upcoming.title, venue:upcoming.venue, scheduled_at:upcoming.scheduled_at, event_id:upcoming.id}:null, intros, token:me.token };
+    },
     seedIfEmpty(){
       if(localStorage.getItem(SEEDED)) return;
       const apps=[];
-      SEED.forEach((s,i)=>{ apps.push({...s,id:uid(),created_at:new Date(Date.now()-(SEED.length-i)*3600e3*11).toISOString()}); });
+      SEED.forEach((s,i)=>{ apps.push({...s,id:uid(),token:makeToken(),email:'',created_at:new Date(Date.now()-(SEED.length-i)*3600e3*11).toISOString()}); });
       this._write(AKEY,apps);
       // one past mixer with recorded attendance + likes (a mutual pair to demo Pairing)
       const [a0,a1,a2,a3]=apps; // Alvarez-Kims, Jordan&Priya, Osei, Sam&Theo
@@ -457,6 +493,9 @@ const DB = (() => {
     async session(){ const c=await this._client(); const {data}=await c.auth.getSession(); return data.session; },
     async signOut(){ const c=await this._client(); return c.auth.signOut(); },
     async coupleHome(token){ const c=await this._client(); const {data,error}=await c.rpc('couple_home',{p_token:token}); if(error)throw error; return data; },
+    async invitePublic(eventId, token){ const c=await this._client(); const {data,error}=await c.rpc('event_invite',{p_event_id:eventId,p_token:token}); if(error)throw error; return data; },
+    async setRsvp(eventId, token, val){ const c=await this._client(); const {error}=await c.rpc('set_rsvp',{p_event_id:eventId,p_token:token,p_rsvp:val}); if(error)throw error; },
+    async submitPicks(eventId, token, likes, rating){ const c=await this._client(); const {error}=await c.rpc('submit_picks',{p_event_id:eventId,p_token:token,p_likes:likes,p_rating:rating||''}); if(error)throw error; },
   };
   return USE_SUPABASE ? remote : ls;
 })();
@@ -550,7 +589,7 @@ function showSplash(onDone){
       <h1>Not that kind of couples club.</h1>
       <div class="defline">kith &nbsp;·&nbsp; <i>/kɪθ/</i> &nbsp;·&nbsp; the friends who become family</div>
       <div class="thin"></div>
-      <p class="sub">No swiping. No key bowls. Just Chicago's most quietly excellent way to find the <b>couple friends you both actually like</b>, over a great dinner.</p>
+      <p class="sub">No swiping. No key bowls. Just Chicago's most quietly excellent way to find the <b>couple and family friends you both actually like</b>, over a great dinner.</p>
       <button class="btn gold" data-enter>Come in →</button>
       <div class="fine">Strictly platonic. Wonderfully so.</div>
     </div></div>`);
@@ -591,9 +630,43 @@ function progressBar(){ let s=''; for(let i=1;i<=FORM_STEPS;i++) s+=`<i class="$
 function navButtons(nextLabel){ return `<div class="nav">${intake.step>1?'<button class="btn ghost" data-back>Back</button>':''}<button class="btn" data-next>${nextLabel||'Continue'}</button></div>`; }
 function wireNav(validate){ const b=$('#door-body'); const back=b.querySelector('[data-back]'); if(back) back.onclick=goBack; const next=b.querySelector('[data-next]'); if(next) next.onclick=()=>{ if(!validate||validate()) goNext(); }; }
 
+const HERO_ART = `<svg class="hero-art" viewBox="0 0 440 210" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two couples sharing a candlelit table">
+  <defs>
+    <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0c98a"/><stop offset="1" stop-color="#e7a071"/></linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#f4d493" stop-opacity=".9"/><stop offset="1" stop-color="#f4d493" stop-opacity="0"/></radialGradient>
+  </defs>
+  <path d="M20 210 V120 a200 130 0 0 1 400 0 V210 Z" fill="url(#warm)" opacity=".22"/>
+  <circle cx="220" cy="70" r="70" fill="url(#glow)" opacity=".7"/>
+  <line x1="220" y1="0" x2="220" y2="34" stroke="#33402f" stroke-width="2.5"/>
+  <path d="M206 34 h28 l-5 15 h-18 Z" fill="#33402f"/>
+  <circle cx="220" cy="52" r="4.5" fill="#f4d493"/>
+  <!-- couple left -->
+  <g><circle cx="138" cy="96" r="16" fill="#33402f"/><path d="M112 150 v-14 a26 26 0 0 1 52 0 v14 Z" fill="#33402f"/></g>
+  <g><circle cx="180" cy="100" r="16" fill="#b3543a"/><path d="M155 150 v-12 a25 25 0 0 1 50 0 v12 Z" fill="#b3543a"/></g>
+  <!-- couple right -->
+  <g><circle cx="262" cy="100" r="16" fill="#b3543a"/><path d="M237 150 v-12 a25 25 0 0 1 50 0 v12 Z" fill="#b3543a"/></g>
+  <g><circle cx="304" cy="96" r="16" fill="#33402f"/><path d="M278 150 v-14 a26 26 0 0 1 52 0 v14 Z" fill="#33402f"/></g>
+  <!-- table -->
+  <rect x="54" y="150" width="332" height="15" rx="7.5" fill="#fffdf8" stroke="#e4d8c4"/>
+  <path d="M64 165 h312 l-14 34 a6 6 0 0 1 -6 4 H84 a6 6 0 0 1 -6 -4 Z" fill="#f6efe4" stroke="#e4d8c4"/>
+  <!-- place settings -->
+  <g fill="#f6efe4" stroke="#c39a4e" stroke-width="1.4">
+    <ellipse cx="130" cy="149" rx="15" ry="4.5"/><ellipse cx="185" cy="149" rx="15" ry="4.5"/>
+    <ellipse cx="257" cy="149" rx="15" ry="4.5"/><ellipse cx="312" cy="149" rx="15" ry="4.5"/>
+  </g>
+  <!-- candle center -->
+  <rect x="217" y="136" width="6" height="14" rx="2" fill="#e7d8b6"/>
+  <path d="M220 126 c4 4 4 8 0 10 c-4 -2 -4 -6 0 -10 Z" fill="#e8952f"/>
+  <circle cx="220" cy="130" r="9" fill="url(#glow)"/>
+  <!-- glasses -->
+  <g stroke="#4a5a41" stroke-width="1.6" fill="none"><path d="M158 138 v8 M154 132 h8 l-1 6 h-6 Z"/><path d="M285 138 v8 M281 132 h8 l-1 6 h-6 Z"/></g>
+  <!-- little plant -->
+  <g><rect x="352" y="140" width="12" height="9" rx="2" fill="#b3543a"/><path d="M358 140 c-6 -6 -10 -4 -10 -12 c6 0 10 4 10 12 Z M358 140 c6 -6 10 -3 11 -12 c-6 0 -11 4 -11 12 Z" fill="#4a5a41"/></g>
+</svg>`;
 function drawIntro(){
   $('#door-body').appendChild(el(`
-    <div class="card hero">
+    <div class="card hero has-art">
+      ${HERO_ART}
       <span class="kicker">Chicago · by application</span>
       <h1>The couple friends you didn't think you'd find as adults.</h1>
       <p class="lede">Making a real <em>couple</em> friend, another two people you both want to see on a Tuesday, gets harder once you're grown. We do the awkward part for you, over dinner, with couples worth meeting.</p>
@@ -772,7 +845,7 @@ function drawDone(token){
     <div class="card done">
       <div class="seal">${MARK_RUST}</div>
       <h2>Welcome to the table.</h2>
-      <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. We read every application by hand. When the next supper has a seat with your name on it, you'll get a personal note. No feed to check, no swiping.</p>
+      <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. We read every application by hand. When the next supper has a seat with your name on it, you'll get a personal note. No feed to check, no swiping. Just the kind of friends who become family.</p>
       <div class="done-actions">
         <a class="btn block" href="${esc(homeUrl)}">See your status →</a>
         <button class="btn ghost block" id="refbtn">Know another couple? Refer them</button>
@@ -927,26 +1000,20 @@ function icsFor(o){ const start=new Date(o.start), end=new Date(start.getTime()+
 function downloadICS(name, content){ const blob=new Blob([content],{type:'text/calendar'}); const u=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),1500); }
 function addToCalBtn(o, label){ const b=el(`<button class="btn ghost block" style="margin-top:10px">${label||'Add to calendar'}</button>`); b.onclick=()=>downloadICS('kith-club.ics', icsFor(o)); return b; }
 
-async function renderInvite([eventId, coupleId]){
-  const {ev, apps} = await loadPublic(eventId);
-  const me=apps.find(a=>a.id===coupleId);
-  if(!ev||!me){ return publicError("We couldn't find that invitation. The link may have expired."); }
-  const roster=arr(ev.roster); let r=roster.find(x=>x.couple_id===coupleId);
+async function renderInvite([eventId, token]){
+  let d; try{ d=await DB.invitePublic(eventId, token); }catch(e){ console.error(e); return publicError("We couldn't load your invitation right now. Please try again shortly."); }
+  if(!d||!d.me){ return publicError("We couldn't find that invitation. The link may have expired."); }
+  const ev=d.event, me=d.me;
   const past = ev.status==='happened';
-  const teasers=comingTeasers(roster, apps, coupleId);
+  const teasers=(d.others||[]).filter(o=>o.rsvp!=='no').slice(0,4).map(o=>o.teaser);
   const countdown=countdownText(ev.scheduled_at);
   const cal={ title:'Kith Club: '+ev.title, venue:ev.venue||'Three Cities Social', start:ev.scheduled_at, mins:150, desc:'Your Kith Club supper. See you there.' };
   const comingHtml = (!past&&teasers.length) ? `<div class="coming"><div class="lbl">Who's coming</div>${teasers.map(t=>`<div class="coming-row">${esc(t)}</div>`).join('')}<div class="coming-note">Names stay a mystery until you're across the table.</div></div>` : '';
-  const doRSVP=async(val)=>{
-    if(!r){ r={couple_id:coupleId, attended:false, likes:[]}; roster.push(r); }
-    r.rsvp=val; await DB.updateEvent(ev.id,{roster});
-    if(val==='yes'){ const a=apps.find(x=>x.id===coupleId); if(a&&(a.status==='new'||a.status==='invited')) await DB.updateApplication(coupleId,{status:'invited'}); }
-    renderInvite([eventId,coupleId]);
-  };
-  const answered = r&&r.rsvp;
+  const doRSVP=async(val)=>{ await DB.setRsvp(eventId, token, val); renderInvite([eventId, token]); };
+  const answered = d.mine&&d.mine.rsvp;
   const body = el(`<div class="card">
     <span class="kicker">${past?'A past evening':'You’re invited'}</span>
-    <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">${past?'That night has passed.':`A seat for you two, ${esc(me.partner1_name)} &amp; ${esc(me.partner2_name)}.`}</h1>
+    <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">${past?'That night has passed.':`A seat for you two, ${esc(me.partner1)} &amp; ${esc(me.partner2)}.`}</h1>
     <div class="rule"></div>
     ${(!past&&countdown)?`<div class="countdown">${esc(countdown)}</div>`:''}
     <div class="kv"><div class="k">The evening</div><div class="v" style="font-family:var(--serif);font-size:20px">${esc(ev.title)}</div></div>
@@ -957,21 +1024,20 @@ async function renderInvite([eventId, coupleId]){
     <div id="rsvp-area" style="margin-top:22px"></div>
   </div>`);
   const area = body.querySelector('#rsvp-area');
-  if(past){ area.appendChild(el(`<div class="note" style="font-size:14px">This mixer has already happened. If you were there, you can <a href="#/picks/${eventId}/${coupleId}">tell us who you clicked with →</a></div>`)); }
+  if(past){ area.appendChild(el(`<div class="note" style="font-size:14px">This mixer has already happened. If you were there, you can <a href="#/picks/${eventId}/${token}">tell us who you clicked with →</a></div>`)); }
   else if(answered==='yes'){ const box=el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:21px;color:var(--good)">You're confirmed.</div><p class="note" style="margin:8px 0 0">See you ${esc((countdown||'soon').toLowerCase())}. We'll send any final details by email.</p></div>`); area.appendChild(box); if(ev.scheduled_at) box.appendChild(addToCalBtn(cal)); box.appendChild(el(`<p class="note" style="margin-top:12px">Change of plans? <button class="link-btn" id="undo">Let us know</button></p>`)); area.querySelector('#undo').onclick=()=>doRSVP('no'); }
   else if(answered==='no'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--muted)">No worries. Maybe the next one.</div><p class="note" style="margin-top:8px">Changed your mind? <button class="link-btn" id="redo">We'd love to have you</button></p></div>`)); area.querySelector('#redo').onclick=()=>doRSVP('yes'); }
   else { const wrap=el(`<div class="nav"><button class="btn ghost" id="rsvp-no" style="flex:1">Can't make it</button><button class="btn" id="rsvp-yes" style="flex:2">We'll be there →</button></div>`); area.appendChild(wrap); wrap.querySelector('#rsvp-yes').onclick=()=>doRSVP('yes'); wrap.querySelector('#rsvp-no').onclick=()=>doRSVP('no'); }
   publicShell(body);
   window.scrollTo({top:0,behavior:'smooth'});
 }
-async function renderPicks([eventId, coupleId]){
-  const {ev, apps} = await loadPublic(eventId);
-  const me=apps.find(a=>a.id===coupleId);
-  if(!ev||!me){ return publicError("We couldn't find that link. It may have expired."); }
-  const roster=arr(ev.roster); let r=roster.find(x=>x.couple_id===coupleId);
-  const others=roster.filter(x=>x.couple_id!==coupleId);
-  const picked=new Set(r?arr(r.likes):[]);
-  let rating = r&&r.rating || '';
+async function renderPicks([eventId, token]){
+  let d; try{ d=await DB.invitePublic(eventId, token); }catch(e){ console.error(e); return publicError("We couldn't load this right now. Please try again shortly."); }
+  if(!d||!d.me){ return publicError("We couldn't find that link. It may have expired."); }
+  const ev=d.event;
+  const others=(d.others||[]);
+  const picked=new Set(arr(d.mine&&d.mine.likes));
+  let rating = (d.mine&&d.mine.rating) || '';
   const RATES=[['loved','Loved it'],['good','Good night'],['meh','Not for us']];
   const body=el(`<div class="card">
     <span class="kicker">${esc(ev.title)}</span>
@@ -988,36 +1054,24 @@ async function renderPicks([eventId, coupleId]){
   body.querySelectorAll('#rate-row .chip').forEach(c=>c.onclick=()=>{ body.querySelectorAll('#rate-row .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); rating=c.dataset.rate; });
   const list=body.querySelector('#pick-list');
   if(!others.length){ list.appendChild(el(`<div class="note">You were the only couple on this roster. Nothing to pick yet.</div>`)); }
-  others.forEach(o=>{ const a=apps.find(x=>x.id===o.couple_id); if(!a) return;
-    const p=el(`<div class="pick ${picked.has(o.couple_id)?'on':''}" data-id="${o.couple_id}"><div class="box">✓</div><div><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||''}</div></div></div>`);
+  others.forEach(o=>{
+    const p=el(`<div class="pick ${picked.has(o.couple_id)?'on':''}" data-id="${o.couple_id}"><div class="box">✓</div><div><div class="pn">${esc(o.couple_name||o.teaser)}</div><div class="sub2">${esc(o.neighborhood)||''}</div></div></div>`);
     p.onclick=()=>{ picked.has(o.couple_id)?(picked.delete(o.couple_id),p.classList.remove('on')):(picked.add(o.couple_id),p.classList.add('on')); };
     list.appendChild(p); });
   body.querySelector('#submit-picks').onclick=async()=>{
-    if(!r){ r={couple_id:coupleId, attended:true, likes:[]}; roster.push(r); }
-    r.likes=[...picked]; r.attended=true; r.rsvp=r.rsvp||'yes'; r.rating=rating;
-    await DB.updateEvent(ev.id,{roster});
-    const a=apps.find(x=>x.id===coupleId); if(a&&a.status!=='paired') await DB.updateApplication(coupleId,{status:'attended'});
+    await DB.submitPicks(eventId, token, [...picked], rating);
     publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Got it. Thank you.</h2><p>We'll look for mutual sparks from the night. If a couple felt it both ways, we'll set the two of you a table and be in touch. ${picked.size?'':'And if nobody quite clicked this time, no worries, there’s always the next mixer.'}</p></div>`));
     window.scrollTo({top:0,behavior:'smooth'});
   };
   publicShell(body);
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function linkFor(kind,eid,cid){ return location.origin+location.pathname+`#/${kind}/${eid}/${cid}`; }
-function copyLink(kind,eid,cid){ const url=linkFor(kind,eid,cid); navigator.clipboard&&navigator.clipboard.writeText(url).then(()=>toast('Link copied'),()=>toast(url)); if(!navigator.clipboard) toast('Copy: '+url); }
+function copyLink(kind,eid,cid){ const tok=(appById(cid)||{}).token||cid; const url=location.origin+location.pathname+`#/${kind}/${eid}/${tok}`; navigator.clipboard&&navigator.clipboard.writeText(url).then(()=>toast('Link copied'),()=>toast(url)); if(!navigator.clipboard) toast('Copy: '+url); }
 
 /* ---- The Couple's Home (private status page via token link) ---- */
 async function loadHome(token){
-  if(USE_SUPABASE){ try{ const d=await DB.coupleHome(token); return d||{missing:true}; }catch(e){ console.error(e); return {error:true}; } }
-  const apps=await DB.listApplications(); const me=apps.find(a=>a.token===token); if(!me) return {missing:true};
-  const events=await DB.listEvents(), tables=await DB.listTables();
-  const upcoming=events.filter(e=>e.status==='upcoming'&&arr(e.roster).some(r=>r.couple_id===me.id))
-    .sort((a,b)=>(a.scheduled_at||'').localeCompare(b.scheduled_at||''))[0]||null;
-  const intros=tables.filter(t=>arr(t.couple_ids).includes(me.id)).map(t=>({ status:t.status, place:t.place, scheduled_at:t.scheduled_at, format:t.format,
-    others:arr(t.couple_ids).filter(id=>id!==me.id).map(id=>{const a=apps.find(x=>x.id===id);return a?a.couple_name:'a couple';}) }));
-  return { couple_name:me.couple_name, partner1:me.partner1_name, partner2:me.partner2_name, status:me.status,
-    upcoming: upcoming?{title:upcoming.title, venue:upcoming.venue, scheduled_at:upcoming.scheduled_at, event_id:upcoming.id, couple_id:me.id}:null,
-    intros, token };
+  try{ const d=await DB.coupleHome(token); return d||{missing:true}; }
+  catch(e){ console.error(e); return {error:true}; }
 }
 const STATUS_STEPS=[['new','Applied'],['invited','Invited'],['attended','At the table'],['paired','Paired']];
 async function renderHome(token){
@@ -1036,7 +1090,7 @@ async function renderHome(token){
       <div class="kv" style="margin-top:10px"><div class="k">When</div><div class="v">${esc(soon)}</div></div>
       <div class="kv"><div class="k">Where</div><div class="v">${h.upcoming.venue?esc(h.upcoming.venue):'Details to come'}</div></div>
       ${h.upcoming.scheduled_at?`<div class="countdown" style="margin-top:8px">${esc(countdownText(h.upcoming.scheduled_at))}</div>`:''}
-      <a class="btn block" style="margin-top:14px" href="#/invite/${esc(h.upcoming.event_id)}/${esc(h.upcoming.couple_id)}">RSVP →</a>
+      <a class="btn block" style="margin-top:14px" href="#/invite/${esc(h.upcoming.event_id)}/${esc(token)}">RSVP →</a>
     </div>`;
   } else {
     nextHtml=`<div class="home-idle"><div class="kicker rustk">Your next supper</div>
@@ -1049,7 +1103,7 @@ async function renderHome(token){
   const body=el(`<div class="card">
     <span class="kicker">Your Kith Club</span>
     <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.</h1>
-    <p class="lede" style="font-size:15px;margin-top:12px">Here's where you stand. No feed, no swiping.</p>
+    <p class="lede" style="font-size:15px;margin-top:12px">Here's where you stand. The club that turns strangers into your Sunday table.</p>
     <div class="timeline">${timeline}</div>
     <div class="rule"></div>
     ${nextHtml}
