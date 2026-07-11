@@ -402,9 +402,10 @@ const USE_SUPABASE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
    and tells them payment details are coming by email. */
 const VENUE_NAME  = "Three Cities Social";
 const VENUE_LINE  = "a private members club";
-const PRICE_LABEL = "$110 / couple";
+const PRICE_LABEL = "$75 / couple";        // founding rate for the first two suppers; change to "$110 / couple" after
+const PRICE_TAG   = "Founding rate";        // small badge by the price; set to "" once the founding suppers are done
 const PRICE_INCLUDES = "dinner and a welcome drink for the two of you";
-const PAY_URL = ""; // e.g. "https://buy.stripe.com/xxxxxxxx"
+const PAY_URL = "https://buy.stripe.com/8x23cvcOk7LtahD7fq8Zq0H"; // Stripe Payment Link
 
 /* helpers */
 const $ = (sel, root=document) => root.querySelector(sel);
@@ -1052,7 +1053,7 @@ async function renderInvite([eventId, token]){
     <div class="kv"><div class="k">The evening</div><div class="v" style="font-family:var(--serif);font-size:20px">${esc(ev.title)}</div></div>
     <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||VENUE_NAME}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:2px">${esc(VENUE_LINE)} · your seat is the way in, no membership required</span></div></div>
     <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
-    ${past?'':`<div class="kv"><div class="k">Your seats</div><div class="v">${esc(PRICE_LABEL)}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:2px">includes ${esc(PRICE_INCLUDES)}</span></div></div>`}
+    ${past?'':`<div class="kv"><div class="k">Your seats</div><div class="v">${esc(PRICE_LABEL)}${PRICE_TAG?` <span style="font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8c3f28;background:#f3e7d3;border:1px solid #e3caa0;padding:2px 8px;border-radius:999px;vertical-align:middle">${esc(PRICE_TAG)}</span>`:''}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:4px">includes ${esc(PRICE_INCLUDES)}</span></div></div>`}
     <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room inside ${esc(ev.venue||VENUE_NAME)}, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after, and we'll take it from there.</p>
     ${comingHtml}
     <div id="rsvp-area" style="margin-top:22px"></div>
