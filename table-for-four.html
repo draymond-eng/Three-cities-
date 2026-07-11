@@ -297,6 +297,11 @@
   .mm-score.s-promising{background:#f3e9d0;color:#8a6a24}
   .mm-score.s-worth{background:#efe7d6;color:var(--muted)}
   .mm-meta{color:var(--muted);font-size:12.5px;margin:8px 0 0}
+  .seg{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:999px;background:#eef1e9;color:var(--forest-d);vertical-align:middle;margin-left:6px}
+  .mm-plan{background:#faf3e6;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:10px 12px;margin:12px 0 0;font-size:13px;line-height:1.5}
+  .mm-plan b{color:var(--rust-d)}
+  .tcard .suggest{background:#faf3e6;border-radius:9px;padding:8px 10px;font-size:12px;margin:8px 0 0;line-height:1.45;color:var(--ink2)}
+  .tcard .nudge{display:inline-block;background:#fbeee6;color:#9a5040;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;margin-top:8px}
   .mm-block{margin:10px 0 0;font-size:13px;color:var(--bad);font-weight:600}
   .mm-reasons{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 0}
   .rchip{background:#f2ede2;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;color:var(--ink2)}
@@ -1222,7 +1227,7 @@ function drawApplications(){
   const t=el(`<table class="list"><thead><tr><th>Couple</th><th>Neighborhood</th><th>Applied</th><th>Status</th></tr></thead><tbody></tbody></table>`);
   const tb=t.querySelector('tbody');
   apps.forEach(a=>{ const tr=el(`<tr data-id="${a.id}">
-      <td><div class="cn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></td>
+      <td><div class="cn">${esc(a.couple_name)} <span class="seg">${esc(coupleSegment(a))}</span></div><div class="sub2">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></td>
       <td>${esc(a.neighborhood)||'–'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
     tr.onclick=()=>openApplication(a.id); tb.appendChild(tr); });
   body.appendChild(t);
@@ -1480,6 +1485,7 @@ function drawMatchmaker(){
       ${p.blocked?`<div class="mm-block">⛔ ${esc(p.blockReason)}</div>`:''}
       <div class="mm-reasons">${p.reasons.slice(0,5).map(r=>`<span class="rchip">${esc(r)}</span>`).join('')||'<span class="sub2">Not much in common on paper</span>'}</div>
       ${p.flags.length?`<div class="mm-flags">${p.flags.map(f=>`<div class="fchip">⚠ ${esc(f)}</div>`).join('')}</div>`:''}
+      ${!p.blocked?(()=>{const pl=planSuggestion(p.a,p.b);return `<div class="mm-plan">💡 <b>Set them up with</b> ${esc(pl.activity)}, ${esc(pl.timing)}.</div>`;})():''}
       <div class="mm-act"></div>
     </div>`);
     const act=card.querySelector('.mm-act');
@@ -1582,15 +1588,21 @@ function drawBoard(){
   body.appendChild(board);
 }
 function tableCard(t){
-  const couples=arr(t.couple_ids).map(nameFor).join('  +  ');
+  const ids=arr(t.couple_ids); const couples=ids.map(nameFor).join('  +  ');
   const ev=t.event_id&&consoleState.events.find(e=>e.id===t.event_id);
   const idx=TABLE_FLOW.indexOf(t.status);
   const nextStatus=(idx>=0&&idx<TABLE_FLOW.length-1)?TABLE_FLOW[idx+1]:null;
   const isTerminal=t.status==='matched'||t.status==='fizzled';
+  const pair=ids.length===2?ids.map(appById).filter(Boolean):null;
+  const suggest = (pair&&pair.length===2&&!t.place&&!t.scheduled_at) ? planSuggestion(pair[0],pair[1]) : null;
+  const ageDays = (Date.now()-new Date(t.created_at||Date.now()).getTime())/86400000;
+  const stale = (t.status==='proposed'&&ageDays>5) || (t.status==='confirmed'&&ageDays>10) || (t.status==='happened'&&ageDays>14);
   const card=el(`<div class="tcard">
     <div class="couples">${esc(couples)}</div>
     ${ev?`<div class="from">From ${esc(ev.title.split('–')[0].trim())}</div>`:''}
     <div class="plan"><b>${esc(cap(t.format||'dinner'))}</b>${t.place?' · '+esc(t.place):''}<br>${t.scheduled_at?fmtDate(t.scheduled_at):'<span style="opacity:.6">no date set</span>'}</div>
+    ${suggest?`<div class="suggest">💡 Suggest: ${esc(suggest.activity)}, ${esc(suggest.timing)}</div>`:''}
+    ${stale?`<div class="nudge">Nudge — plan the next step</div>`:''}
     ${t.notes?`<div class="tnote">${esc(t.notes)}</div>`:''}
     <div class="actions"></div></div>`);
   const actions=card.querySelector('.actions');
@@ -1604,6 +1616,45 @@ function tableCard(t){
 }
 function firstNames(a){ return a?[a.partner1_name,a.partner2_name].filter(Boolean).join(' & '):''; }
 function joinList(a){ a=a.filter(Boolean); if(a.length<=1)return a[0]||''; if(a.length===2)return a[0]+' and '+a[1]; return a.slice(0,-1).join(', ')+', and '+a[a.length-1]; }
+/* Who this couple is, at a glance (removes host guesswork) */
+function coupleSegment(a){
+  const ls=arr(a.life_stage), ages=arr(a.kid_ages);
+  const hasKids = ls.includes('Kids at home') || ages.some(x=>x!=='No kids'&&x!=='Expecting');
+  if(ls.includes('New to Chicago')) return 'New to Chicago';
+  if(ages.includes('Expecting')||ls.includes('Expecting')) return 'Expecting';
+  if(ls.includes('Empty nesters')) return 'Empty nesters';
+  if(hasKids){ if(ages.includes('0-2')||ages.includes('3-5')) return 'New parents'; return 'Family with kids'; }
+  if(ls.includes('Newly a couple')) return 'Newly a couple';
+  if(ls.includes('Married, no kids')) return 'Kid-free';
+  return 'Couple';
+}
+/* Auto first-hang plan: what to do + when, tailored to both couples (removes the where/what/when guesswork) */
+const PLAN_IDEAS = { golf:'a round of golf or a bucket at the range, beers after', boating:'a day on the lake', outdoors:'a walk on the 606 or the lakefront, coffee after',
+  cooking:'a low-key dinner where you all cook together', drinks:'a bottle of wine at a neighborhood spot', games:'a board-game night with takeout',
+  music:'live music at Thalia Hall or a neighborhood room', sports:'pickleball or a class, brunch after', arts:'a gallery night in West Town',
+  media:'a long dinner and good conversation', hosting:'a dinner party at one of your places', travel:'trading trip stories over a long dinner', home:'a project day then a cookout', pets:'a dog-park meetup then coffee' };
+const FAMILY_IDEAS = { outdoors:'a family afternoon at the park, pizza after', cooking:'an early family dinner, kids and all', sports:'a morning at the playground then brunch', _default:'a family-friendly afternoon so the kids can meet too' };
+function topSharedCat(a,b){ const h=hobbyScore(a,b); if(h.exact&&h.exact.length) return tagCat(h.exact[0]); if(h.shared&&h.shared.length) return h.shared[0]; return null; }
+function planSuggestion(a,b){
+  const bothKids = (arr(a.life_stage).includes('Kids at home')||arr(a.kid_ages).some(x=>x!=='No kids'&&x!=='Expecting'))
+                && (arr(b.life_stage).includes('Kids at home')||arr(b.kid_ages).some(x=>x!=='No kids'&&x!=='Expecting'));
+  const cat=topSharedCat(a,b);
+  let activity = bothKids ? (FAMILY_IDEAS[cat]||FAMILY_IDEAS._default) : (PLAN_IDEAS[cat]||'a dinner at a spot you all love');
+  const slots=inter(a.free_slots,b.free_slots);
+  const timing = slots.length ? slots[0].toLowerCase() : 'a weekend that works for you all';
+  return { activity, timing, family:bothKids };
+}
+const STARTER_BY = { golf:'compare your go-to Chicago courses', boating:'trade favorite lake-day spots', outdoors:'swap your best trails and neighborhood walks',
+  cooking:'each bring a go-to weeknight dinner to talk through', drinks:'everyone brings a bottle and you compare', games:'find out who’s ruthless at trivia',
+  music:'share the shows you’re eyeing this season', sports:'plan a rematch before you’ve even met', arts:'trade the best current shows around town', travel:'compare the trips on your lists' };
+function conversationStarters(a,b){
+  const h=hobbyScore(a,b); const out=[];
+  (h.exact||[]).slice(0,2).forEach(k=>{ const c=tagCat(k); if(STARTER_BY[c]) out.push(STARTER_BY[c].replace('go-to Chicago courses','go-to '+tagLabel(k).toLowerCase()+' spots')); });
+  if(!out.length){ (h.shared||[]).slice(0,1).forEach(c=>{ if(STARTER_BY[c]) out.push(STARTER_BY[c]); }); }
+  if(!out.length) out.push('what brought each of you to Chicago');
+  return out.slice(0,2);
+}
+
 function introReasons(a,b){
   const out=[]; const d=milesBetween(a.neighborhood,b.neighborhood);
   if(d!=null&&d<=1.5) out.push('you live practically next door');
@@ -1622,8 +1673,9 @@ function introReasons(a,b){
 }
 function introText(a,b){
   const why=introReasons(a,b);
-  const whyLine = why.length ? joinList(why) : 'I just have a feeling you’ll click';
-  return `Hi ${firstNames(a)} and ${firstNames(b)},\n\nI want to introduce you two couples. I don’t make introductions lightly, and I think the four of you will hit it off: ${whyLine}.\n\n${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. Want me to find you all a table in the next couple of weeks?\n\nWarmly,\nKith Club`;
+  const whyLine = why.length ? joinList(why) : 'I have a feeling you’ll click';
+  const plan=planSuggestion(a,b);
+  return `Hi ${firstNames(a)} and ${firstNames(b)},\n\nI want to introduce you two couples. I don’t make introductions lightly, and I think the four of you will hit it off: ${whyLine}.\n\nSomething easy to start: ${plan.activity}, maybe ${plan.timing}. ${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. Should I set it up?\n\nWarmly,\nKith Club`;
 }
 function draftIntro(t){
   const [a,b]=arr(t.couple_ids).map(appById);
