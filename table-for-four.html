@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#26201a" />
-<title>The Kindred · Chicago</title>
+<title>Hearth · Chicago</title>
 <style>
   :root{
     --bg:#f4ede1;
@@ -368,7 +368,7 @@
 
 <script>
 /* ============================================================
-   The Kindred — Chicago  ·  curated club for couple friends
+   Hearth — Chicago  ·  curated club for couple friends
    Model: apply → curated mixer → flag who you clicked with →
           concierge pairs the mutual sparks into a 1:1 hang.
    Self-contained, no build step, runs on static hosting.
@@ -391,13 +391,13 @@ const nowISO = () => new Date().toISOString();
 const initials = (name) => (name||'?').split(/[\s&]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2200); }
 
-/* The Kindred mark — a refined serif K monogram */
-function markSVG(color){ return `<svg viewBox="0 0 100 100"><text x="50" y="76" text-anchor="middle" font-family="'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif" font-size="80" font-weight="600" fill="${color}">K</text></svg>`; }
+/* Hearth mark — a refined serif H monogram */
+function markSVG(color){ return `<svg viewBox="0 0 100 100"><text x="50" y="76" text-anchor="middle" font-family="'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif" font-size="80" font-weight="600" fill="${color}">H</text></svg>`; }
 const MARK_CREAM = markSVG('#fff6ea');
 const MARK_RUST  = markSVG('#b3543a');
 function setFavicon(){
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%2333402f'/>`
-    + `<text x='50' y='74' text-anchor='middle' font-family='Georgia,serif' font-size='68' font-weight='600' fill='%23e6c987'>K</text></svg>`;
+    + `<text x='50' y='74' text-anchor='middle' font-family='Georgia,serif' font-size='68' font-weight='600' fill='%23e6c987'>H</text></svg>`;
   let link=document.querySelector("link[rel='icon']"); if(!link){ link=document.createElement('link'); link.rel='icon'; document.head.appendChild(link); }
   link.type='image/svg+xml'; link.href="data:image/svg+xml,"+svg.replace(/</g,'%3C').replace(/>/g,'%3E').replace(/#/g,'%23').replace(/ /g,'%20');
 }
@@ -591,9 +591,9 @@ function showSplash(onDone){
   const s=el(`
     <div class="splash"><div class="splash-card">
       <div class="mono">${MARK_CREAM}</div>
-      <div class="kicker">The Kindred · Chicago</div>
+      <div class="kicker">Hearth · Chicago</div>
       <h1>Not that kind of couples club.</h1>
-      <div class="defline">kindred &nbsp;·&nbsp; <i>/ˈkɪndrəd/</i> &nbsp;·&nbsp; the friends who become family</div>
+      <div class="defline">hearth &nbsp;·&nbsp; <i>the warm heart of a home</i> &nbsp;·&nbsp; the friends who become family</div>
       <div class="thin"></div>
       <p class="sub">No swiping. No key bowls. Just Chicago's most quietly excellent way to find the <b>couple and family friends you both actually like</b>, over a great dinner.</p>
       <button class="btn gold" data-enter>Come in →</button>
@@ -615,7 +615,7 @@ function renderDoor(){
     <div class="wrap door">
       <div class="door-top">
         <div class="brand"><div class="mono">${MARK_CREAM}</div>
-          <div class="wordmark">The Kindred<small>the friends who become family</small></div></div>
+          <div class="wordmark">Hearth<small>couple friends you both actually like</small></div></div>
       </div>
       <div id="door-body"></div>
       <div class="foot">
@@ -679,7 +679,7 @@ function drawIntro(){
       <div class="rule"></div>
       <div class="steps3">
         <div class="s"><div class="n">I</div><div class="t"><b>Apply.</b> Tell us about the two of you and the friends you're hoping to find. About three minutes.</div></div>
-        <div class="s"><div class="n">II</div><div class="t"><b>Come to a supper.</b> The Kindred gathers on the <b>first Thursday of the month</b>. A handful of vetted couples, a good room, no pressure.</div></div>
+        <div class="s"><div class="n">II</div><div class="t"><b>Come to a supper.</b> Hearth gathers on the <b>first Thursday of the month</b>. A handful of vetted couples, a good room, no pressure.</div></div>
         <div class="s"><div class="n">III</div><div class="t"><b>Tell us who you clicked with.</b> We privately pair the couples who felt it both ways into a proper hang. You just show up.</div></div>
       </div>
       <div class="ritual-band"><span class="rb-dot"></span> Next supper: the first Thursday of the month · Chicago · by application</div>
@@ -858,7 +858,7 @@ function drawDone(token){
       </div>
       <div class="note" style="margin-top:14px">Bookmark your status page. It's how you'll follow your invitations.</div>
     </div>`));
-  $('#refbtn').onclick=()=>{ if(navigator.share){ navigator.share({title:'The Kindred',text:'You two should apply to The Kindred with us.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else { toast(refUrl); } };
+  $('#refbtn').onclick=()=>{ if(navigator.share){ navigator.share({title:'Hearth',text:'You two should apply to Hearth with us.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else { toast(refUrl); } };
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -982,12 +982,12 @@ function publicShell(inner){
   const app=$('#app'); app.innerHTML='';
   app.appendChild(el(`<div class="wrap door">
     <div class="door-top"><div class="brand"><div class="mono">${MARK_CREAM}</div>
-      <div class="wordmark">The Kindred<small>the friends who become family</small></div></div></div>
+      <div class="wordmark">Hearth<small>couple friends you both actually like</small></div></div></div>
     <div id="pub-body"></div>
     <div class="foot">A curated club for couples who want real couple friends.</div></div>`));
   $('#pub-body').appendChild(inner);
 }
-function publicError(msg){ publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Hmm.</h2><p>${esc(msg)}</p><div style="margin-top:26px"><button class="btn ghost" onclick="location.hash='#/'">Go to The Kindred</button></div></div>`)); }
+function publicError(msg){ publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Hmm.</h2><p>${esc(msg)}</p><div style="margin-top:26px"><button class="btn ghost" onclick="location.hash='#/'">Go to Hearth</button></div></div>`)); }
 
 async function loadPublic(eventId){
   const events=await DB.listEvents(); const apps=await DB.listApplications();
@@ -1002,9 +1002,9 @@ function comingTeasers(roster, apps, exclude){ return roster.filter(r=>r.couple_
 function icsEsc(t){ return String(t||'').replace(/([,;\\])/g,'\\$1').replace(/\n/g,'\\n'); }
 function icsStamp(dt){ const p=n=>String(n).padStart(2,'0'); return dt.getUTCFullYear()+p(dt.getUTCMonth()+1)+p(dt.getUTCDate())+'T'+p(dt.getUTCHours())+p(dt.getUTCMinutes())+'00Z'; }
 function icsFor(o){ const start=new Date(o.start), end=new Date(start.getTime()+(o.mins||120)*60000);
-  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//The Kindred//EN','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:'+uid()+'@thekindred','DTSTAMP:'+icsStamp(new Date()),'DTSTART:'+icsStamp(start),'DTEND:'+icsStamp(end),'SUMMARY:'+icsEsc(o.title),'LOCATION:'+icsEsc(o.venue||''),'DESCRIPTION:'+icsEsc(o.desc||''),'END:VEVENT','END:VCALENDAR'].join('\r\n'); }
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Hearth//EN','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:'+uid()+'@hearthclub','DTSTAMP:'+icsStamp(new Date()),'DTSTART:'+icsStamp(start),'DTEND:'+icsStamp(end),'SUMMARY:'+icsEsc(o.title),'LOCATION:'+icsEsc(o.venue||''),'DESCRIPTION:'+icsEsc(o.desc||''),'END:VEVENT','END:VCALENDAR'].join('\r\n'); }
 function downloadICS(name, content){ const blob=new Blob([content],{type:'text/calendar'}); const u=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),1500); }
-function addToCalBtn(o, label){ const b=el(`<button class="btn ghost block" style="margin-top:10px">${label||'Add to calendar'}</button>`); b.onclick=()=>downloadICS('the-kindred.ics', icsFor(o)); return b; }
+function addToCalBtn(o, label){ const b=el(`<button class="btn ghost block" style="margin-top:10px">${label||'Add to calendar'}</button>`); b.onclick=()=>downloadICS('hearth.ics', icsFor(o)); return b; }
 
 async function renderInvite([eventId, token]){
   let d; try{ d=await DB.invitePublic(eventId, token); }catch(e){ console.error(e); return publicError("We couldn't load your invitation right now. Please try again shortly."); }
@@ -1013,7 +1013,7 @@ async function renderInvite([eventId, token]){
   const past = ev.status==='happened';
   const teasers=(d.others||[]).filter(o=>o.rsvp!=='no').slice(0,4).map(o=>o.teaser);
   const countdown=countdownText(ev.scheduled_at);
-  const cal={ title:'The Kindred: '+ev.title, venue:ev.venue||'Three Cities Social', start:ev.scheduled_at, mins:150, desc:'Your Kindred supper. See you there.' };
+  const cal={ title:'Hearth: '+ev.title, venue:ev.venue||'Three Cities Social', start:ev.scheduled_at, mins:150, desc:'Your Hearth supper. See you there.' };
   const comingHtml = (!past&&teasers.length) ? `<div class="coming"><div class="lbl">Who's coming</div>${teasers.map(t=>`<div class="coming-row">${esc(t)}</div>`).join('')}<div class="coming-note">Names stay a mystery until you're across the table.</div></div>` : '';
   const doRSVP=async(val)=>{ await DB.setRsvp(eventId, token, val); renderInvite([eventId, token]); };
   const answered = d.mine&&d.mine.rsvp;
@@ -1100,14 +1100,14 @@ async function renderHome(token){
     </div>`;
   } else {
     nextHtml=`<div class="home-idle"><div class="kicker rustk">Your next supper</div>
-      <p class="lede" style="font-size:15px;margin-top:8px">No supper on your calendar yet. The Kindred suppers gather on the <b>first Thursday of the month</b>. The moment there's a seat with your name on it, we'll email you.</p></div>`;
+      <p class="lede" style="font-size:15px;margin-top:8px">No supper on your calendar yet. Hearth suppers gather on the <b>first Thursday of the month</b>. The moment there's a seat with your name on it, we'll email you.</p></div>`;
   }
   const introsHtml = (h.intros&&h.intros.length) ? `<div class="sect-title">Your matches</div>` + h.intros.map(t=>`
       <div class="home-intro"><div class="pn">You &amp; ${esc((t.others||[]).join(' & '))}</div>
         <div class="sub2" style="margin-top:4px">${esc(cap(t.format||'dinner'))}${t.place?' · '+esc(t.place):''}${t.scheduled_at?' · '+esc(fmtDate(t.scheduled_at)):''}</div>
         <span class="badge b-${esc(t.status)}" style="margin-top:8px;display:inline-block">${esc(homeIntroLabel(t.status))}</span></div>`).join('') : '';
   const body=el(`<div class="card">
-    <span class="kicker">Your Kindred</span>
+    <span class="kicker">Your Hearth</span>
     <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.</h1>
     <p class="lede" style="font-size:15px;margin-top:12px">Here's where you stand. The club that turns strangers into your Sunday table.</p>
     <div class="timeline">${timeline}</div>
@@ -1120,7 +1120,7 @@ async function renderHome(token){
       <button class="btn ghost block" id="home-ref">Refer another couple</button></div>
   </div>`);
   publicShell(body);
-  body.querySelector('#home-ref').onclick=()=>{ if(navigator.share){ navigator.share({title:'The Kindred',text:'You two should apply to The Kindred.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else toast(refUrl); };
+  body.querySelector('#home-ref').onclick=()=>{ if(navigator.share){ navigator.share({title:'Hearth',text:'You two should apply to Hearth.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else toast(refUrl); };
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function homeIntroLabel(s){ return ({proposed:'Introduction in the works',confirmed:'Table confirmed',happened:'You met!',matched:'Matched',fizzled:'Didn’t quite click'})[s]||s; }
@@ -1145,7 +1145,7 @@ function renderConsole(){
   app.appendChild(el(`
     <div>
     <div class="cbar"><div class="cbar-in">
-      <div class="brandc"><div class="monoc">${MARK_CREAM}</div> The Kindred <span style="opacity:.6;font-size:13px">· Chicago concierge</span></div>
+      <div class="brandc"><div class="monoc">${MARK_CREAM}</div> Hearth <span style="opacity:.6;font-size:13px">· Chicago concierge</span></div>
       <div class="tabs">
         <button data-tab="applications" class="${T==='applications'?'on':''}">Applications</button>
         <button data-tab="matchmaker" class="${T==='matchmaker'?'on':''}">Matchmaker</button>
@@ -1610,7 +1610,7 @@ function tableCard(t){
   if(!isTerminal){ const f=el(`<button class="btn sm ghost">Fizzled</button>`); f.onclick=()=>advanceTable(t.id,'fizzled'); actions.appendChild(f); }
   const pl=el(`<button class="btn sm ghost">Plan</button>`); pl.onclick=()=>planTable(t); actions.appendChild(pl);
   if(arr(t.couple_ids).length===2){ const dr=el(`<button class="btn sm gold">✍ Intro text</button>`); dr.onclick=()=>draftIntro(t); actions.appendChild(dr); }
-  if(t.scheduled_at){ const cb=el(`<button class="btn sm ghost">Calendar</button>`); cb.onclick=()=>downloadICS('the-kindred.ics', icsFor({title:'The Kindred: '+arr(t.couple_ids).map(nameFor).join(' + '), venue:t.place||'Three Cities Social', start:t.scheduled_at, mins:120, desc:'A Kindred table.'})); actions.appendChild(cb); }
+  if(t.scheduled_at){ const cb=el(`<button class="btn sm ghost">Calendar</button>`); cb.onclick=()=>downloadICS('hearth.ics', icsFor({title:'Hearth: '+arr(t.couple_ids).map(nameFor).join(' + '), venue:t.place||'Three Cities Social', start:t.scheduled_at, mins:120, desc:'A Hearth table.'})); actions.appendChild(cb); }
   const n=el(`<button class="btn sm ghost">＋ Note</button>`); n.onclick=()=>addTableNote(t); actions.appendChild(n);
   return card;
 }
@@ -1675,7 +1675,7 @@ function introText(a,b){
   const why=introReasons(a,b);
   const whyLine = why.length ? joinList(why) : 'I have a feeling you’ll click';
   const plan=planSuggestion(a,b);
-  return `Hi ${firstNames(a)} and ${firstNames(b)},\n\nI want to introduce you two couples. I don’t make introductions lightly, and I think the four of you will hit it off: ${whyLine}.\n\nSomething easy to start: ${plan.activity}, maybe ${plan.timing}. ${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. Should I set it up?\n\nWarmly,\nThe Kindred`;
+  return `Hi ${firstNames(a)} and ${firstNames(b)},\n\nI want to introduce you two couples. I don’t make introductions lightly, and I think the four of you will hit it off: ${whyLine}.\n\nSomething easy to start: ${plan.activity}, maybe ${plan.timing}. ${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. Should I set it up?\n\nWarmly,\nHearth`;
 }
 function draftIntro(t){
   const [a,b]=arr(t.couple_ids).map(appById);
