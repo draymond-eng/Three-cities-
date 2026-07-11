@@ -257,6 +257,25 @@
   .match-card .mutual-tag{display:inline-block;background:#e7efdf;color:var(--forest-d);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-left:auto}
   .match-card .why{color:var(--muted);font-size:13.5px;margin:10px 0 0;line-height:1.5}
   .match-card .act{margin-top:14px}
+  .mm-controls{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:0 0 18px;background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:12px 16px}
+  .mm-controls .mm-focus{font-size:13.5px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:8px}
+  .mm-controls select{width:auto;min-width:190px;padding:8px 11px;font-size:14px}
+  .mm-controls .mm-toggle{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px;cursor:pointer}
+  .mm-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .mm-score{display:flex;flex-direction:column;align-items:center;line-height:1;border-radius:12px;padding:8px 12px;min-width:64px;text-align:center}
+  .mm-score b{font-family:var(--serif);font-size:24px;font-weight:600}
+  .mm-score span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-top:3px;opacity:.85}
+  .mm-score.s-strong{background:#e7efdf;color:var(--forest-d)}
+  .mm-score.s-promising{background:#f3e9d0;color:#8a6a24}
+  .mm-score.s-worth{background:#efe7d6;color:var(--muted)}
+  .mm-meta{color:var(--muted);font-size:12.5px;margin:8px 0 0}
+  .mm-block{margin:10px 0 0;font-size:13px;color:var(--bad);font-weight:600}
+  .mm-reasons{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 0}
+  .rchip{background:#f2ede2;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+  .mm-flags{margin:10px 0 0;display:flex;flex-direction:column;gap:5px}
+  .fchip{background:#fbeee6;border:1px solid #e6d4c4;border-radius:9px;padding:6px 10px;font-size:12.5px;color:#8a5a3a;line-height:1.4}
+  .mm-act{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+  .match-card.mm-blocked{opacity:.62}
 
   /* board */
   .board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
@@ -698,21 +717,108 @@ function drawDone(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* ============================================================ Compatibility engine (decision support, not auto-matching) ============================================================ */
+/* ============================================================ Matching engine (decision support for the host, not auto-pairing) ============================================================ */
 function inter(a,b){ const s=new Set(arr(b)); return arr(a).filter(x=>s.has(x)); }
+function num(x){ return Number(x)||0; }
+function norm(s){ return (s||'').trim().toLowerCase().replace(/^the\s+/,''); }
+
+/* Approx coordinates for common Chicago neighborhoods (for real proximity) */
+const HOOD_GEO = {
+  'logan square':[41.929,-87.707],'avondale':[41.939,-87.711],'humboldt park':[41.902,-87.701],
+  'wicker park':[41.908,-87.677],'bucktown':[41.921,-87.679],'ukrainian village':[41.900,-87.686],
+  'west town':[41.896,-87.664],'noble square':[41.902,-87.662],'pilsen':[41.857,-87.657],
+  'little village':[41.844,-87.702],'bridgeport':[41.838,-87.650],'lincoln park':[41.921,-87.653],
+  'lakeview':[41.943,-87.653],'lake view':[41.943,-87.653],'wrigleyville':[41.949,-87.656],
+  'roscoe village':[41.942,-87.677],'north center':[41.951,-87.679],'ravenswood':[41.968,-87.674],
+  'lincoln square':[41.968,-87.689],'uptown':[41.966,-87.655],'andersonville':[41.977,-87.669],
+  'edgewater':[41.983,-87.663],'rogers park':[42.010,-87.666],'albany park':[41.968,-87.718],
+  'irving park':[41.953,-87.729],'portage park':[41.955,-87.766],'jefferson park':[41.970,-87.762],
+  'old town':[41.910,-87.637],'gold coast':[41.906,-87.628],'river north':[41.892,-87.634],
+  'west loop':[41.883,-87.648],'the loop':[41.883,-87.629],'loop':[41.883,-87.629],
+  'south loop':[41.867,-87.627],'bronzeville':[41.812,-87.617],'hyde park':[41.794,-87.590],
+  'kenwood':[41.809,-87.597],'woodlawn':[41.780,-87.596],'beverly':[41.717,-87.677],
+  'oak park':[41.885,-87.784],'evanston':[42.045,-87.688],'berwyn':[41.850,-87.793],'cicero':[41.845,-87.754],
+};
+function coordFor(name){ const n=norm(name); if(HOOD_GEO[n]) return HOOD_GEO[n]; for(const k in HOOD_GEO){ if(n.includes(k)) return HOOD_GEO[k]; } return null; }
+function milesBetween(a,b){ const p=coordFor(a),q=coordFor(b); if(!p||!q) return null; const dLat=(p[0]-q[0])*69.0, dLng=(p[1]-q[1])*51.3; return Math.sqrt(dLat*dLat+dLng*dLng); }
+
+/* Free-text interests → canonical categories, so we can match hobbies */
+const CATS = {
+  outdoors:['hik','trail','run ','running','cycl','bike','biking','garden','camp','climb','ski','kayak','marathon','606','lakefront','outdoor'],
+  cooking:['cook','grill','bake','bbq','oaxacan','italian food','sunday cook','food'],
+  drinks:['wine','cocktail','ipa','beer','brew','whiskey','half acre','gilt bar'],
+  games:['board game','trivia','chess','cards','poker','video game'],
+  music:['live music','concert','vinyl','record','thalia',' band','music'],
+  arts:['pottery','gallery','museum','ceramic','thrift','vintage','design','painting',' art'],
+  sports:['basketball','soccer','pickup','tennis','golf','gym','movement','workout','fitness','yoga','pilates'],
+  media:['podcast','true crime','movie','film',' tv','reading','book'],
+  community:['church','volunteer','community','faith'],
+  hosting:['host','dinner party','entertain'],
+};
+const CAT_LABEL={outdoors:'the outdoors',cooking:'cooking',drinks:'good drinks',games:'games',music:'live music',arts:'arts & culture',sports:'sports',media:'shows & books',community:'community',hosting:'hosting'};
+function cats(text){ const t=(text||'').toLowerCase(); const out=new Set(); for(const c in CATS){ if(CATS[c].some(k=>t.includes(k))) out.add(c); } return out; }
+function hobbyScore(a,b){
+  const a1=cats(a.partner1_likes),a2=cats(a.partner2_likes),b1=cats(b.partner1_likes),b2=cats(b.partner2_likes);
+  const ap=new Set([...a1,...a2]),bp=new Set([...b1,...b2]);
+  const shared=[...ap].filter(x=>bp.has(x));
+  let score=Math.min(shared.length,4)*4;
+  const both = [...a1].some(x=>bp.has(x))&&[...a2].some(x=>bp.has(x))&&[...b1].some(x=>ap.has(x))&&[...b2].some(x=>ap.has(x));
+  if(both) score+=6;
+  return { score, shared, both };
+}
+function hardNoFlags(a,b){
+  const flags=[]; const barish=(x)=>{const c=cats(x.partner1_likes),d=cats(x.partner2_likes); return c.has('drinks')||d.has('drinks');};
+  const kidfree=(x)=>arr(x.kid_ages).includes('No kids');
+  const chk=(x,y,xn)=>{ const hn=(x.hard_no||'').toLowerCase();
+    if(/bar[-\s]?only|no bar|bar-only/.test(hn) && barish(y) && kidfree(y)) flags.push(`${xn} said no bar-only hangs`);
+    if(/kids?-?first|no bar/.test(hn) && barish(y) && kidfree(y) && !kidfree(x)) flags.push(`${xn} is kids-first; ${y.couple_name} is bar-leaning`);
+  };
+  chk(a,b,a.couple_name); chk(b,a,b.couple_name);
+  return [...new Set(flags)];
+}
+
 function compat(a,b){
-  let score=0; const reasons=[];
-  const ls=inter(a.life_stage,b.life_stage); if(ls.length){ score+=Math.min(ls.length,2)*17; reasons.push(`Both ${ls.slice(0,2).join(' & ').toLowerCase()}`); }
-  const ka=inter(a.kid_ages,b.kid_ages).filter(x=>x!=='No kids'&&x!=='Expecting'); if(ka.length){ score+=Math.min(ka.length,2)*14; reasons.push(`Kids around the same age (${ka.slice(0,2).join(', ')})`); }
-  if(a.neighborhood&&b.neighborhood&&a.neighborhood.trim().toLowerCase()===b.neighborhood.trim().toLowerCase()){ score+=16; reasons.push(`Both in ${a.neighborhood}`); }
-  const fs=inter(a.free_slots,b.free_slots); if(fs.length){ score+=Math.min(fs.length,3)*7; reasons.push(`Free ${fs.slice(0,2).join(' & ').toLowerCase()}`); }
-  if(a.hang_appetite&&a.hang_appetite===b.hang_appetite){ score+=12; reasons.push('Same pace'); }
-  if(a.bonds_by&&b.bonds_by&&(a.bonds_by===b.bonds_by||a.bonds_by==='both'||b.bonds_by==='both')){ score+=10; reasons.push(a.bonds_by===b.bonds_by?`Both bond by ${a.bonds_by}`:'Bond compatibly'); }
-  return { score:Math.min(100,Math.round(score)), reasons };
+  const reasons=[]; const flags=[]; let score=0;
+  // Proximity — heaviest, plus the one hard gate
+  const d=milesBetween(a.neighborhood,b.neighborhood);
+  let blocked=false, blockReason='';
+  if(d!=null){
+    if(d>12){ blocked=true; blockReason=`~${Math.round(d)} mi apart — likely too far to keep it up`; }
+    // proximity is the #1 driver: reward close, actively penalize far
+    let px; if(d<=1.5) px=30; else if(d<=6) px=30*(1-(d-1.5)/4.5); else px=-(d-6)*3;
+    score+=px;
+    if(px>=8) reasons.push(d<1.3?`Right by each other in ${a.neighborhood}`:`Only ~${d.toFixed(1)} mi apart`);
+  } else if(a.neighborhood&&b.neighborhood&&norm(a.neighborhood)===norm(b.neighborhood)){
+    score+=30; reasons.push(`Both in ${a.neighborhood}`);
+  }
+  // Kids & ages — heavy
+  const ka=inter(a.kid_ages,b.kid_ages).filter(x=>x!=='No kids'&&x!=='Expecting');
+  if(ka.length){ score+=Math.min(ka.length,2)*13; reasons.push(`Kids the same age (${ka.slice(0,2).join(', ')})`); }
+  if(arr(a.kid_ages).includes('Expecting')&&arr(b.kid_ages).includes('Expecting')){ score+=14; reasons.push('Both expecting — same season'); }
+  if(arr(a.kid_ages).includes('No kids')&&arr(b.kid_ages).includes('No kids')){ score+=12; reasons.push('Both kid-free'); }
+  // Hobbies — both spouses
+  const h=hobbyScore(a,b); score+=h.score;
+  if(h.shared.length) reasons.push(`Share ${h.shared.slice(0,3).map(c=>CAT_LABEL[c]||c).join(', ')}`);
+  if(h.both) reasons.push('Both partners find common ground');
+  // Life stage
+  const ls=inter(a.life_stage,b.life_stage); if(ls.length){ score+=Math.min(ls.length,2)*7; reasons.push(`Both ${ls.slice(0,2).join(' & ').toLowerCase()}`); }
+  // Pace & availability
+  if(a.hang_appetite&&a.hang_appetite===b.hang_appetite){ score+=7; reasons.push('Same hang pace'); }
+  const fs=inter(a.free_slots,b.free_slots); if(fs.length){ score+=Math.min(fs.length,2)*3; reasons.push(`Both free ${fs.slice(0,2).join(' & ').toLowerCase()}`); }
+  if(a.bonds_by&&b.bonds_by&&a.bonds_by===b.bonds_by&&a.bonds_by!=='both'){ score+=3; reasons.push(`Both bond by ${a.bonds_by}`); }
+  // Energy — minor, lean complementary
+  const ea=(num(a.partner1_posture)+num(a.partner2_posture))/2, eb=(num(b.partner1_posture)+num(b.partner2_posture))/2;
+  const diff=Math.abs(ea-eb);
+  if(ea<40&&eb<40){ score-=4; flags.push('Two reserved couples — the night may need a spark'); }
+  else if(diff>=15&&diff<=55){ score+=6; reasons.push('Energies balance nicely'); }
+  else if(diff<15){ score+=3; }
+  flags.push(...hardNoFlags(a,b));
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  return { score, reasons, flags:[...new Set(flags)], distance:d, blocked, blockReason, tier:compatTier(score) };
 }
 function suggestPairs(apps, limit=4){
   const out=[];
-  for(let i=0;i<apps.length;i++) for(let j=i+1;j<apps.length;j++){ const c=compat(apps[i],apps[j]); if(c.score>0) out.push({a:apps[i],b:apps[j],...c}); }
+  for(let i=0;i<apps.length;i++) for(let j=i+1;j<apps.length;j++){ const c=compat(apps[i],apps[j]); if(!c.blocked&&c.score>0) out.push({a:apps[i],b:apps[j],...c}); }
   return out.sort((x,y)=>y.score-x.score).slice(0,limit);
 }
 function compatTier(s){ return s>=55?'strong':s>=32?'promising':'worth'; }
@@ -818,6 +924,7 @@ function renderConsole(){
       <div class="brandc"><div class="monoc">${MARK_CREAM}</div> Kith Club <span style="opacity:.6;font-size:13px">· Chicago concierge</span></div>
       <div class="tabs">
         <button data-tab="applications" class="${T==='applications'?'on':''}">Applications</button>
+        <button data-tab="matchmaker" class="${T==='matchmaker'?'on':''}">Matchmaker</button>
         <button data-tab="events" class="${T==='events'?'on':''}">Events</button>
         <button data-tab="pairing" class="${T==='pairing'?'on':''}">Pairing</button>
         <button data-tab="board" class="${T==='board'?'on':''}">Board</button>
@@ -836,7 +943,7 @@ async function loadConsoleData(){
   consoleState.tables = await DB.listTables();
   consoleState.events = await DB.listEvents();
   const body=$('#console-body'); if(!body) return;
-  ({applications:drawApplications, events:drawEvents, pairing:drawPairing, board:drawBoard}[consoleState.tab]||drawApplications)();
+  ({applications:drawApplications, matchmaker:drawMatchmaker, events:drawEvents, pairing:drawPairing, board:drawBoard}[consoleState.tab]||drawApplications)();
 }
 
 /* login */
@@ -1097,6 +1204,77 @@ async function createIntro(ev,x,y){
   toast('Intro created — see the Board'); consoleState.tab='board'; renderConsole();
 }
 
+/* ---- Matchmaker (ranked suggestions from intakes) ---- */
+const mmState = { focus:'all', showFar:false };
+function drawMatchmaker(){
+  const body=$('#console-body'); body.innerHTML='';
+  const pool=consoleState.apps.filter(a=>a.status!=='passed');
+  body.appendChild(el(`<div class="panel-head"><h2>Matchmaker</h2><div class="count">Ranked from what couples told you · you decide</div></div>`));
+  if(pool.length<2){ body.appendChild(el(`<div class="empty"><h3>Not enough couples yet</h3><p>Once a couple more apply, the best pairings show up here — closest first, kids &amp; hobbies weighted, with the reasoning.</p></div>`)); return; }
+
+  const ctrl=el(`<div class="mm-controls">
+    <label class="mm-focus">Focus <select id="mm_focus">
+      <option value="all">the whole pool</option>
+      ${pool.map(a=>`<option value="${a.id}" ${mmState.focus===a.id?'selected':''}>${esc(a.couple_name)}</option>`).join('')}
+    </select></label>
+    <label class="mm-toggle"><input type="checkbox" id="mm_far" ${mmState.showFar?'checked':''}/> show far / gated matches</label>
+  </div>`);
+  body.appendChild(ctrl);
+  ctrl.querySelector('#mm_focus').onchange=(e)=>{ mmState.focus=e.target.value; drawMatchmaker(); };
+  ctrl.querySelector('#mm_far').onchange=(e)=>{ mmState.showFar=e.target.checked; drawMatchmaker(); };
+
+  // build ranked pairs
+  let pairs=[];
+  if(mmState.focus!=='all'){
+    const me=pool.find(a=>a.id===mmState.focus);
+    pool.forEach(o=>{ if(o.id===me.id) return; const c=compat(me,o); pairs.push({a:me,b:o,...c}); });
+  } else {
+    for(let i=0;i<pool.length;i++) for(let j=i+1;j<pool.length;j++){ const c=compat(pool[i],pool[j]); pairs.push({a:pool[i],b:pool[j],...c}); }
+  }
+  const visible=pairs.filter(p=>mmState.showFar||!p.blocked).sort((x,y)=>(x.blocked-y.blocked)||(y.score-x.score));
+  const upcoming=consoleState.events.filter(e=>e.status==='upcoming').sort((a,b)=>(a.scheduled_at||'').localeCompare(b.scheduled_at||''))[0];
+  const list=el(`<div id="mm-list"></div>`); body.appendChild(list);
+  const shown = mmState.focus==='all' ? visible.slice(0,14) : visible;
+  if(!shown.length){ list.appendChild(el(`<div class="empty"><p>No matches to show. Try “show far / gated matches.”</p></div>`)); return; }
+  shown.forEach(p=>{
+    const intro=consoleState.tables.find(t=>arr(t.couple_ids).includes(p.a.id)&&arr(t.couple_ids).includes(p.b.id));
+    const distTxt = p.distance!=null?`${p.distance.toFixed(1)} mi apart`:'distance unknown';
+    const card=el(`<div class="match-card ${p.blocked?'mm-blocked':''}">
+      <div class="mm-top">
+        <div class="pairline">${esc(p.a.couple_name)} <span class="vs">·</span> ${esc(p.b.couple_name)}</div>
+        <div class="mm-score s-${p.tier}"><b>${p.score}</b><span>${tierLabel(p.tier)}</span></div>
+      </div>
+      <div class="mm-meta">📍 ${esc(distTxt)} &nbsp;·&nbsp; ${esc(p.a.neighborhood||'—')} ↔ ${esc(p.b.neighborhood||'—')}</div>
+      ${p.blocked?`<div class="mm-block">⛔ ${esc(p.blockReason)}</div>`:''}
+      <div class="mm-reasons">${p.reasons.slice(0,5).map(r=>`<span class="rchip">${esc(r)}</span>`).join('')||'<span class="sub2">Not much in common on paper</span>'}</div>
+      ${p.flags.length?`<div class="mm-flags">${p.flags.map(f=>`<div class="fchip">⚠ ${esc(f)}</div>`).join('')}</div>`:''}
+      <div class="mm-act"></div>
+    </div>`);
+    const act=card.querySelector('.mm-act');
+    if(intro){ act.appendChild(el(`<span class="badge b-${esc(intro.status)}">Intro ${esc(intro.status)}</span>`)); }
+    else if(!p.blocked){
+      const b1=el(`<button class="btn sm">Create intro</button>`); b1.onclick=()=>createIntroDirect(p.a.id,p.b.id); act.appendChild(b1);
+      if(upcoming){ const b2=el(`<button class="btn sm ghost">Add both to “${esc(upcoming.title.split('—')[0].trim())}”</button>`); b2.onclick=()=>addBothToMixer(upcoming.id,p.a.id,p.b.id); act.appendChild(b2); }
+    }
+    list.appendChild(card);
+  });
+}
+async function createIntroDirect(x,y){
+  const exists=consoleState.tables.find(t=>arr(t.couple_ids).includes(x)&&arr(t.couple_ids).includes(y));
+  if(exists){ toast('These two already have an intro'); consoleState.tab='board'; renderConsole(); return; }
+  await DB.insertTable({ couple_ids:[x,y], event_id:null, place:'', scheduled_at:null, format:'dinner', status:'proposed', notes:'Matched by the Matchmaker.' });
+  for(const cid of [x,y]) await DB.updateApplication(cid,{status:'paired'});
+  toast('Intro created — see the Board'); consoleState.tab='board'; renderConsole();
+}
+async function addBothToMixer(eventId,x,y){
+  const ev=consoleState.events.find(e=>e.id===eventId); if(!ev){ toast('Create a mixer first'); return; }
+  const roster=arr(ev.roster); const have=new Set(roster.map(r=>r.couple_id)); let added=0;
+  for(const cid of [x,y]){ if(!have.has(cid)){ roster.push({couple_id:cid,attended:false,rsvp:null,likes:[]}); const a=appById(cid); if(a&&a.status==='new') await DB.updateApplication(cid,{status:'invited'}); added++; } }
+  await DB.updateEvent(eventId,{roster});
+  toast(added?`Added to “${ev.title.split('—')[0].trim()}”`:'Both already on that roster');
+  await loadConsoleData();
+}
+
 /* ---- Board ---- */
 function drawBoard(){
   const body=$('#console-body'); const tables=consoleState.tables; body.innerHTML='';
@@ -1127,8 +1305,46 @@ function tableCard(t){
   if(nextStatus){ const b=el(`<button class="btn sm">→ ${cap(nextStatus)}</button>`); b.onclick=()=>advanceTable(t.id,nextStatus); actions.appendChild(b); }
   if(!isTerminal){ const f=el(`<button class="btn sm ghost">Fizzled</button>`); f.onclick=()=>advanceTable(t.id,'fizzled'); actions.appendChild(f); }
   const pl=el(`<button class="btn sm ghost">Plan</button>`); pl.onclick=()=>planTable(t); actions.appendChild(pl);
+  if(arr(t.couple_ids).length===2){ const dr=el(`<button class="btn sm gold">✍ Intro text</button>`); dr.onclick=()=>draftIntro(t); actions.appendChild(dr); }
   const n=el(`<button class="btn sm ghost">＋ Note</button>`); n.onclick=()=>addTableNote(t); actions.appendChild(n);
   return card;
+}
+function firstNames(a){ return a?[a.partner1_name,a.partner2_name].filter(Boolean).join(' & '):''; }
+function joinList(a){ a=a.filter(Boolean); if(a.length<=1)return a[0]||''; if(a.length===2)return a[0]+' and '+a[1]; return a.slice(0,-1).join(', ')+', and '+a[a.length-1]; }
+function introReasons(a,b){
+  const out=[]; const d=milesBetween(a.neighborhood,b.neighborhood);
+  if(d!=null&&d<=1.5) out.push('you live practically next door');
+  else if(d!=null&&d<=6) out.push('you’re just a few minutes apart');
+  else if(a.neighborhood&&norm(a.neighborhood)===norm(b.neighborhood)) out.push(`you’re both in ${a.neighborhood}`);
+  const ka=inter(a.kid_ages,b.kid_ages).filter(x=>x!=='No kids'&&x!=='Expecting');
+  if(ka.length) out.push('your kids are right around the same age');
+  else if(arr(a.kid_ages).includes('Expecting')&&arr(b.kid_ages).includes('Expecting')) out.push('you’re both about to be new parents');
+  else if(arr(a.kid_ages).includes('No kids')&&arr(b.kid_ages).includes('No kids')) out.push('you’re both kid-free and up for adventures');
+  const h=hobbyScore(a,b);
+  if(h.shared.length) out.push(`you all love ${joinList(h.shared.slice(0,2).map(x=>CAT_LABEL[x]||x))}`);
+  else if(h.both) out.push('both of you have plenty in common with both of them');
+  if(out.length<3&&a.hang_appetite&&a.hang_appetite===b.hang_appetite) out.push('you want to hang at the same pace');
+  return out.slice(0,3);
+}
+function introText(a,b){
+  const why=introReasons(a,b);
+  const whyLine = why.length ? joinList(why) : 'I just have a feeling you’ll click';
+  return `Hi ${firstNames(a)} and ${firstNames(b)} —\n\nMeet each other! I don’t make introductions lightly, and I really think the four of you will hit it off: ${whyLine}.\n\n${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. Want me to find you all a table in the next couple of weeks?\n\nWarmly,\nKith Club`;
+}
+function draftIntro(t){
+  const [a,b]=arr(t.couple_ids).map(appById);
+  if(!a||!b){ toast('Need both couples'); return; }
+  const text=introText(a,b);
+  const scrim=el(`<div class="modal-scrim"><div class="modal">
+    <div class="modal-head"><h2>Your intro text</h2><p>A warm, personal note to send both couples — edit anything, then copy &amp; text it.</p></div>
+    <div class="modal-body">
+      <textarea id="intro_text" style="min-height:220px;line-height:1.55">${esc(text)}</textarea>
+      <div class="nav" style="margin-top:14px"><button class="btn ghost" data-cancel>Close</button><button class="btn gold" data-copy>Copy text</button></div>
+    </div></div></div>`);
+  document.body.appendChild(scrim);
+  const close=()=>scrim.remove();
+  scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('[data-copy]').onclick=()=>{ const v=$('#intro_text').value; navigator.clipboard?navigator.clipboard.writeText(v).then(()=>toast('Copied — go send it ✨'),()=>toast('Select & copy')):toast('Select & copy'); };
 }
 async function advanceTable(id,status){
   const t=consoleState.tables.find(x=>x.id===id);
