@@ -489,7 +489,7 @@ const DB = (() => {
     async insertEvent(row){ return this._q(c=>c.from('events').insert([row]).select().single()); },
     async updateEvent(id,patch){ return this._q(c=>c.from('events').update(patch).eq('id',id).select().single()); },
     seedIfEmpty(){},
-    async magicLink(email){ const c=await this._client(); return c.auth.signInWithOtp({email, options:{emailRedirectTo:location.href}}); },
+    async magicLink(email){ const c=await this._client(); return c.auth.signInWithOtp({email, options:{emailRedirectTo:location.origin+location.pathname}}); },
     async session(){ const c=await this._client(); const {data}=await c.auth.getSession(); return data.session; },
     async signOut(){ const c=await this._client(); return c.auth.signOut(); },
     async coupleHome(token){ const c=await this._client(); const {data,error}=await c.rpc('couple_home',{p_token:token}); if(error)throw error; return data; },
@@ -1663,9 +1663,21 @@ function addTableNote(t){
 }
 
 /* ============================================================ */
-setFavicon();
-if(!USE_SUPABASE && DB.seedIfEmpty) DB.seedIfEmpty();
-route();
+function isAuthReturn(){ return /access_token=|refresh_token=|type=magiclink|type=recovery|[?&]code=/.test((location.hash||'')+(location.search||'')); }
+async function boot(){
+  setFavicon();
+  if(!USE_SUPABASE && DB.seedIfEmpty) DB.seedIfEmpty();
+  if(USE_SUPABASE && isAuthReturn()){
+    // returning from the magic link: let supabase read the token, clean the URL, then open the console
+    await refreshSbSession();
+    try{ history.replaceState(null,'', location.pathname); }catch(e){}
+    consoleState.tab='applications';
+    renderConsole();
+    return;
+  }
+  route();
+}
+boot();
 </script>
 </body>
 </html>
