@@ -387,7 +387,7 @@ function setFavicon(){
   let link=document.querySelector("link[rel='icon']"); if(!link){ link=document.createElement('link'); link.rel='icon'; document.head.appendChild(link); }
   link.type='image/svg+xml'; link.href="data:image/svg+xml,"+svg.replace(/</g,'%3C').replace(/>/g,'%3E').replace(/#/g,'%23').replace(/ /g,'%20');
 }
-function fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+function fmtDate(iso){ if(!iso) return '–'; const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
 function fmtDay(iso){ if(!iso) return 'no date set'; const d=new Date(iso); return d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}); }
 function timeAgo(iso){ const s=(Date.now()-new Date(iso).getTime())/1000; if(s<60)return'just now'; if(s<3600)return Math.floor(s/60)+'m ago'; if(s<86400)return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago'; }
 
@@ -413,7 +413,7 @@ const DB = (() => {
       this._write(AKEY,apps);
       // one past mixer with recorded attendance + likes (a mutual pair to demo Pairing)
       const [a0,a1,a2,a3]=apps; // Alvarez-Kims, Jordan&Priya, Osei, Sam&Theo
-      const past={ id:uid(), created_at:nowISO(), title:'The Winter Table — a curated mixer',
+      const past={ id:uid(), created_at:nowISO(), title:'The Winter Table',
         venue:'The Hideout, West Town', scheduled_at:new Date(Date.now()-6*86400e3).toISOString(),
         capacity:12, status:'happened', notes:'First Chicago cohort. Great energy, two clear sparks.',
         roster:[
@@ -422,7 +422,7 @@ const DB = (() => {
           {couple_id:a2.id, attended:true, rsvp:'yes', likes:[]},
           {couple_id:a3.id, attended:true, rsvp:'yes', likes:[]},
         ]};
-      const upcoming={ id:uid(), created_at:nowISO(), title:'Spring Supper Club — mixer no. 2',
+      const upcoming={ id:uid(), created_at:nowISO(), title:'Spring Supper Club, mixer no. 2',
         venue:'Kumiko, West Loop', scheduled_at:new Date(Date.now()+12*86400e3).toISOString(),
         capacity:12, status:'upcoming', notes:'', roster:[] };
       this._write(EKEY,[past,upcoming]);
@@ -458,21 +458,21 @@ function loadScript(src){ return new Promise((res,rej)=>{ const s=document.creat
 /* ============================================================ Seed (Chicago) ============================================================ */
 const SEED = [
   { couple_name:"The Alvarez-Kims", partner1_name:"Mara", partner2_name:"Danny", neighborhood:"Logan Square",
-    life_stage:["Kids at home"], kids:"Two — 4 and 7", kid_ages:["3-5","6-9"], hang_appetite:"Once a month feels right",
+    life_stage:["Kids at home"], kids:"Two, ages 4 and 7", kid_ages:["3-5","6-9"], hang_appetite:"Once a month feels right",
     free_slots:["Weekend afternoons","Sunday dinner"], bonds_by:"both", partner1_posture:70, partner2_posture:45,
     partner1_likes:"Trail runs on the 606, cooking projects, live music at Thalia Hall", partner2_likes:"Board games, Half Acre IPAs, fixing bikes",
     past_couple:"We had another couple we did everything with before they moved to Denver. Sunday dinners, the kids grew up together. Haven't found that again and miss it more than we say out loud.",
-    hoping_for:"One family we can be unpolished around — show up in sweatpants, split a pizza, let the kids melt down without anyone judging.",
+    hoping_for:"One family we can be unpolished around: show up in sweatpants, split a pizza, let the kids melt down without anyone judging.",
     hard_no:"Nothing that turns into a sales pitch. And no super-early mornings.", status:"new" },
   { couple_name:"Jordan & Priya", partner1_name:"Jordan", partner2_name:"Priya", neighborhood:"Andersonville",
     life_stage:["Expecting"], kids:"One on the way (due Sept)", kid_ages:["Expecting"], hang_appetite:"Every couple of weeks",
     free_slots:["Friday evenings","Weekend afternoons"], bonds_by:"talking", partner1_posture:85, partner2_posture:80,
     partner1_likes:"Long dinners, natural wine at Gilt Bar, politics we mostly agree on", partner2_likes:"Pottery, lakefront walks, true-crime podcasts",
-    past_couple:"Never really had a couple friend as a unit — our friends are mostly solo people we knew before each other. With a baby coming we want another couple in the same season.",
+    past_couple:"Never really had a couple friend as a unit; our friends are mostly solo people we knew before each other. With a baby coming we want another couple in the same season.",
     hoping_for:"Another about-to-be or new-parent couple so we're all figuring it out together and no one's precious about it.",
     hard_no:"Not looking for a double-date-once-and-never-again thing. We want repeat.", status:"new" },
   { couple_name:"The Osei Family", partner1_name:"Kwame", partner2_name:"Lena", neighborhood:"Hyde Park",
-    life_stage:["Kids at home"], kids:"Three — 2, 5, 9", kid_ages:["0-2","3-5","6-9"], hang_appetite:"Whenever we can, honestly",
+    life_stage:["Kids at home"], kids:"Three, ages 2, 5, 9", kid_ages:["0-2","3-5","6-9"], hang_appetite:"Whenever we can, honestly",
     free_slots:["Sunday dinner","Weekend afternoons","Weeknights after 7"], bonds_by:"doing", partner1_posture:60, partner2_posture:55,
     partner1_likes:"Pickup basketball, grilling, church community", partner2_likes:"Gardening, big Sunday cooks, thrifting on 53rd",
     past_couple:"Our closest couple friends are empty-nesters, so the kids don't have counterparts. We want a family in the same chaos we're in.",
@@ -484,14 +484,14 @@ const SEED = [
     partner1_likes:"Rock climbing at Movement, cooking, quiet nights in", partner2_likes:"Trivia, cocktails, hosting big loud dinners",
     past_couple:"We had a tight foursome for years then a falling-out two years ago and it wrecked us. Been gun-shy since. Trying to be brave again.",
     hoping_for:"A low-stakes, no-drama couple where it's okay if we click slowly. Introverts on one side and not on the other, so patience matters.",
-    hard_no:"No pressure to be constantly available. And no gossip triangulation — that's what ended the last one.", status:"new" },
+    hard_no:"No pressure to be constantly available. And no gossip triangulation, which ended the last one.", status:"new" },
   { couple_name:"The Bianchis", partner1_name:"Gio", partner2_name:"Renata", neighborhood:"Oak Park",
-    life_stage:["Kids at home","New to Chicago"], kids:"Two — 6 and 8", kid_ages:["6-9"], hang_appetite:"Every couple of weeks",
+    life_stage:["Kids at home","New to Chicago"], kids:"Two, ages 6 and 8", kid_ages:["6-9"], hang_appetite:"Every couple of weeks",
     free_slots:["Weekend afternoons","Sunday dinner"], bonds_by:"doing", partner1_posture:65, partner2_posture:60,
     partner1_likes:"Cycling, woodworking, Italian cooking", partner2_likes:"Book club, museums, marathon training",
     past_couple:"Left our whole village behind in Boston last year. In Boston we had three couples on speed-dial; here our phones are quiet and it's lonely.",
     hoping_for:"A family near Oak Park or the near-west 'burbs to build a new village with. Standing weekend thing would be the dream.",
-    hard_no:"Nothing flaky — we're rebuilding a whole social life and can't do maybes.", status:"new" },
+    hard_no:"Nothing flaky; we're rebuilding a whole social life and can't do maybes.", status:"new" },
   { couple_name:"Nia & Cole", partner1_name:"Nia", partner2_name:"Cole", neighborhood:"Pilsen",
     life_stage:["Newly a couple"], kids:"No kids yet", kid_ages:["No kids"], hang_appetite:"Let's start slow and see",
     free_slots:["Saturday nights","Weeknights after 7"], bonds_by:"talking", partner1_posture:55, partner2_posture:50,
@@ -543,7 +543,7 @@ function showSplash(onDone){
       <h1>Not that kind of couples club.</h1>
       <div class="defline">kith &nbsp;·&nbsp; <i>/kɪθ/</i> &nbsp;·&nbsp; the friends who become family</div>
       <div class="thin"></div>
-      <p class="sub">No swiping. No key bowls. Just Chicago's most quietly excellent way to find the <b>couple friends you both actually like</b> — over a great dinner, with people worth meeting.</p>
+      <p class="sub">No swiping. No key bowls. Just Chicago's most quietly excellent way to find the <b>couple friends you both actually like</b>, over a great dinner.</p>
       <button class="btn gold" data-enter>Come in →</button>
       <div class="fine">Strictly platonic. Wonderfully so.</div>
     </div></div>`);
@@ -589,11 +589,11 @@ function drawIntro(){
     <div class="card hero">
       <span class="kicker">Chicago · by application</span>
       <h1>The couple friends you didn't think you'd find as adults.</h1>
-      <p class="lede">Making a real <em>couple</em> friend — another two people you both want to see on a Tuesday — is weirdly hard once you're grown. So we do the awkward part for you, the civilized way: over dinner, with couples worth meeting.</p>
+      <p class="lede">Making a real <em>couple</em> friend, another two people you both want to see on a Tuesday, gets harder once you're grown. We do the awkward part for you, over dinner, with couples worth meeting.</p>
       <div class="rule"></div>
       <div class="steps3">
         <div class="s"><div class="n">I</div><div class="t"><b>Apply.</b> Tell us about the two of you and the friends you're hoping to find. About three minutes.</div></div>
-        <div class="s"><div class="n">II</div><div class="t"><b>Come to a supper.</b> Kith Club gathers on the <b>first Thursday of the month</b> — a handful of vetted couples, a beautiful Chicago room, zero pressure. Just a good night out.</div></div>
+        <div class="s"><div class="n">II</div><div class="t"><b>Come to a supper.</b> Kith Club gathers on the <b>first Thursday of the month</b>. A handful of vetted couples, a good room, no pressure.</div></div>
         <div class="s"><div class="n">III</div><div class="t"><b>Tell us who you clicked with.</b> We privately pair the couples who felt it both ways into a proper hang. You just show up.</div></div>
       </div>
       <div class="ritual-band"><span class="rb-dot"></span> Next supper: the first Thursday of the month · Chicago · by application</div>
@@ -635,12 +635,12 @@ function drawYourLife(){
       ${progressBar()}
       <div class="kicker rustk">Your world</div>
       <h2>Where are you two in life?</h2>
-      <p class="sub">Kids, no kids, newly together, new to the city — all welcome. This just helps us seat you with couples in a similar season.</p>
+      <p class="sub">Kids, no kids, newly together, new to the city, all welcome. It helps us seat you with couples in a similar season.</p>
       <div class="field"><label>Life stage <span class="hint">tap all that fit</span></label>
         <div class="chips" id="f_stage">${LIFE_STAGES.map(s=>`<div class="chip ${d.life_stage.includes(s)?'on':''}" data-stage="${esc(s)}">${esc(s)}</div>`).join('')}</div></div>
       <div class="field"><label>Anyone else at home? <span class="hint">kids &amp; ages, pets, or "just us"</span></label>
-        <input type="text" id="f_kids" value="${esc(d.kids||'')}" placeholder='e.g. Two — 4 and 7, plus a golden. Or "just us two."' /></div>
-      <div class="field"><label>Ages in the mix <span class="hint">optional — skip if no kids</span></label>
+        <input type="text" id="f_kids" value="${esc(d.kids||'')}" placeholder='e.g. Two kids, 4 and 7, plus a golden. Or just us two.' /></div>
+      <div class="field"><label>Ages in the mix <span class="hint">optional, skip if no kids</span></label>
         <div class="chips" id="f_ages">${ageOpts.map(a=>`<div class="chip forest ${d.kid_ages.includes(a)?'on':''}" data-age="${esc(a)}">${esc(a)}</div>`).join('')}</div></div>
       ${navButtons('Continue')}
     </div>`));
@@ -662,7 +662,7 @@ function drawYourRhythm(){
       <div class="field"><label>When are you usually free? <span class="hint">pick a few</span></label>
         <div class="chips" id="f_slots">${SLOT_OPTIONS.map(s=>`<div class="chip forest ${d.free_slots.includes(s)?'on':''}" data-slot="${esc(s)}">${esc(s)}</div>`).join('')}</div></div>
       <div class="field"><label>Do you bond more by <b>doing</b> or by <b>talking</b>?</label>
-        <div class="chips" id="f_bonds">${[['doing','By doing — go do a thing together'],['talking','By talking — a long table &amp; a bottle of wine'],['both','Honestly, both']].map(([v,t])=>`<div class="chip ${d.bonds_by===v?'on':''}" data-bond="${v}">${t}</div>`).join('')}</div></div>
+        <div class="chips" id="f_bonds">${[['doing','By doing: go do something together'],['talking','By talking: a long table and a bottle of wine'],['both','Honestly, both']].map(([v,t])=>`<div class="chip ${d.bonds_by===v?'on':''}" data-bond="${v}">${t}</div>`).join('')}</div></div>
       ${navButtons('Continue')}
     </div>`));
   $('#f_app').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#f_app').querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); intake.data.hang_appetite=c.dataset.app; });
@@ -681,7 +681,7 @@ function drawYourVibe(){
       ${progressBar()}
       <div class="kicker rustk">What lights you up</div>
       <h2>What are you two into?</h2>
-      <p class="sub">Tap what each of you loves — golf, boating, cooking, whatever it is. This is how we find couples you'll actually click with, and yes, both of you count.</p>
+      <p class="sub">Tap what each of you loves: golf, boating, cooking, whatever it is. It's how we find couples you'll actually click with. Both of you count.</p>
       ${grid(1)}
       ${grid(2)}
       <div class="field"><label>When you meet new people, you two are…</label>
@@ -699,7 +699,7 @@ function drawOneQuestion(){
     <div class="card step">
       ${progressBar()}
       <div class="kicker rustk">The good part</div>
-      <h2>Last thing — in your words.</h2>
+      <h2>Last thing, in your words.</h2>
       <p class="sub">This is the one bit Dray reads by hand. A few honest lines is all we need.</p>
       <div class="field"><label>What are you hoping to find in another couple?</label>
         <textarea id="f_hope" placeholder="One family we can be unpolished around, a standing Sunday thing, another couple who takes friendship as seriously as we do…">${esc(d.hoping_for||'')}</textarea></div>
@@ -708,12 +708,12 @@ function drawOneQuestion(){
       ${navButtons('Review our application')}
     </div>`));
   wireNav(()=>{ intake.data.hoping_for=$('#f_hope').value.trim(); intake.data.hard_no=$('#f_no').value.trim();
-    if(!intake.data.hoping_for){ toast('Give us a line or two here — it matters'); return false; } return true; });
+    if(!intake.data.hoping_for){ toast('Give us a line or two here. It matters.'); return false; } return true; });
 }
 
 function drawReview(){
   const d=intake.data;
-  const row=(k,v)=>`<div class="rrow"><dt>${k}</dt><dd>${v?esc(v):'—'}</dd></div>`;
+  const row=(k,v)=>`<div class="rrow"><dt>${k}</dt><dd>${v?esc(v):'–'}</dd></div>`;
   $('#door-body').appendChild(el(`
     <div class="card step review">
       <div class="kicker rustk">One last look</div>
@@ -754,7 +754,7 @@ async function submitApplication(){
     partner1_tags:p1t, partner2_tags:p2t, partner1_likes:p1t.map(tagLabel).join(', '), partner2_likes:p2t.map(tagLabel).join(', '),
     past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:'new' };
   try{ await DB.insertApplication(row); drawDone(token); }
-  catch(e){ console.error(e); toast('Something went wrong — try again'); btn.disabled=false; btn.textContent='Send our application'; }
+  catch(e){ console.error(e); toast('Something went wrong. Try again.'); btn.disabled=false; btn.textContent='Send our application'; }
 }
 
 function drawDone(token){
@@ -765,14 +765,14 @@ function drawDone(token){
     <div class="card done">
       <div class="seal">${MARK_RUST}</div>
       <h2>Welcome to the table.</h2>
-      <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. We read every application by hand. When the next supper has a seat with your name on it, you'll get a personal note — no feed to check, no swiping.</p>
+      <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. We read every application by hand. When the next supper has a seat with your name on it, you'll get a personal note. No feed to check, no swiping.</p>
       <div class="done-actions">
         <a class="btn block" href="${esc(homeUrl)}">See your status →</a>
         <button class="btn ghost block" id="refbtn">Know another couple? Refer them</button>
       </div>
-      <div class="note" style="margin-top:14px">Tip: bookmark your status page — it's how you'll follow your invitations.</div>
+      <div class="note" style="margin-top:14px">Bookmark your status page. It's how you'll follow your invitations.</div>
     </div>`));
-  $('#refbtn').onclick=()=>{ if(navigator.share){ navigator.share({title:'Kith Club',text:'You two should apply to Kith Club with us —',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied ✨')); } else { toast(refUrl); } };
+  $('#refbtn').onclick=()=>{ if(navigator.share){ navigator.share({title:'Kith Club',text:'You two should apply to Kith Club with us.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else { toast(refUrl); } };
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -849,7 +849,7 @@ function compat(a,b){
   const d=milesBetween(a.neighborhood,b.neighborhood);
   let blocked=false, blockReason='';
   if(d!=null){
-    if(d>12){ blocked=true; blockReason=`~${Math.round(d)} mi apart — likely too far to keep it up`; }
+    if(d>12){ blocked=true; blockReason=`~${Math.round(d)} mi apart, likely too far to keep it up`; }
     // proximity is the #1 driver: reward close, actively penalize far
     let px; if(d<=1.5) px=30; else if(d<=6) px=30*(1-(d-1.5)/4.5); else px=-(d-6)*3;
     score+=px;
@@ -860,7 +860,7 @@ function compat(a,b){
   // Kids & ages — heavy
   const ka=inter(a.kid_ages,b.kid_ages).filter(x=>x!=='No kids'&&x!=='Expecting');
   if(ka.length){ score+=Math.min(ka.length,2)*13; reasons.push(`Kids the same age (${ka.slice(0,2).join(', ')})`); }
-  if(arr(a.kid_ages).includes('Expecting')&&arr(b.kid_ages).includes('Expecting')){ score+=14; reasons.push('Both expecting — same season'); }
+  if(arr(a.kid_ages).includes('Expecting')&&arr(b.kid_ages).includes('Expecting')){ score+=14; reasons.push('Both expecting, same season'); }
   if(arr(a.kid_ages).includes('No kids')&&arr(b.kid_ages).includes('No kids')){ score+=12; reasons.push('Both kid-free'); }
   // Hobbies — both spouses; name the specific shared ones when we have them
   const h=hobbyScore(a,b); score+=h.score;
@@ -876,7 +876,7 @@ function compat(a,b){
   // Energy — minor, lean complementary
   const ea=(num(a.partner1_posture)+num(a.partner2_posture))/2, eb=(num(b.partner1_posture)+num(b.partner2_posture))/2;
   const diff=Math.abs(ea-eb);
-  if(ea<40&&eb<40){ score-=4; flags.push('Two reserved couples — the night may need a spark'); }
+  if(ea<40&&eb<40){ score-=4; flags.push('Two reserved couples, the night may need a spark'); }
   else if(diff>=15&&diff<=55){ score+=6; reasons.push('Energies balance nicely'); }
   else if(diff<15){ score+=3; }
   flags.push(...hardNoFlags(a,b));
@@ -925,15 +925,15 @@ async function renderInvite([eventId, coupleId]){
     <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">${past?'That night has passed.':`A seat for you two, ${esc(me.partner1_name)} &amp; ${esc(me.partner2_name)}.`}</h1>
     <div class="rule"></div>
     <div class="kv"><div class="k">The evening</div><div class="v" style="font-family:var(--serif);font-size:20px">${esc(ev.title)}</div></div>
-    <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||'Venue to be shared'}</div></div>
+    <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||'Details to come'}</div></div>
     <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
-    <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after — and we'll take it from there.</p>
+    <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after, and we'll take it from there.</p>
     <div id="rsvp-area" style="margin-top:22px"></div>
   </div>`);
   const area = body.querySelector('#rsvp-area');
   if(past){ area.appendChild(el(`<div class="note" style="font-size:14px">This mixer has already happened. If you were there, you can <a href="#/picks/${eventId}/${coupleId}">tell us who you clicked with →</a></div>`)); }
   else if(answered==='yes'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--good)">You're on the list. ✓</div><p class="note" style="margin-top:8px">We can't wait. We'll send the final details by text. Change of plans? <button class="link-btn" id="undo">Let us know</button></p></div>`)); area.querySelector('#undo').onclick=()=>doRSVP('no'); }
-  else if(answered==='no'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--muted)">No worries — maybe the next one.</div><p class="note" style="margin-top:8px">Changed your mind? <button class="link-btn" id="redo">We'd love to have you</button></p></div>`)); area.querySelector('#redo').onclick=()=>doRSVP('yes'); }
+  else if(answered==='no'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--muted)">No worries. Maybe the next one.</div><p class="note" style="margin-top:8px">Changed your mind? <button class="link-btn" id="redo">We'd love to have you</button></p></div>`)); area.querySelector('#redo').onclick=()=>doRSVP('yes'); }
   else { const wrap=el(`<div class="nav"><button class="btn ghost" id="rsvp-no" style="flex:1">Can't make it</button><button class="btn" id="rsvp-yes" style="flex:2">We'll be there →</button></div>`); area.appendChild(wrap); wrap.querySelector('#rsvp-yes').onclick=()=>doRSVP('yes'); wrap.querySelector('#rsvp-no').onclick=()=>doRSVP('no'); }
   publicShell(body);
   window.scrollTo({top:0,behavior:'smooth'});
@@ -947,8 +947,8 @@ async function renderPicks([eventId, coupleId]){
   const picked=new Set(r?arr(r.likes):[]);
   const body=el(`<div class="card">
     <span class="kicker">${esc(ev.title)}</span>
-    <h1 style="font-size:29px;line-height:1.15;margin:12px 0 0">So — who did you two click with?</h1>
-    <p class="lede" style="font-size:15px;margin-top:14px">Tap any couple you'd genuinely want to see again. It's private — they only hear about it if the feeling's mutual. No pressure to pick anyone.</p>
+    <h1 style="font-size:29px;line-height:1.15;margin:12px 0 0">So, who did you two click with?</h1>
+    <p class="lede" style="font-size:15px;margin-top:14px">Tap any couple you'd genuinely want to see again. It's private. They only hear if the feeling's mutual. No pressure to pick anyone.</p>
     <div class="rule"></div>
     <div id="pick-list"></div>
     <button class="btn block" id="submit-picks" style="margin-top:18px">Send our picks</button>
@@ -965,7 +965,7 @@ async function renderPicks([eventId, coupleId]){
     r.likes=[...picked]; r.attended=true; r.rsvp=r.rsvp||'yes';
     await DB.updateEvent(ev.id,{roster});
     const a=apps.find(x=>x.id===coupleId); if(a&&a.status!=='paired') await DB.updateApplication(coupleId,{status:'attended'});
-    publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Got it — thank you.</h2><p>We'll look for mutual sparks from the night. If a couple felt it both ways, we'll set the two of you a table and be in touch. ${picked.size?'':'And if nobody quite clicked this time, no worries — there’s always the next mixer.'}</p></div>`));
+    publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Got it. Thank you.</h2><p>We'll look for mutual sparks from the night. If a couple felt it both ways, we'll set the two of you a table and be in touch. ${picked.size?'':'And if nobody quite clicked this time, no worries, there’s always the next mixer.'}</p></div>`));
     window.scrollTo({top:0,behavior:'smooth'});
   };
   publicShell(body);
@@ -1002,12 +1002,12 @@ async function renderHome(token){
       <div class="kicker rustk">Your next supper</div>
       <h3 style="margin:8px 0 0;font-size:22px">${esc(h.upcoming.title)}</h3>
       <div class="kv" style="margin-top:10px"><div class="k">When</div><div class="v">${esc(soon)}</div></div>
-      <div class="kv"><div class="k">Where</div><div class="v">${h.upcoming.venue?esc(h.upcoming.venue):'Revealed a couple of days before ✨'}</div></div>
+      <div class="kv"><div class="k">Where</div><div class="v">${h.upcoming.venue?esc(h.upcoming.venue):'Details to come'}</div></div>
       <a class="btn block" style="margin-top:14px" href="#/invite/${esc(h.upcoming.event_id)}/${esc(h.upcoming.couple_id)}">RSVP →</a>
     </div>`;
   } else {
     nextHtml=`<div class="home-idle"><div class="kicker rustk">Your next supper</div>
-      <p class="lede" style="font-size:15px;margin-top:8px">No supper on your calendar yet. Kith Club suppers gather on the <b>first Thursday of the month</b> — the moment there's a seat with your name on it, we'll email you.</p></div>`;
+      <p class="lede" style="font-size:15px;margin-top:8px">No supper on your calendar yet. Kith Club suppers gather on the <b>first Thursday of the month</b>. The moment there's a seat with your name on it, we'll email you.</p></div>`;
   }
   const introsHtml = (h.intros&&h.intros.length) ? `<div class="sect-title">Your matches</div>` + h.intros.map(t=>`
       <div class="home-intro"><div class="pn">You &amp; ${esc((t.others||[]).join(' & '))}</div>
@@ -1016,7 +1016,7 @@ async function renderHome(token){
   const body=el(`<div class="card">
     <span class="kicker">Your Kith Club</span>
     <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.</h1>
-    <p class="lede" style="font-size:15px;margin-top:12px">Here's where you stand. No feed, no swiping — just your standing with the club.</p>
+    <p class="lede" style="font-size:15px;margin-top:12px">Here's where you stand. No feed, no swiping.</p>
     <div class="timeline">${timeline}</div>
     <div class="rule"></div>
     ${nextHtml}
@@ -1027,10 +1027,10 @@ async function renderHome(token){
       <button class="btn ghost block" id="home-ref">Refer another couple</button></div>
   </div>`);
   publicShell(body);
-  body.querySelector('#home-ref').onclick=()=>{ if(navigator.share){ navigator.share({title:'Kith Club',text:'You two should apply to Kith Club —',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied ✨')); } else toast(refUrl); };
+  body.querySelector('#home-ref').onclick=()=>{ if(navigator.share){ navigator.share({title:'Kith Club',text:'You two should apply to Kith Club.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else toast(refUrl); };
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function homeIntroLabel(s){ return ({proposed:'Introduction in the works',confirmed:'Table confirmed',happened:'You met!',matched:'Matched 🎉',fizzled:'Didn’t quite click'})[s]||s; }
+function homeIntroLabel(s){ return ({proposed:'Introduction in the works',confirmed:'Table confirmed',happened:'You met!',matched:'Matched',fizzled:'Didn’t quite click'})[s]||s; }
 
 /* ============================================================ Console ============================================================ */
 const AUTH_KEY='t4_admin_ok';
@@ -1084,7 +1084,7 @@ function renderLogin(){
     <div class="login-wrap"><div class="login-card">
       <div class="mono">${MARK_CREAM}</div>
       <h1>Concierge sign-in</h1>
-      <p>The console is private — just for the host. Enter the admin email to get a sign-in link.</p>
+      <p>The console is private. Enter the admin email to get a sign-in link.</p>
       <div class="field"><label>Admin email</label><input type="email" id="l_email" placeholder="you@threecitiessocial.com" /></div>
       <button class="btn block" id="l_send">Send me a link</button>
       <div id="l_note" class="note">Logged-out visitors can't see any applications.</div>
@@ -1124,7 +1124,7 @@ function drawApplications(){
   const tb=t.querySelector('tbody');
   apps.forEach(a=>{ const tr=el(`<tr data-id="${a.id}">
       <td><div class="cn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></td>
-      <td>${esc(a.neighborhood)||'—'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
+      <td>${esc(a.neighborhood)||'–'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
     tr.onclick=()=>openApplication(a.id); tb.appendChild(tr); });
   body.appendChild(t);
 }
@@ -1136,22 +1136,22 @@ function openApplication(id){
     <div class="drawer-head"><h2>${esc(a.couple_name)}</h2><button class="x" data-close>×</button></div>
     <div class="drawer-body">
       <div class="kv"><div class="k">Partners</div><div class="v">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></div>
-      <div class="kv"><div class="k">Neighborhood</div><div class="v">${esc(a.neighborhood)||'—'}</div></div>
-      <div class="kv"><div class="k">Life stage</div><div class="v">${esc(arr(a.life_stage).join(', '))||'—'}</div></div>
-      <div class="kv"><div class="k">At home</div><div class="v">${esc(a.kids)||'—'}${arr(a.kid_ages).length?`  ·  ${esc(arr(a.kid_ages).join(', '))}`:''}</div></div>
+      <div class="kv"><div class="k">Neighborhood</div><div class="v">${esc(a.neighborhood)||'–'}</div></div>
+      <div class="kv"><div class="k">Life stage</div><div class="v">${esc(arr(a.life_stage).join(', '))||'–'}</div></div>
+      <div class="kv"><div class="k">At home</div><div class="v">${esc(a.kids)||'–'}${arr(a.kid_ages).length?`  ·  ${esc(arr(a.kid_ages).join(', '))}`:''}</div></div>
       <div class="sect-title">What they're hoping for</div>
-      <div class="open-answer"><div class="k">A couple they were close with</div><div class="v" style="margin-top:6px">${esc(a.past_couple)||'—'}</div></div>
-      <div class="open-answer"><div class="k">Hoping to find</div><div class="v" style="margin-top:6px">${esc(a.hoping_for)||'—'}</div></div>
-      <div class="kv"><div class="k">Hard no's</div><div class="v">${esc(a.hard_no)||'—'}</div></div>
+      <div class="open-answer"><div class="k">A couple they were close with</div><div class="v" style="margin-top:6px">${esc(a.past_couple)||'–'}</div></div>
+      <div class="open-answer"><div class="k">Hoping to find</div><div class="v" style="margin-top:6px">${esc(a.hoping_for)||'–'}</div></div>
+      <div class="kv"><div class="k">Hard no's</div><div class="v">${esc(a.hard_no)||'–'}</div></div>
       <div class="sect-title">Rhythm</div>
-      <div class="kv"><div class="k">Appetite</div><div class="v">${esc(a.hang_appetite)||'—'}</div></div>
-      <div class="kv"><div class="k">Free when</div><div class="v">${esc(arr(a.free_slots).join(', '))||'—'}</div></div>
-      <div class="kv"><div class="k">Bonds by</div><div class="v" style="text-transform:capitalize">${esc(a.bonds_by)||'—'}</div></div>
+      <div class="kv"><div class="k">Appetite</div><div class="v">${esc(a.hang_appetite)||'–'}</div></div>
+      <div class="kv"><div class="k">Free when</div><div class="v">${esc(arr(a.free_slots).join(', '))||'–'}</div></div>
+      <div class="kv"><div class="k">Bonds by</div><div class="v" style="text-transform:capitalize">${esc(a.bonds_by)||'–'}</div></div>
       <div class="sect-title">The pair of them</div>
       ${posture(a.partner1_name+"’s posture", a.partner1_posture)}
       ${posture(a.partner2_name+"’s posture", a.partner2_posture)}
-      <div class="kv"><div class="k">${esc(a.partner1_name)} is into</div><div class="v">${esc(a.partner1_likes)||'—'}</div></div>
-      <div class="kv"><div class="k">${esc(a.partner2_name)} is into</div><div class="v">${esc(a.partner2_likes)||'—'}</div></div>
+      <div class="kv"><div class="k">${esc(a.partner1_name)} is into</div><div class="v">${esc(a.partner1_likes)||'–'}</div></div>
+      <div class="kv"><div class="k">${esc(a.partner2_name)} is into</div><div class="v">${esc(a.partner2_likes)||'–'}</div></div>
       <div class="sect-title">Your notes</div>
       <div class="field"><textarea id="d_notes" placeholder="Your read on this couple, who they might click with, follow-ups…">${esc(a.notes||'')}</textarea></div>
     </div>
@@ -1174,7 +1174,7 @@ function openApplication(id){
 /* ---- Events (mixers) ---- */
 function drawEvents(){
   const body=$('#console-body'); const events=consoleState.events; body.innerHTML='';
-  body.appendChild(el(`<div class="panel-head"><h2>Events</h2><div style="display:flex;gap:8px"><button class="btn sm gold" id="build_mixer">✨ Build me a mixer</button><button class="btn sm" id="new_event">+ New mixer</button></div></div>`));
+  body.appendChild(el(`<div class="panel-head"><h2>Events</h2><div style="display:flex;gap:8px"><button class="btn sm gold" id="build_mixer">Build a mixer</button><button class="btn sm" id="new_event">+ New mixer</button></div></div>`));
   $('#new_event').onclick=openEventForm;
   $('#build_mixer').onclick=openMixerBuilder;
   if(!events.length){ body.appendChild(el(`<div class="empty"><h3>No events yet</h3><p>Create a curated mixer, invite couples, and read the room afterward.</p></div>`)); return; }
@@ -1196,8 +1196,8 @@ function openEventForm(){
   const scrim=el(`<div class="modal-scrim"><div class="modal">
     <div class="modal-head"><h2>New mixer</h2><p>A curated night for a handful of Chicago couples.</p></div>
     <div class="modal-body">
-      <div class="field"><label>Title</label><input type="text" id="e_title" placeholder="e.g. Spring Supper Club — mixer no. 2" /></div>
-      <div class="field"><label>Venue</label><input type="text" id="e_venue" placeholder="e.g. Kumiko, West Loop" /></div>
+      <div class="field"><label>Title</label><input type="text" id="e_title" placeholder="e.g. Spring Supper Club" /></div>
+      <div class="field"><label>Venue</label><input type="text" id="e_venue" value="Three Cities Social" placeholder="Venue" /></div>
       <div class="two">
         <div class="field"><label>Date &amp; time</label><input type="datetime-local" id="e_when" /></div>
         <div class="field"><label>Capacity (couples)</label><input type="number" id="e_cap" value="12" min="2" /></div>
@@ -1225,7 +1225,7 @@ function openEvent(id){
     const a=appById(r.couple_id); if(!a) return '';
     const others=attendees.filter(o=>o.couple_id!==r.couple_id);
     const likeChips = r.attended && others.length ? `
-      <div class="likes-wrap"><div class="lbl">Clicked with — who they'd see again</div>
+      <div class="likes-wrap"><div class="lbl">Who they'd see again</div>
         <div class="chips">${others.map(o=>{ const mutual=(arr((roster.find(x=>x.couple_id===o.couple_id)||{}).likes).includes(r.couple_id)) && arr(r.likes).includes(o.couple_id);
           return `<div class="minichip ${arr(r.likes).includes(o.couple_id)?(mutual?'mutual on':'on'):''}" data-like="${o.couple_id}" data-from="${r.couple_id}">${esc(nameFor(o.couple_id))}${mutual?' ⇄':''}</div>`;}).join('')}</div></div>` : '';
     const rsvpTag = r.rsvp==='yes'?'<span class="rsvp yes">Coming ✓</span>':r.rsvp==='no'?'<span class="rsvp no">Declined</span>':'<span class="rsvp none">No reply yet</span>';
@@ -1240,7 +1240,7 @@ function openEvent(id){
   const scrim=el(`<div class="scrim"><div class="drawer">
     <div class="drawer-head"><h2>${esc(ev.title)}</h2><button class="x" data-close>×</button></div>
     <div class="drawer-body">
-      <div class="kv"><div class="k">Venue</div><div class="v">${esc(ev.venue)||'—'}</div></div>
+      <div class="kv"><div class="k">Venue</div><div class="v">${esc(ev.venue)||'–'}</div></div>
       <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
       <div class="kv"><div class="k">Status</div><div class="v" style="display:flex;align-items:center;gap:10px">${statusBadge(ev.status)}
         ${ev.status==='upcoming'?'<button class="btn sm forest" id="mark_happened">Mark as happened</button>':''}</div></div>
@@ -1272,8 +1272,8 @@ function suggestBlock(roster){
   if(apps.length<2) return '';
   const pairs=suggestPairs(apps,4);
   if(!pairs.length) return '';
-  return `<div class="sect-title">Who might click — from their intakes</div>
-    <div class="sub2" style="margin:-6px 0 12px;line-height:1.5">A read from what they wrote, to help you work the room. Not a verdict — the night decides.</div>
+  return `<div class="sect-title">Who might click, from their intakes</div>
+    <div class="sub2" style="margin:-6px 0 12px;line-height:1.5">A read from what they wrote, to help you work the room. Not a verdict. The night decides.</div>
     ${pairs.map(p=>{const t=compatTier(p.score);return `<div class="suggest-row"><div class="srtop"><div class="pn">${esc(p.a.couple_name)} <span class="vs">·</span> ${esc(p.b.couple_name)}</div><div class="score s-${t}">${tierLabel(t)}</div></div>
       <div class="sub2" style="margin-top:5px">${esc(p.reasons.slice(0,3).join(' · '))||'A few things in common'}</div></div>`;}).join('')}`;
 }
@@ -1287,7 +1287,7 @@ function addCouplesToEvent(ev, onRoster){
     </div></div></div>`);
   document.body.appendChild(scrim);
   const list=scrim.querySelector('#cand_list');
-  candidates.forEach(a=>{ const p=el(`<div class="pick" data-id="${a.id}"><div class="box">✓</div><div><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||'—'} · ${cap(a.status)}</div></div></div>`);
+  candidates.forEach(a=>{ const p=el(`<div class="pick" data-id="${a.id}"><div class="box">✓</div><div><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||'–'} · ${cap(a.status)}</div></div></div>`);
     p.onclick=()=>{ sel.has(a.id)?(sel.delete(a.id),p.classList.remove('on')):(sel.add(a.id),p.classList.add('on')); }; list.appendChild(p); });
   const close=()=>scrim.remove(); scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   scrim.querySelector('#add_go').onclick=async()=>{
@@ -1333,7 +1333,7 @@ async function createIntro(ev,x,y){
   await DB.insertTable({ couple_ids:[x,y], event_id:ev.id, place:'', scheduled_at:null, format:'dinner', status:'proposed',
     notes:`Paired from ${ev.title}.` });
   for(const cid of [x,y]) await DB.updateApplication(cid,{status:'paired'});
-  toast('Intro created — see the Board'); consoleState.tab='board'; renderConsole();
+  toast('Intro created. See the Board.'); consoleState.tab='board'; renderConsole();
 }
 
 /* ---- Matchmaker (ranked suggestions from intakes) ---- */
@@ -1342,7 +1342,7 @@ function drawMatchmaker(){
   const body=$('#console-body'); body.innerHTML='';
   const pool=consoleState.apps.filter(a=>a.status!=='passed');
   body.appendChild(el(`<div class="panel-head"><h2>Matchmaker</h2><div class="count">Ranked from what couples told you · you decide</div></div>`));
-  if(pool.length<2){ body.appendChild(el(`<div class="empty"><h3>Not enough couples yet</h3><p>Once a couple more apply, the best pairings show up here — closest first, kids &amp; hobbies weighted, with the reasoning.</p></div>`)); return; }
+  if(pool.length<2){ body.appendChild(el(`<div class="empty"><h3>Not enough couples yet</h3><p>Once a couple more apply, the best pairings show up here, closest first, weighted by kids and hobbies, with the reasoning.</p></div>`)); return; }
 
   const ctrl=el(`<div class="mm-controls">
     <label class="mm-focus">Focus <select id="mm_focus">
@@ -1376,7 +1376,7 @@ function drawMatchmaker(){
         <div class="pairline">${esc(p.a.couple_name)} <span class="vs">·</span> ${esc(p.b.couple_name)}</div>
         <div class="mm-score s-${p.tier}"><b>${p.score}</b><span>${tierLabel(p.tier)}</span></div>
       </div>
-      <div class="mm-meta">📍 ${esc(distTxt)} &nbsp;·&nbsp; ${esc(p.a.neighborhood||'—')} ↔ ${esc(p.b.neighborhood||'—')}</div>
+      <div class="mm-meta">📍 ${esc(distTxt)} &nbsp;·&nbsp; ${esc(p.a.neighborhood||'–')} ↔ ${esc(p.b.neighborhood||'–')}</div>
       ${p.blocked?`<div class="mm-block">⛔ ${esc(p.blockReason)}</div>`:''}
       <div class="mm-reasons">${p.reasons.slice(0,5).map(r=>`<span class="rchip">${esc(r)}</span>`).join('')||'<span class="sub2">Not much in common on paper</span>'}</div>
       ${p.flags.length?`<div class="mm-flags">${p.flags.map(f=>`<div class="fchip">⚠ ${esc(f)}</div>`).join('')}</div>`:''}
@@ -1386,7 +1386,7 @@ function drawMatchmaker(){
     if(intro){ act.appendChild(el(`<span class="badge b-${esc(intro.status)}">Intro ${esc(intro.status)}</span>`)); }
     else if(!p.blocked){
       const b1=el(`<button class="btn sm">Create intro</button>`); b1.onclick=()=>createIntroDirect(p.a.id,p.b.id); act.appendChild(b1);
-      if(upcoming){ const b2=el(`<button class="btn sm ghost">Add both to “${esc(upcoming.title.split('—')[0].trim())}”</button>`); b2.onclick=()=>addBothToMixer(upcoming.id,p.a.id,p.b.id); act.appendChild(b2); }
+      if(upcoming){ const b2=el(`<button class="btn sm ghost">Add both to “${esc(upcoming.title.split('–')[0].trim())}”</button>`); b2.onclick=()=>addBothToMixer(upcoming.id,p.a.id,p.b.id); act.appendChild(b2); }
     }
     list.appendChild(card);
   });
@@ -1427,11 +1427,11 @@ function openMixerBuilder(){
     const room=rooms[idx%rooms.length];
     const tier=compatTier(room.score);
     mb.innerHTML=`
-      <div class="modal-head"><h2>✨ Your mixer</h2><p>The best room I can build from your open applicants — close enough to keep it up, chosen for chemistry.</p></div>
+      <div class="modal-head"><h2>Your mixer</h2><p>The best room I can build from your open applicants, close enough to keep it up, chosen for chemistry.</p></div>
       <div class="modal-body">
         <div class="mb-row"><div class="mb-sizes">Room size ${['3','4','5','6'].map(n=>`<button class="mb-size ${+n===K?'on':''}" data-size="${n}" ${+n>pool.length?'disabled':''}>${n}</button>`).join('')}</div>
           <div class="mm-score s-${tier}" style="min-width:70px"><b>${room.score}</b><span>${tierLabel(tier)} room</span></div></div>
-        <div class="mb-couples">${room.ids.map(id=>{const a=appById(id);return `<div class="mb-couple"><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||'—'}</div></div>`;}).join('')}</div>
+        <div class="mb-couples">${room.ids.map(id=>{const a=appById(id);return `<div class="mb-couple"><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||'–'}</div></div>`;}).join('')}</div>
         <div class="mb-why"><div class="lbl">Why this room works</div>${roomHighlights(room.ids).map(h=>`<div class="rchip" style="display:block;margin-bottom:6px">${esc(h)}</div>`).join('')}</div>
         <div class="nav" style="margin-top:16px">
           <button class="btn ghost" data-again>↻ Try another</button>
@@ -1442,10 +1442,10 @@ function openMixerBuilder(){
     sizeWire();
     mb.querySelector('[data-again]').onclick=()=>{ idx++; render(); };
     mb.querySelector('[data-create]').onclick=async()=>{
-      const ev=await DB.insertEvent({ title:'Curated mixer', venue:'', scheduled_at:null, capacity:K+2, status:'upcoming',
+      const ev=await DB.insertEvent({ title:'Curated mixer', venue:'Three Cities Social', scheduled_at:null, capacity:K+2, status:'upcoming',
         notes:'Auto-composed by the Matchmaker.', roster: room.ids.map(id=>({couple_id:id,attended:false,rsvp:null,likes:[]})) });
       for(const id of room.ids){ const a=appById(id); if(a&&a.status==='new') await DB.updateApplication(id,{status:'invited'}); }
-      close(); toast('Mixer created — set the venue & date'); consoleState.tab='events'; await loadConsoleData(); openEvent(ev.id);
+      close(); toast('Mixer created. Set the venue and date.'); consoleState.tab='events'; await loadConsoleData(); openEvent(ev.id);
     };
     function sizeWire(){ mb.querySelectorAll('.mb-size').forEach(bn=>bn.onclick=()=>{ K=+bn.dataset.size; idx=0; render(); }); }
   }
@@ -1456,14 +1456,14 @@ async function createIntroDirect(x,y){
   if(exists){ toast('These two already have an intro'); consoleState.tab='board'; renderConsole(); return; }
   await DB.insertTable({ couple_ids:[x,y], event_id:null, place:'', scheduled_at:null, format:'dinner', status:'proposed', notes:'Matched by the Matchmaker.' });
   for(const cid of [x,y]) await DB.updateApplication(cid,{status:'paired'});
-  toast('Intro created — see the Board'); consoleState.tab='board'; renderConsole();
+  toast('Intro created. See the Board.'); consoleState.tab='board'; renderConsole();
 }
 async function addBothToMixer(eventId,x,y){
   const ev=consoleState.events.find(e=>e.id===eventId); if(!ev){ toast('Create a mixer first'); return; }
   const roster=arr(ev.roster); const have=new Set(roster.map(r=>r.couple_id)); let added=0;
   for(const cid of [x,y]){ if(!have.has(cid)){ roster.push({couple_id:cid,attended:false,rsvp:null,likes:[]}); const a=appById(cid); if(a&&a.status==='new') await DB.updateApplication(cid,{status:'invited'}); added++; } }
   await DB.updateEvent(eventId,{roster});
-  toast(added?`Added to “${ev.title.split('—')[0].trim()}”`:'Both already on that roster');
+  toast(added?`Added to “${ev.title.split('–')[0].trim()}”`:'Both already on that roster');
   await loadConsoleData();
 }
 
@@ -1489,7 +1489,7 @@ function tableCard(t){
   const isTerminal=t.status==='matched'||t.status==='fizzled';
   const card=el(`<div class="tcard">
     <div class="couples">${esc(couples)}</div>
-    ${ev?`<div class="from">From ${esc(ev.title.split('—')[0].trim())}</div>`:''}
+    ${ev?`<div class="from">From ${esc(ev.title.split('–')[0].trim())}</div>`:''}
     <div class="plan"><b>${esc(cap(t.format||'dinner'))}</b>${t.place?' · '+esc(t.place):''}<br>${t.scheduled_at?fmtDate(t.scheduled_at):'<span style="opacity:.6">no date set</span>'}</div>
     ${t.notes?`<div class="tnote">${esc(t.notes)}</div>`:''}
     <div class="actions"></div></div>`);
@@ -1522,14 +1522,14 @@ function introReasons(a,b){
 function introText(a,b){
   const why=introReasons(a,b);
   const whyLine = why.length ? joinList(why) : 'I just have a feeling you’ll click';
-  return `Hi ${firstNames(a)} and ${firstNames(b)} —\n\nMeet each other! I don’t make introductions lightly, and I really think the four of you will hit it off: ${whyLine}.\n\n${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. Want me to find you all a table in the next couple of weeks?\n\nWarmly,\nKith Club`;
+  return `Hi ${firstNames(a)} and ${firstNames(b)},\n\nI want to introduce you two couples. I don’t make introductions lightly, and I think the four of you will hit it off: ${whyLine}.\n\n${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. Want me to find you all a table in the next couple of weeks?\n\nWarmly,\nKith Club`;
 }
 function draftIntro(t){
   const [a,b]=arr(t.couple_ids).map(appById);
   if(!a||!b){ toast('Need both couples'); return; }
   const text=introText(a,b);
   const scrim=el(`<div class="modal-scrim"><div class="modal">
-    <div class="modal-head"><h2>Your intro text</h2><p>A warm, personal note to send both couples — edit anything, then copy &amp; text it.</p></div>
+    <div class="modal-head"><h2>Your intro text</h2><p>A warm, personal note to send both couples. Edit anything, then copy and text it.</p></div>
     <div class="modal-body">
       <textarea id="intro_text" style="min-height:220px;line-height:1.55">${esc(text)}</textarea>
       <div class="nav" style="margin-top:14px"><button class="btn ghost" data-cancel>Close</button><button class="btn gold" data-copy>Copy text</button></div>
@@ -1537,7 +1537,7 @@ function draftIntro(t){
   document.body.appendChild(scrim);
   const close=()=>scrim.remove();
   scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
-  scrim.querySelector('[data-copy]').onclick=()=>{ const v=$('#intro_text').value; navigator.clipboard?navigator.clipboard.writeText(v).then(()=>toast('Copied — go send it ✨'),()=>toast('Select & copy')):toast('Select & copy'); };
+  scrim.querySelector('[data-copy]').onclick=()=>{ const v=$('#intro_text').value; navigator.clipboard?navigator.clipboard.writeText(v).then(()=>toast('Copied. Go send it.'),()=>toast('Select & copy')):toast('Select & copy'); };
 }
 async function advanceTable(id,status){
   const t=consoleState.tables.find(x=>x.id===id);
