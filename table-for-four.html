@@ -84,6 +84,8 @@
   .steps3 .n{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);color:var(--rust-d);display:grid;place-items:center;font-family:var(--serif);font-size:15px;font-weight:600;margin-top:1px}
   .steps3 .t{font-size:15.5px;line-height:1.5;color:var(--ink2)}
   .steps3 .t b{color:var(--ink);font-weight:650}
+  .ritual-band{margin-top:22px;background:#f3ece0;border:1px solid var(--line);border-radius:12px;padding:11px 15px;font-size:13px;font-weight:600;color:var(--olive-d,#3a4733);display:flex;align-items:center;gap:9px;letter-spacing:.01em}
+  .ritual-band .rb-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 3px rgba(195,154,78,.25);flex:none}
 
   /* form */
   .progress{display:flex;gap:6px;margin:0 0 22px}
@@ -128,6 +130,20 @@
   .done .seal{width:78px;height:78px;border-radius:50%;border:1.5px solid var(--gold);color:var(--rust-d);display:grid;place-items:center;margin:0 auto 20px;font-size:34px;font-family:var(--serif)}
   .done h2{font-size:28px;margin:0 0 10px}
   .done p{color:var(--ink2);font-size:16px;line-height:1.6;margin:0 auto;max-width:440px}
+  .done-actions{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+  .done-actions .btn{text-decoration:none;text-align:center}
+  /* couple's home */
+  .timeline{display:flex;align-items:center;margin:22px 0 4px}
+  .tl-step{display:flex;flex-direction:column;align-items:center;gap:7px;flex:none}
+  .tl-step .dot{width:15px;height:15px;border-radius:50%;background:var(--line2);border:2px solid var(--line2);transition:all .2s}
+  .tl-step .lbl{font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+  .tl-step.on .dot{background:var(--rust);border-color:var(--rust)}
+  .tl-step.on .lbl{color:var(--ink)}
+  .tl-step.now .dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 0 4px rgba(195,154,78,.22)}
+  .tl-bar{flex:1;height:2px;background:var(--line2);margin:0 6px;position:relative;top:-11px}
+  .home-next,.home-idle,.home-refer{padding:2px 0}
+  .home-intro{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;margin:0 0 10px}
+  .home-intro .pn{font-weight:650;font-size:15.5px}
   .foot{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0 26px;line-height:1.7}
   .foot a{color:var(--muted);text-decoration:underline}
 
@@ -433,6 +449,7 @@ const DB = (() => {
     async magicLink(email){ const c=await this._client(); return c.auth.signInWithOtp({email, options:{emailRedirectTo:location.href}}); },
     async session(){ const c=await this._client(); const {data}=await c.auth.getSession(); return data.session; },
     async signOut(){ const c=await this._client(); return c.auth.signOut(); },
+    async coupleHome(token){ const c=await this._client(); const {data,error}=await c.rpc('couple_home',{p_token:token}); if(error)throw error; return data; },
   };
   return USE_SUPABASE ? remote : ls;
 })();
@@ -510,6 +527,7 @@ function route(){
   if(h.startsWith('console')) renderConsole();
   else if(h.startsWith('invite/')) renderInvite(h.split('/').slice(1));
   else if(h.startsWith('picks/')) renderPicks(h.split('/').slice(1));
+  else if(h.startsWith('home/')) renderHome(h.split('/')[1].split('?')[0]);
   else renderDoor();
 }
 window.addEventListener('hashchange', route);
@@ -575,10 +593,11 @@ function drawIntro(){
       <div class="rule"></div>
       <div class="steps3">
         <div class="s"><div class="n">I</div><div class="t"><b>Apply.</b> Tell us about the two of you and the friends you're hoping to find. About three minutes.</div></div>
-        <div class="s"><div class="n">II</div><div class="t"><b>Come to a curated mixer.</b> A handful of vetted couples, a beautiful Chicago room, zero pressure. Just a good night out.</div></div>
+        <div class="s"><div class="n">II</div><div class="t"><b>Come to a supper.</b> Kith Club gathers on the <b>first Thursday of the month</b> — a handful of vetted couples, a beautiful Chicago room, zero pressure. Just a good night out.</div></div>
         <div class="s"><div class="n">III</div><div class="t"><b>Tell us who you clicked with.</b> We privately pair the couples who felt it both ways into a proper hang. You just show up.</div></div>
       </div>
-      <div style="margin-top:28px"><button class="btn block" data-next>Apply to join</button></div>
+      <div class="ritual-band"><span class="rb-dot"></span> Next supper: the first Thursday of the month · Chicago · by application</div>
+      <div style="margin-top:20px"><button class="btn block" data-next>Apply to join</button></div>
     </div>`));
   $('#door-body [data-next]').onclick=goNext;
 }
@@ -599,10 +618,13 @@ function drawWhoYouAre(){
       </div>
       <div class="field"><label>Which Chicago neighborhood? <span class="hint">helps us seat you near your people</span></label>
         <input type="text" id="f_hood" value="${esc(d.neighborhood||'')}" placeholder="e.g. Logan Square, Hyde Park, Oak Park" /></div>
+      <div class="field"><label>Best email for the two of you <span class="hint">where we'll send your invitation</span></label>
+        <input type="email" id="f_email" value="${esc(d.email||'')}" placeholder="you@example.com" /></div>
       ${navButtons('Continue')}
     </div>`));
-  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.neighborhood=$('#f_hood').value.trim();
-    if(!d.couple_name||!d.partner1_name||!d.partner2_name){ toast('Tell us your names first'); return false; } return true; });
+  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.neighborhood=$('#f_hood').value.trim(); d.email=$('#f_email').value.trim();
+    if(!d.couple_name||!d.partner1_name||!d.partner2_name){ toast('Tell us your names first'); return false; }
+    if(!/.+@.+\..+/.test(d.email)){ toast('We need a good email to send your invite'); return false; } return true; });
 }
 
 function drawYourLife(){
@@ -718,28 +740,39 @@ function drawReview(){
   $('#door-body [data-send]').onclick=submitApplication;
 }
 
+function makeToken(){ return (uid()+uid()).replace(/[^a-z0-9]/gi,'').slice(0,24); }
 async function submitApplication(){
   const btn=$('#door-body [data-send]'); btn.disabled=true; btn.textContent='Sending…';
   const d=intake.data;
   const p1t=d.partner1_tags||[], p2t=d.partner2_tags||[];
+  const token=makeToken();
+  const params=new URLSearchParams((location.hash.split('?')[1]||''));
   const row={ couple_name:d.couple_name, partner1_name:d.partner1_name, partner2_name:d.partner2_name, neighborhood:d.neighborhood,
+    email:d.email||'', token, referred_by:params.get('ref')||'',
     life_stage:d.life_stage, kids:d.kids||'', kid_ages:d.kid_ages, hang_appetite:d.hang_appetite||'', free_slots:d.free_slots, bonds_by:d.bonds_by||'',
     partner1_posture:d.energy||50, partner2_posture:d.energy||50,
     partner1_tags:p1t, partner2_tags:p2t, partner1_likes:p1t.map(tagLabel).join(', '), partner2_likes:p2t.map(tagLabel).join(', '),
     past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:'new' };
-  try{ await DB.insertApplication(row); drawDone(); }
+  try{ await DB.insertApplication(row); drawDone(token); }
   catch(e){ console.error(e); toast('Something went wrong — try again'); btn.disabled=false; btn.textContent='Send our application'; }
 }
 
-function drawDone(){
+function drawDone(token){
+  const homeUrl=location.origin+location.pathname+'#/home/'+token;
+  const refUrl=location.origin+location.pathname+'#/?ref='+token;
   $('#door-body').innerHTML='';
   $('#door-body').appendChild(el(`
     <div class="card done">
       <div class="seal">${MARK_RUST}</div>
       <h2>Welcome to the table.</h2>
-      <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. We read every application by hand. When the next Chicago mixer has a seat with your name on it, you'll get a personal note — no feed to check, no swiping. Just an invitation worth saying yes to.</p>
-      <div style="margin-top:28px"><button class="btn ghost" onclick="location.hash='#/'">Back to start</button></div>
+      <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. We read every application by hand. When the next supper has a seat with your name on it, you'll get a personal note — no feed to check, no swiping.</p>
+      <div class="done-actions">
+        <a class="btn block" href="${esc(homeUrl)}">See your status →</a>
+        <button class="btn ghost block" id="refbtn">Know another couple? Refer them</button>
+      </div>
+      <div class="note" style="margin-top:14px">Tip: bookmark your status page — it's how you'll follow your invitations.</div>
     </div>`));
+  $('#refbtn').onclick=()=>{ if(navigator.share){ navigator.share({title:'Kith Club',text:'You two should apply to Kith Club with us —',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied ✨')); } else { toast(refUrl); } };
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -940,6 +973,64 @@ async function renderPicks([eventId, coupleId]){
 }
 function linkFor(kind,eid,cid){ return location.origin+location.pathname+`#/${kind}/${eid}/${cid}`; }
 function copyLink(kind,eid,cid){ const url=linkFor(kind,eid,cid); navigator.clipboard&&navigator.clipboard.writeText(url).then(()=>toast('Link copied'),()=>toast(url)); if(!navigator.clipboard) toast('Copy: '+url); }
+
+/* ---- The Couple's Home (private status page via token link) ---- */
+async function loadHome(token){
+  if(USE_SUPABASE){ try{ const d=await DB.coupleHome(token); return d||{missing:true}; }catch(e){ console.error(e); return {error:true}; } }
+  const apps=await DB.listApplications(); const me=apps.find(a=>a.token===token); if(!me) return {missing:true};
+  const events=await DB.listEvents(), tables=await DB.listTables();
+  const upcoming=events.filter(e=>e.status==='upcoming'&&arr(e.roster).some(r=>r.couple_id===me.id))
+    .sort((a,b)=>(a.scheduled_at||'').localeCompare(b.scheduled_at||''))[0]||null;
+  const intros=tables.filter(t=>arr(t.couple_ids).includes(me.id)).map(t=>({ status:t.status, place:t.place, scheduled_at:t.scheduled_at, format:t.format,
+    others:arr(t.couple_ids).filter(id=>id!==me.id).map(id=>{const a=apps.find(x=>x.id===id);return a?a.couple_name:'a couple';}) }));
+  return { couple_name:me.couple_name, partner1:me.partner1_name, partner2:me.partner2_name, status:me.status,
+    upcoming: upcoming?{title:upcoming.title, venue:upcoming.venue, scheduled_at:upcoming.scheduled_at, event_id:upcoming.id, couple_id:me.id}:null,
+    intros, token };
+}
+const STATUS_STEPS=[['new','Applied'],['invited','Invited'],['attended','At the table'],['paired','Paired']];
+async function renderHome(token){
+  const h=await loadHome(token);
+  if(!h||h.missing){ return publicError("We couldn't find your status page. Double-check the link, or apply if you haven't yet."); }
+  if(h.error){ return publicError("We couldn't load your status right now. Please check back in a bit."); }
+  const stepIdx=Math.max(0, STATUS_STEPS.findIndex(s=>s[0]===h.status));
+  const timeline=STATUS_STEPS.map((s,i)=>`<div class="tl-step ${i<=stepIdx?'on':''} ${i===stepIdx?'now':''}"><span class="dot"></span><span class="lbl">${s[1]}</span></div>`).join('<span class="tl-bar"></span>');
+  const refUrl=location.origin+location.pathname+'#/?ref='+esc(token);
+  let nextHtml;
+  if(h.upcoming){
+    const soon = h.upcoming.scheduled_at ? fmtDate(h.upcoming.scheduled_at) : 'date coming soon';
+    nextHtml=`<div class="home-next">
+      <div class="kicker rustk">Your next supper</div>
+      <h3 style="margin:8px 0 0;font-size:22px">${esc(h.upcoming.title)}</h3>
+      <div class="kv" style="margin-top:10px"><div class="k">When</div><div class="v">${esc(soon)}</div></div>
+      <div class="kv"><div class="k">Where</div><div class="v">${h.upcoming.venue?esc(h.upcoming.venue):'Revealed a couple of days before ✨'}</div></div>
+      <a class="btn block" style="margin-top:14px" href="#/invite/${esc(h.upcoming.event_id)}/${esc(h.upcoming.couple_id)}">RSVP →</a>
+    </div>`;
+  } else {
+    nextHtml=`<div class="home-idle"><div class="kicker rustk">Your next supper</div>
+      <p class="lede" style="font-size:15px;margin-top:8px">No supper on your calendar yet. Kith Club suppers gather on the <b>first Thursday of the month</b> — the moment there's a seat with your name on it, we'll email you.</p></div>`;
+  }
+  const introsHtml = (h.intros&&h.intros.length) ? `<div class="sect-title">Your matches</div>` + h.intros.map(t=>`
+      <div class="home-intro"><div class="pn">You &amp; ${esc((t.others||[]).join(' & '))}</div>
+        <div class="sub2" style="margin-top:4px">${esc(cap(t.format||'dinner'))}${t.place?' · '+esc(t.place):''}${t.scheduled_at?' · '+esc(fmtDate(t.scheduled_at)):''}</div>
+        <span class="badge b-${esc(t.status)}" style="margin-top:8px;display:inline-block">${esc(homeIntroLabel(t.status))}</span></div>`).join('') : '';
+  const body=el(`<div class="card">
+    <span class="kicker">Your Kith Club</span>
+    <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.</h1>
+    <p class="lede" style="font-size:15px;margin-top:12px">Here's where you stand. No feed, no swiping — just your standing with the club.</p>
+    <div class="timeline">${timeline}</div>
+    <div class="rule"></div>
+    ${nextHtml}
+    ${introsHtml}
+    <div class="rule"></div>
+    <div class="home-refer"><div class="pn">Know another couple who'd fit right in?</div>
+      <div class="sub2" style="margin:4px 0 12px">The best rooms come from couples who already get it.</div>
+      <button class="btn ghost block" id="home-ref">Refer another couple</button></div>
+  </div>`);
+  publicShell(body);
+  body.querySelector('#home-ref').onclick=()=>{ if(navigator.share){ navigator.share({title:'Kith Club',text:'You two should apply to Kith Club —',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied ✨')); } else toast(refUrl); };
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function homeIntroLabel(s){ return ({proposed:'Introduction in the works',confirmed:'Table confirmed',happened:'You met!',matched:'Matched 🎉',fizzled:'Didn’t quite click'})[s]||s; }
 
 /* ============================================================ Console ============================================================ */
 const AUTH_KEY='t4_admin_ok';
