@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#26201a" />
-<title>Kith · Chicago</title>
+<title>Kith Club · Chicago</title>
 <style>
   :root{
     --bg:#f4ede1;
@@ -305,7 +305,7 @@
 
 <script>
 /* ============================================================
-   Kith — Chicago  ·  curated club for couple friends
+   Kith Club — Chicago  ·  curated club for couple friends
    Model: apply → curated mixer → flag who you clicked with →
           concierge pairs the mutual sparks into a 1:1 hang.
    Self-contained, no build step, runs on static hosting.
@@ -473,7 +473,7 @@ function showSplash(onDone){
   const s=el(`
     <div class="splash"><div class="splash-card">
       <div class="mono">${MARK_CREAM}</div>
-      <div class="kicker">Kith · Chicago</div>
+      <div class="kicker">Kith Club · Chicago</div>
       <h1>Not that kind of couples club.</h1>
       <div class="defline">kith &nbsp;·&nbsp; <i>/kɪθ/</i> &nbsp;·&nbsp; the friends who become family</div>
       <div class="thin"></div>
@@ -497,7 +497,7 @@ function renderDoor(){
     <div class="wrap door">
       <div class="door-top">
         <div class="brand"><div class="mono">${MARK_CREAM}</div>
-          <div class="wordmark">Kith<small>the friends who become family</small></div></div>
+          <div class="wordmark">Kith Club<small>the friends who become family</small></div></div>
       </div>
       <div id="door-body"></div>
       <div class="foot">
@@ -723,12 +723,12 @@ function publicShell(inner){
   const app=$('#app'); app.innerHTML='';
   app.appendChild(el(`<div class="wrap door">
     <div class="door-top"><div class="brand"><div class="mono">${MARK_CREAM}</div>
-      <div class="wordmark">Kith<small>the friends who become family</small></div></div></div>
+      <div class="wordmark">Kith Club<small>the friends who become family</small></div></div></div>
     <div id="pub-body"></div>
     <div class="foot">A curated club for couples who want real couple friends.</div></div>`));
   $('#pub-body').appendChild(inner);
 }
-function publicError(msg){ publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Hmm.</h2><p>${esc(msg)}</p><div style="margin-top:26px"><button class="btn ghost" onclick="location.hash='#/'">Go to Kith</button></div></div>`)); }
+function publicError(msg){ publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Hmm.</h2><p>${esc(msg)}</p><div style="margin-top:26px"><button class="btn ghost" onclick="location.hash='#/'">Go to Kith Club</button></div></div>`)); }
 
 async function loadPublic(eventId){
   const events=await DB.listEvents(); const apps=await DB.listApplications();
@@ -815,7 +815,7 @@ function renderConsole(){
   app.appendChild(el(`
     <div>
     <div class="cbar"><div class="cbar-in">
-      <div class="brandc"><div class="monoc">${MARK_CREAM}</div> Kith <span style="opacity:.6;font-size:13px">· Chicago concierge</span></div>
+      <div class="brandc"><div class="monoc">${MARK_CREAM}</div> Kith Club <span style="opacity:.6;font-size:13px">· Chicago concierge</span></div>
       <div class="tabs">
         <button data-tab="applications" class="${T==='applications'?'on':''}">Applications</button>
         <button data-tab="events" class="${T==='events'?'on':''}">Events</button>
@@ -867,7 +867,7 @@ async function doLogin(){
     <p>We sent a sign-in link to <b>${esc(ADMIN_EMAIL)}</b>.</p>
     <div style="background:#faf3e6;border:1px solid var(--line);border-radius:14px;padding:16px;margin:6px 0 4px;text-align:left">
       <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Demo inbox</div>
-      <div style="font-size:14px;line-height:1.5">Subject: <b>Your Kith sign-in link</b><br><span style="color:var(--muted)">This build has no mail server, so tap the link to continue.</span></div>
+      <div style="font-size:14px;line-height:1.5">Subject: <b>Your Kith Club sign-in link</b><br><span style="color:var(--muted)">This build has no mail server, so tap the link to continue.</span></div>
       <button class="btn block forest" id="l_go" style="margin-top:12px">Tap to sign in →</button>
     </div>
     <div class="note">Only <b>${esc(ADMIN_EMAIL)}</b> can reach the console.</div>`;

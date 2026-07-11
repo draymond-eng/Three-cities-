@@ -1,4 +1,4 @@
-# Kith
+# Kith Club
 
 Chicago's curated club for couple friends — for couples who find it hard to
 make another couple or parent friends. *kith* /kɪθ/ · the friends who become
