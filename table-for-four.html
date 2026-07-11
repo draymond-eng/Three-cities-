@@ -421,7 +421,7 @@ const DB = (() => {
     async _client(){ if(sb) return sb; await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js'); sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); return sb; },
     async _q(fn){ const c=await this._client(); const {data,error}=await fn(c); if(error)throw error; return data; },
     async listApplications(){ return this._q(c=>c.from('applications').select('*').order('created_at',{ascending:false})); },
-    async insertApplication(row){ return this._q(c=>c.from('applications').insert([row]).select().single()); },
+    async insertApplication(row){ return this._q(c=>c.from('applications').insert([row])); }, // no .select(): public front door has insert-only, cannot read back
     async updateApplication(id,patch){ return this._q(c=>c.from('applications').update(patch).eq('id',id).select().single()); },
     async listTables(){ return this._q(c=>c.from('tables').select('*').order('created_at',{ascending:false})); },
     async insertTable(row){ return this._q(c=>c.from('tables').insert([row]).select().single()); },
@@ -430,7 +430,9 @@ const DB = (() => {
     async insertEvent(row){ return this._q(c=>c.from('events').insert([row]).select().single()); },
     async updateEvent(id,patch){ return this._q(c=>c.from('events').update(patch).eq('id',id).select().single()); },
     seedIfEmpty(){},
-    async magicLink(email){ const c=await this._client(); return c.auth.signInWithOtp({email}); },
+    async magicLink(email){ const c=await this._client(); return c.auth.signInWithOtp({email, options:{emailRedirectTo:location.href}}); },
+    async session(){ const c=await this._client(); const {data}=await c.auth.getSession(); return data.session; },
+    async signOut(){ const c=await this._client(); return c.auth.signOut(); },
   };
   return USE_SUPABASE ? remote : ls;
 })();
@@ -942,11 +944,17 @@ function copyLink(kind,eid,cid){ const url=linkFor(kind,eid,cid); navigator.clip
 /* ============================================================ Console ============================================================ */
 const AUTH_KEY='t4_admin_ok';
 const consoleState = { tab:'applications', apps:[], tables:[], events:[] };
-function isAuthed(){ return sessionStorage.getItem(AUTH_KEY)==='1'; }
+let sbChecked=false, sbSession=null;
+async function refreshSbSession(){ try{ sbSession=await DB.session(); }catch(e){ sbSession=null; } sbChecked=true; }
+function isAuthed(){
+  if(USE_SUPABASE){ const em=sbSession&&sbSession.user&&sbSession.user.email; return !!(em&&em.toLowerCase()===ADMIN_EMAIL.toLowerCase()); }
+  return sessionStorage.getItem(AUTH_KEY)==='1';
+}
 function appById(id){ return consoleState.apps.find(x=>x.id===id); }
 function nameFor(id){ const a=appById(id); return a?a.couple_name:'(removed)'; }
 
 function renderConsole(){
+  if(USE_SUPABASE && !sbChecked){ $('#app').innerHTML='<div class="login-wrap"><div class="login-card"><div class="mono">'+MARK_CREAM+'</div><p style="margin-top:14px">Checking your session…</p></div></div>'; refreshSbSession().then(renderConsole); return; }
   if(!isAuthed()){ renderLogin(); return; }
   const app=$('#app'); app.innerHTML='';
   const T=consoleState.tab;
@@ -966,7 +974,7 @@ function renderConsole(){
     <div class="console-wrap"><div id="console-body" class="panel"></div></div>
     </div>`));
   app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ consoleState.tab=b.dataset.tab; renderConsole(); });
-  app.querySelector('[data-signout]').onclick=(e)=>{ e.preventDefault(); sessionStorage.removeItem(AUTH_KEY); location.hash='#/'; };
+  app.querySelector('[data-signout]').onclick=async(e)=>{ e.preventDefault(); sessionStorage.removeItem(AUTH_KEY); if(USE_SUPABASE){ try{ await DB.signOut(); }catch(_){}; sbSession=null; sbChecked=true; } location.hash='#/'; };
   loadConsoleData();
 }
 
