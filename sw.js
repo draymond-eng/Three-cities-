@@ -1,7 +1,7 @@
 /* Klepcake — service worker
    Network-first for the app shell (so updates land fast), cache fallback
    for offline. Bump CACHE when you ship a new version. */
-const CACHE = "klepcake-v11";
+const CACHE = "klepcake-v12";
 const ASSETS = [
   "./",
   "./index.html",

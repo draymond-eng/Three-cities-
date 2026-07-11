@@ -1001,6 +1001,7 @@ function allGoals(){
   return [cushion,...S.goals];
 }
 function renderGoals(){
+  applyAutoContribs();
   const el=$("goalsTab"); const all=allGoals();
   const totalSaved=all.reduce((t,g)=>t+(+g.saved||0),0);
   el.innerHTML=`
@@ -1013,7 +1014,9 @@ function renderGoals(){
     <div id="goalCards"></div>
     <button class="linkbtn" id="addGoal" style="margin:8px 2px 24px">＋ New goal</button>`;
   el.querySelector("#goalCards").innerHTML=all.map(g=>{
-    const saved=+g.saved||0, target=+g.target||0, pct=goalPct(saved,target), done=target>0&&saved>=target;
+    const saved=+g.saved||0, target=+g.target||0, pct=goalPct(saved,target), done=target>0&&saved>=target, auto=+g.auto||0;
+    const proj=goalProjection(g);
+    const autoLine=(!done && (auto>0||proj)) ? `<div class="qcap" style="margin-top:7px">${auto>0?`🔁 auto-adds <b>${money(auto)}</b>/mo`:""}${auto>0&&proj?" · ":""}${proj}</div>` : "";
     return `<div class="quest" style="margin-bottom:12px">
       <div class="qtop"><div class="qname">${g.emoji} ${g.name}${done?' <span class="ebadge" style="background:var(--good-soft);color:var(--good)">reached!</span>':''}</div>
         <div class="qval">${money(saved)} / ${money(target)}</div></div>
@@ -1024,7 +1027,7 @@ function renderGoals(){
           <button data-addfunds="${g.id}" style="padding:6px 12px;border:1px solid var(--line);border-radius:9px;font-size:12.5px;font-weight:700;background:var(--card);color:var(--ink)">＋ Add funds</button>
           ${g.fixed?'':`<button class="pdel" data-editgoal="${g.id}" style="color:var(--faint)">✎</button>`}
         </span>
-      </div></div>`;
+      </div>${autoLine}</div>`;
   }).join("");
   el.querySelectorAll("[data-addfunds]").forEach(b=>b.onclick=()=>addFunds(b.dataset.addfunds));
   el.querySelectorAll("[data-editgoal]").forEach(b=>b.onclick=()=>editGoal(b.dataset.editgoal));
@@ -1036,20 +1039,25 @@ function addFunds(id){
   openForm({title:"Add to “"+(g?g.name:"goal")+"”", fields:[{key:"amt",label:"Amount to add",type:"number",placeholder:"0.00"}],
     submit:"Add funds", onSubmit:v=>{ if(!v.amt||v.amt<=0){toast("Enter an amount");return false;}
       if(id==="cushion") S.settings.savings=(+S.settings.savings||0)+v.amt; else { const gg=S.goals.find(x=>x.id===id); if(gg) gg.saved=(+gg.saved||0)+v.amt; }
+      const wasBelow = id==="cushion"
+        ? ((+S.settings.savings||0)-v.amt) < (+S.settings.goal||0)
+        : (((S.goals.find(x=>x.id===id)||{}).saved||0)-v.amt) < ((S.goals.find(x=>x.id===id)||{}).target||0);
       save(); renderGoals(); render();
       const saved=id==="cushion"?(+S.settings.savings||0):((S.goals.find(x=>x.id===id)||{}).saved||0);
       const target=id==="cushion"?(+S.settings.goal||0):((S.goals.find(x=>x.id===id)||{}).target||0);
-      if(target>0&&saved>=target){ burst(); toast("🎉 Goal reached!"); }
+      if(target>0&&saved>=target&&wasBelow){ const gobj=id==="cushion"?{id:"cushion",name:"Emergency cushion",emoji:"🏦",target}:S.goals.find(x=>x.id===id); celebrateGoal(gobj); }
+      else toast("Added "+money(v.amt));
     }});
 }
 function newGoal(){
   openForm({title:"New savings goal", fields:[
     {key:"name",label:"What are you saving for?",type:"text",placeholder:"e.g. Family trip"},
     {key:"emoji",label:"Icon",type:"emoji",value:"🎯",options:GOAL_EMOJIS},
-    {key:"target",label:"Target amount",type:"number",value:1000}
+    {key:"target",label:"Target amount",type:"number",value:1000},
+    {key:"auto",label:"Auto-add each month (optional)",type:"number",value:0}
   ], submit:"Create goal", onSubmit:v=>{ if(!v.name){toast("Give it a name");return false;}
     const colors=["#38BDF8","#8267C9","#E8A22E","#C2547E","#16B091","#F4736A"];
-    S.goals.push({id:"g"+Date.now(),name:v.name,emoji:v.emoji||"🎯",target:v.target,saved:0,color:colors[S.goals.length%colors.length]});
+    S.goals.push({id:"g"+Date.now(),name:v.name,emoji:v.emoji||"🎯",target:v.target,saved:0,auto:v.auto||0,color:colors[S.goals.length%colors.length]});
     save(); renderGoals();
   }});
 }
@@ -1059,10 +1067,34 @@ function editGoal(id){
     {key:"name",label:"Goal name",type:"text",value:g.name},
     {key:"emoji",label:"Icon",type:"emoji",value:g.emoji,options:GOAL_EMOJIS},
     {key:"target",label:"Target amount",type:"number",value:g.target},
-    {key:"saved",label:"Saved so far",type:"number",value:g.saved}
+    {key:"saved",label:"Saved so far",type:"number",value:g.saved},
+    {key:"auto",label:"Auto-add each month (optional)",type:"number",value:g.auto||0}
   ], submit:"Save", danger:"Delete this goal",
-  onSubmit:v=>{ if(!v.name){toast("Give it a name");return false;} g.name=v.name; g.emoji=v.emoji||g.emoji; g.target=v.target; g.saved=v.saved; save(); renderGoals(); },
+  onSubmit:v=>{ if(!v.name){toast("Give it a name");return false;} g.name=v.name; g.emoji=v.emoji||g.emoji; g.target=v.target; g.saved=v.saved; g.auto=v.auto||0; save(); renderGoals(); },
   onDanger:()=>{ S.goals=S.goals.filter(x=>x.id!==id); save(); renderGoals(); }});
+}
+
+function celebrateGoal(g){
+  if(!g) return;
+  const bid="goal:"+(g.id||g.name);
+  if(!hasBadge(bid)) S.ritual.badges.push({id:bid,e:g.emoji||"🎯",t:(g.name||"Goal")+" reached"});
+  save();
+  showWelcome("Goal reached! 🎉", (g.emoji||"🎯")+" "+g.name+" — "+money(+g.target||0)+" saved together.", g.emoji||"🎉");
+}
+// mirror a monthly auto-contribution into each goal's balance, once per calendar month
+function applyAutoContribs(){
+  const m=monthKey(new Date());
+  if(!S.lastAutoMonth){ S.lastAutoMonth=m; return; }   // set a baseline the first time; start next month
+  if(S.lastAutoMonth===m) return;
+  let changed=false;
+  S.goals.forEach(g=>{ const a=+g.auto||0; if(a>0 && (+g.saved||0)<(+g.target||0)){ g.saved=Math.min(+g.target||0,(+g.saved||0)+a); changed=true; } });
+  S.lastAutoMonth=m; if(changed) save();
+}
+function goalProjection(g){
+  const saved=+g.saved||0, target=+g.target||0, auto=+g.auto||0;
+  if(auto<=0 || saved>=target) return "";
+  const mo=Math.ceil((target-saved)/auto); if(mo<1||mo>1200) return "";
+  return "on track for <b>"+monthLabel(addMonthKey(monthKey(new Date()),mo))+"</b>";
 }
 
 /* ---------- month-end sweep: roll over or allot leftovers to goals ---------- */
@@ -2388,6 +2420,7 @@ function renderSyncSheet(){
 }
 
 /* ---------- boot ---------- */
+applyAutoContribs();
 render();
 if(!S.setupDone) openOnboarding();
 cloudInit();
