@@ -232,6 +232,21 @@
   .minichip:hover{border-color:var(--rust)}
   .minichip.on{background:var(--rust);border-color:var(--rust);color:#fff}
   .minichip.mutual{background:var(--forest);border-color:var(--forest);color:#fff}
+  .rlinks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px}
+  .rsvp{font-size:10.5px;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:999px}
+  .rsvp.yes{background:#e7efdf;color:var(--good)}
+  .rsvp.no{background:#eee1de;color:#9a5040}
+  .rsvp.none{background:#efe7d6;color:var(--muted)}
+  .linkbtn{border:1px solid var(--line2);background:#fffefb;border-radius:8px;font-size:12px;font-weight:600;color:var(--ink2);padding:5px 10px;cursor:pointer}
+  .linkbtn:hover{border-color:var(--rust);color:var(--rust-d)}
+  .suggest-row{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:0 0 8px}
+  .suggest-row .srtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .suggest-row .pn{font-weight:600;font-size:14.5px}
+  .suggest-row .vs{color:var(--gold)}
+  .score{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .s-strong{background:#e7efdf;color:var(--forest-d)}
+  .s-promising{background:#f3e9d0;color:#8a6a24}
+  .s-worth{background:#efe7d6;color:var(--muted)}
 
   /* pairing */
   .match-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px 20px;margin:0 0 13px}
@@ -355,10 +370,10 @@ const DB = (() => {
         venue:'The Hideout, West Town', scheduled_at:new Date(Date.now()-6*86400e3).toISOString(),
         capacity:12, status:'happened', notes:'First Chicago cohort. Great energy, two clear sparks.',
         roster:[
-          {couple_id:a0.id, attended:true, likes:[a1.id]},
-          {couple_id:a1.id, attended:true, likes:[a0.id, a2.id]}, // a0<->a1 mutual
-          {couple_id:a2.id, attended:true, likes:[]},
-          {couple_id:a3.id, attended:true, likes:[]},
+          {couple_id:a0.id, attended:true, rsvp:'yes', likes:[a1.id]},
+          {couple_id:a1.id, attended:true, rsvp:'yes', likes:[a0.id, a2.id]}, // a0<->a1 mutual
+          {couple_id:a2.id, attended:true, rsvp:'yes', likes:[]},
+          {couple_id:a3.id, attended:true, rsvp:'yes', likes:[]},
         ]};
       const upcoming={ id:uid(), created_at:nowISO(), title:'Spring Supper Club — mixer no. 2',
         venue:'Kumiko, West Loop', scheduled_at:new Date(Date.now()+12*86400e3).toISOString(),
@@ -447,6 +462,8 @@ const TABLE_FLOW = ["proposed","confirmed","happened","matched"];
 function route(){
   const h = location.hash.replace(/^#\/?/,'');
   if(h.startsWith('console')) renderConsole();
+  else if(h.startsWith('invite/')) renderInvite(h.split('/').slice(1));
+  else if(h.startsWith('picks/')) renderPicks(h.split('/').slice(1));
   else renderDoor();
 }
 window.addEventListener('hashchange', route);
@@ -682,6 +699,109 @@ function drawDone(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+/* ============================================================ Compatibility engine (decision support, not auto-matching) ============================================================ */
+function inter(a,b){ const s=new Set(arr(b)); return arr(a).filter(x=>s.has(x)); }
+function compat(a,b){
+  let score=0; const reasons=[];
+  const ls=inter(a.life_stage,b.life_stage); if(ls.length){ score+=Math.min(ls.length,2)*17; reasons.push(`Both ${ls.slice(0,2).join(' & ').toLowerCase()}`); }
+  const ka=inter(a.kid_ages,b.kid_ages).filter(x=>x!=='No kids'&&x!=='Expecting'); if(ka.length){ score+=Math.min(ka.length,2)*14; reasons.push(`Kids around the same age (${ka.slice(0,2).join(', ')})`); }
+  if(a.neighborhood&&b.neighborhood&&a.neighborhood.trim().toLowerCase()===b.neighborhood.trim().toLowerCase()){ score+=16; reasons.push(`Both in ${a.neighborhood}`); }
+  const fs=inter(a.free_slots,b.free_slots); if(fs.length){ score+=Math.min(fs.length,3)*7; reasons.push(`Free ${fs.slice(0,2).join(' & ').toLowerCase()}`); }
+  if(a.hang_appetite&&a.hang_appetite===b.hang_appetite){ score+=12; reasons.push('Same pace'); }
+  if(a.bonds_by&&b.bonds_by&&(a.bonds_by===b.bonds_by||a.bonds_by==='both'||b.bonds_by==='both')){ score+=10; reasons.push(a.bonds_by===b.bonds_by?`Both bond by ${a.bonds_by}`:'Bond compatibly'); }
+  return { score:Math.min(100,Math.round(score)), reasons };
+}
+function suggestPairs(apps, limit=4){
+  const out=[];
+  for(let i=0;i<apps.length;i++) for(let j=i+1;j<apps.length;j++){ const c=compat(apps[i],apps[j]); if(c.score>0) out.push({a:apps[i],b:apps[j],...c}); }
+  return out.sort((x,y)=>y.score-x.score).slice(0,limit);
+}
+function compatTier(s){ return s>=55?'strong':s>=32?'promising':'worth'; }
+function tierLabel(t){ return t==='strong'?'strong match':t==='promising'?'promising':'worth a look'; }
+
+/* ============================================================ Public applicant pages (invite + post-mixer picks) ============================================================ */
+function publicShell(inner){
+  const app=$('#app'); app.innerHTML='';
+  app.appendChild(el(`<div class="wrap door">
+    <div class="door-top"><div class="brand"><div class="mono">${MARK_CREAM}</div>
+      <div class="wordmark">The Fourtop<small>Three Cities Social · Chicago</small></div></div></div>
+    <div id="pub-body"></div>
+    <div class="foot">A curated club for couples who want real couple friends.</div></div>`));
+  $('#pub-body').appendChild(inner);
+}
+function publicError(msg){ publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Hmm.</h2><p>${esc(msg)}</p><div style="margin-top:26px"><button class="btn ghost" onclick="location.hash='#/'">Go to The Fourtop</button></div></div>`)); }
+
+async function loadPublic(eventId){
+  const events=await DB.listEvents(); const apps=await DB.listApplications();
+  const ev=events.find(e=>e.id===eventId); return { ev, apps, nameOf:(id)=>{const a=apps.find(x=>x.id===id);return a?a.couple_name:'a couple';} };
+}
+async function renderInvite([eventId, coupleId]){
+  const {ev, apps} = await loadPublic(eventId);
+  const me=apps.find(a=>a.id===coupleId);
+  if(!ev||!me){ return publicError("We couldn't find that invitation. The link may have expired."); }
+  const roster=arr(ev.roster); let r=roster.find(x=>x.couple_id===coupleId);
+  const past = ev.status==='happened';
+  const doRSVP=async(val)=>{
+    if(!r){ r={couple_id:coupleId, attended:false, likes:[]}; roster.push(r); }
+    r.rsvp=val; await DB.updateEvent(ev.id,{roster});
+    if(val==='yes'){ const a=apps.find(x=>x.id===coupleId); if(a&&(a.status==='new'||a.status==='invited')) await DB.updateApplication(coupleId,{status:'invited'}); }
+    renderInvite([eventId,coupleId]);
+  };
+  const answered = r&&r.rsvp;
+  const body = el(`<div class="card">
+    <span class="kicker">${past?'A past evening':'You’re invited'}</span>
+    <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">${past?'That night has passed.':`A seat for you two, ${esc(me.partner1_name)} &amp; ${esc(me.partner2_name)}.`}</h1>
+    <div class="rule"></div>
+    <div class="kv"><div class="k">The evening</div><div class="v" style="font-family:var(--serif);font-size:20px">${esc(ev.title)}</div></div>
+    <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||'Venue to be shared'}</div></div>
+    <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
+    <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after — and we'll take it from there.</p>
+    <div id="rsvp-area" style="margin-top:22px"></div>
+  </div>`);
+  const area = body.querySelector('#rsvp-area');
+  if(past){ area.appendChild(el(`<div class="note" style="font-size:14px">This mixer has already happened. If you were there, you can <a href="#/picks/${eventId}/${coupleId}">tell us who you clicked with →</a></div>`)); }
+  else if(answered==='yes'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--good)">You're on the list. ✓</div><p class="note" style="margin-top:8px">We can't wait. We'll send the final details by text. Change of plans? <button class="link-btn" id="undo">Let us know</button></p></div>`)); area.querySelector('#undo').onclick=()=>doRSVP('no'); }
+  else if(answered==='no'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--muted)">No worries — maybe the next one.</div><p class="note" style="margin-top:8px">Changed your mind? <button class="link-btn" id="redo">We'd love to have you</button></p></div>`)); area.querySelector('#redo').onclick=()=>doRSVP('yes'); }
+  else { const wrap=el(`<div class="nav"><button class="btn ghost" id="rsvp-no" style="flex:1">Can't make it</button><button class="btn" id="rsvp-yes" style="flex:2">We'll be there →</button></div>`); area.appendChild(wrap); wrap.querySelector('#rsvp-yes').onclick=()=>doRSVP('yes'); wrap.querySelector('#rsvp-no').onclick=()=>doRSVP('no'); }
+  publicShell(body);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function renderPicks([eventId, coupleId]){
+  const {ev, apps} = await loadPublic(eventId);
+  const me=apps.find(a=>a.id===coupleId);
+  if(!ev||!me){ return publicError("We couldn't find that link. It may have expired."); }
+  const roster=arr(ev.roster); let r=roster.find(x=>x.couple_id===coupleId);
+  const others=roster.filter(x=>x.couple_id!==coupleId);
+  const picked=new Set(r?arr(r.likes):[]);
+  const body=el(`<div class="card">
+    <span class="kicker">${esc(ev.title)}</span>
+    <h1 style="font-size:29px;line-height:1.15;margin:12px 0 0">So — who did you two click with?</h1>
+    <p class="lede" style="font-size:15px;margin-top:14px">Tap any couple you'd genuinely want to see again. It's private — they only hear about it if the feeling's mutual. No pressure to pick anyone.</p>
+    <div class="rule"></div>
+    <div id="pick-list"></div>
+    <button class="btn block" id="submit-picks" style="margin-top:18px">Send our picks</button>
+    <div class="note" style="text-align:center">Only mutual matches ever get introduced.</div>
+  </div>`);
+  const list=body.querySelector('#pick-list');
+  if(!others.length){ list.appendChild(el(`<div class="note">You were the only couple on this roster. Nothing to pick yet.</div>`)); }
+  others.forEach(o=>{ const a=apps.find(x=>x.id===o.couple_id); if(!a) return;
+    const p=el(`<div class="pick ${picked.has(o.couple_id)?'on':''}" data-id="${o.couple_id}"><div class="box">✓</div><div><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||''}</div></div></div>`);
+    p.onclick=()=>{ picked.has(o.couple_id)?(picked.delete(o.couple_id),p.classList.remove('on')):(picked.add(o.couple_id),p.classList.add('on')); };
+    list.appendChild(p); });
+  body.querySelector('#submit-picks').onclick=async()=>{
+    if(!r){ r={couple_id:coupleId, attended:true, likes:[]}; roster.push(r); }
+    r.likes=[...picked]; r.attended=true; r.rsvp=r.rsvp||'yes';
+    await DB.updateEvent(ev.id,{roster});
+    const a=apps.find(x=>x.id===coupleId); if(a&&a.status!=='paired') await DB.updateApplication(coupleId,{status:'attended'});
+    publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Got it — thank you.</h2><p>We'll look for mutual sparks from the night. If a couple felt it both ways, we'll set the two of you a table and be in touch. ${picked.size?'':'And if nobody quite clicked this time, no worries — there’s always the next mixer.'}</p></div>`));
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  publicShell(body);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function linkFor(kind,eid,cid){ return location.origin+location.pathname+`#/${kind}/${eid}/${cid}`; }
+function copyLink(kind,eid,cid){ const url=linkFor(kind,eid,cid); navigator.clipboard&&navigator.clipboard.writeText(url).then(()=>toast('Link copied'),()=>toast(url)); if(!navigator.clipboard) toast('Copy: '+url); }
+
 /* ============================================================ Console ============================================================ */
 const AUTH_KEY='t4_admin_ok';
 const consoleState = { tab:'applications', apps:[], tables:[], events:[] };
@@ -870,9 +990,13 @@ function openEvent(id){
       <div class="likes-wrap"><div class="lbl">Clicked with — who they'd see again</div>
         <div class="chips">${others.map(o=>{ const mutual=(arr((roster.find(x=>x.couple_id===o.couple_id)||{}).likes).includes(r.couple_id)) && arr(r.likes).includes(o.couple_id);
           return `<div class="minichip ${arr(r.likes).includes(o.couple_id)?(mutual?'mutual on':'on'):''}" data-like="${o.couple_id}" data-from="${r.couple_id}">${esc(nameFor(o.couple_id))}${mutual?' ⇄':''}</div>`;}).join('')}</div></div>` : '';
+    const rsvpTag = r.rsvp==='yes'?'<span class="rsvp yes">Coming ✓</span>':r.rsvp==='no'?'<span class="rsvp no">Declined</span>':'<span class="rsvp none">No reply yet</span>';
     return `<div class="roster-row" data-cid="${r.couple_id}">
       <div class="top"><div class="pn">${esc(a.couple_name)} <span class="sub2">· ${esc(a.neighborhood)||''}</span></div>
         <div class="toggle ${r.attended?'on':''}" data-attend="${r.couple_id}"><span class="sw"></span><span>${r.attended?'Attended':'Mark attended'}</span></div></div>
+      <div class="rlinks">${rsvpTag}
+        <button class="linkbtn" data-copy="invite" data-cid="${r.couple_id}">⧉ Invite link</button>
+        ${ev.status==='happened'?`<button class="linkbtn" data-copy="picks" data-cid="${r.couple_id}">⧉ Picks link</button>`:''}</div>
       ${likeChips}</div>`;
   }).join('');
   const scrim=el(`<div class="scrim"><div class="drawer">
@@ -885,7 +1009,8 @@ function openEvent(id){
       ${ev.notes?`<div class="kv"><div class="k">Notes</div><div class="v">${esc(ev.notes)}</div></div>`:''}
       <div class="sect-title" style="display:flex;justify-content:space-between;align-items:center">Roster (${roster.length}) <button class="btn sm ghost" id="add_couples">+ Add couples</button></div>
       <div id="roster_list">${rosterRows||'<div class="sub2" style="padding:6px 0">No couples on the roster yet. Add a few to fill this mixer.</div>'}</div>
-      ${ev.status==='happened'?`<div class="sub2" style="margin-top:14px;line-height:1.5">Tip: toggle who attended, then tap the couples each one clicked with. Mutual picks (⇄) turn green and show up under <b>Pairing</b>.</div>`:''}
+      ${ev.status==='happened'?`<div class="sub2" style="margin-top:14px;line-height:1.5">Tip: mark who attended, or send each couple their <b>Picks link</b> to note who they clicked with themselves. Mutual picks (⇄) turn green and show up under <b>Pairing</b>.</div>`:`<div class="sub2" style="margin-top:14px;line-height:1.5">Send each couple their <b>Invite link</b> to RSVP. Then read the room below.</div>`}
+      ${suggestBlock(roster)}
     </div></div></div>`);
   document.body.appendChild(scrim);
   const close=()=>scrim.remove();
@@ -902,6 +1027,17 @@ function openEvent(id){
     likes.has(to)?likes.delete(to):likes.add(to); r.likes=[...likes];
     await DB.updateEvent(id,{roster}); await loadConsoleData(); close(); openEvent(id);
   });
+  scrim.querySelectorAll('[data-copy]').forEach(btn=>btn.onclick=()=>copyLink(btn.dataset.copy, id, btn.dataset.cid));
+}
+function suggestBlock(roster){
+  const apps=roster.map(r=>appById(r.couple_id)).filter(Boolean);
+  if(apps.length<2) return '';
+  const pairs=suggestPairs(apps,4);
+  if(!pairs.length) return '';
+  return `<div class="sect-title">Who might click — from their intakes</div>
+    <div class="sub2" style="margin:-6px 0 12px;line-height:1.5">A read from what they wrote, to help you work the room. Not a verdict — the night decides.</div>
+    ${pairs.map(p=>{const t=compatTier(p.score);return `<div class="suggest-row"><div class="srtop"><div class="pn">${esc(p.a.couple_name)} <span class="vs">·</span> ${esc(p.b.couple_name)}</div><div class="score s-${t}">${tierLabel(t)}</div></div>
+      <div class="sub2" style="margin-top:5px">${esc(p.reasons.slice(0,3).join(' · '))||'A few things in common'}</div></div>`;}).join('')}`;
 }
 function addCouplesToEvent(ev, onRoster){
   const candidates=consoleState.apps.filter(a=>!onRoster.has(a.id));
@@ -919,7 +1055,7 @@ function addCouplesToEvent(ev, onRoster){
   scrim.querySelector('#add_go').onclick=async()=>{
     if(!sel.size){ toast('Pick at least one couple'); return; }
     const roster=arr(ev.roster);
-    for(const cid of sel){ roster.push({couple_id:cid, attended:false, likes:[]}); const a=appById(cid); if(a&&a.status==='new') await DB.updateApplication(cid,{status:'invited'}); }
+    for(const cid of sel){ roster.push({couple_id:cid, attended:false, rsvp:null, likes:[]}); const a=appById(cid); if(a&&a.status==='new') await DB.updateApplication(cid,{status:'invited'}); }
     await DB.updateEvent(ev.id,{roster}); close(); toast('Added to the mixer'); await loadConsoleData(); openEvent(ev.id);
   };
 }
