@@ -1,83 +1,75 @@
-# Table for Four
+# The Fourtop
 
-A concierge app that pairs families with new family friends — for couples who
-find it hard to make another couple or parent friends. Built to the
-**Table for Four – Build Brief**, Steps 1–6.
+Chicago's curated club for couple friends — for couples who find it hard to
+make another couple or parent friends. A "four-top" is the restaurant term for
+a table of four: two couples, one table.
 
 **One file, no build step:** [`table-for-four.html`](./table-for-four.html).
-Open it in a browser or host it on GitHub Pages / any static host.
+Open it in a browser or host it on any static host.
 
-## What it does
+## The model — event first, then pair
 
-Two surfaces, exactly as the brief specifies — and deliberately **not** a
-matching algorithm. Dray is the algorithm for the first cohort: reads
-applications and seats tables by hand.
+Deliberately **not** a matching algorithm. The host is the matchmaker:
 
-### Public front door  (`#/`)
-A mobile-first, four-minute intake that a couple fills out on a shared phone.
-Collects every field in the `applications` schema:
+1. **Apply** — a couple fills out a short, premium intake (four minutes) on the
+   public front door. All couples welcome, kids optional.
+2. **Curated mixer** — they're invited to a hand-picked Chicago event with a
+   handful of vetted couples. Real chemistry, in person, low pressure — which
+   also kills flaking.
+3. **Flag who you clicked with** — after the night, each couple notes who they'd
+   see again. The app surfaces the **mutual** sparks.
+4. **The intro** — the host pairs mutual matches into a proper 1:1 hang and
+   shepherds it to a real friendship.
 
-- couple name, both partners' names, neighborhood
-- household / kids + age bands
-- hang appetite, free slots, whether they bond by *doing / talking / both*
-- each partner's posture slider (0 reserved → 100 expansive) and likes
-- the three open answers that actually drive the call:
-  **a couple they were once close with**, **what they're hoping for**,
-  **hard no's**
+Free to start — no payments.
 
-Submitting inserts one row into `applications` with `status = 'new'`.
+## Surfaces
 
-### Concierge console  (`#/console`) — private, Dray only
-Behind a magic-link gate keyed to `draymond@threecitiessocial.com`.
+### Public front door (`#/`)
+Tasteful splash ("Not that kind of couples club"), then a mobile-first intake
+capturing the full `applications` schema: couple & partner names, Chicago
+neighborhood, life stage, household, hang rhythm, per-partner temperament
+sliders and likes, and the three open answers that drive matching (a couple
+they were close with, what they're hoping for, hard no's).
 
-1. **Applications** — every application, newest first (couple, neighborhood,
-   status). Click one to read the full intake; the two open answers are given
-   room. Add private notes and change status (`new / seated / matched / passed`).
-2. **Seat a table** — pick 2–3 couples, set place, date/time, and format
-   (dinner / outing). Saving creates a `tables` row and flips those
-   applications to `seated`.
-3. **The board** — tables grouped `proposed → confirmed → happened →
-   matched / fizzled`. Advance status and add a note at each step — this is how
-   you run the follow-up cadence by hand. Marking a table **matched** flips its
-   couples to `matched`; **fizzled** releases still-seated couples back to `new`.
+### Concierge console (`#/console`) — private, host only
+Behind a magic-link gate keyed to the admin email.
+
+- **Applications** — every application, newest first; open one to read the full
+  intake, add notes, set status (`new / invited / attended / paired / passed`).
+- **Events** — create mixers (venue, date, capacity); manage each event's
+  roster, mark who attended, and tap who each couple clicked with. Mutual picks
+  are detected automatically (shown with a green ⇄).
+- **Pairing** — surfaces the mutual matches from each past mixer and turns them
+  into intros with one click.
+- **Board** — intros grouped `proposed → confirmed → happened →
+  matched / fizzled`, with a plan editor (place, date, format) and notes at
+  each step. This is how you run the follow-up cadence by hand.
 
 ## Data model
 
-Two tables, matching the brief exactly — no third table needed. Cadence and
-outcomes live as `tables.status` and `tables.notes`.
-
-**applications:** `id, created_at, couple_name, partner1_name, partner2_name,
-neighborhood, kids, kid_ages[], hang_appetite, free_slots[], bonds_by,
-partner1_posture, partner2_posture, partner1_likes, partner2_likes,
-past_couple, hoping_for, hard_no, status, notes`
-
-**tables:** `id, created_at, couple_ids[], place, scheduled_at, format,
-status, notes`
+- **applications** — one row per couple (names, neighborhood, life_stage[],
+  kids, kid_ages[], hang_appetite, free_slots[], bonds_by, partner postures &
+  likes, past_couple, hoping_for, hard_no, status, notes).
+- **events** — one row per mixer (title, venue, scheduled_at, capacity, status,
+  notes, and a `roster` of `{couple_id, attended, likes[]}`).
+- **tables** (intros) — one row per pairing (couple_ids[], event_id, place,
+  scheduled_at, format, status, notes).
 
 ## Backend
 
-The app ships with a **pluggable data layer**:
+Pluggable data layer:
 
-- **Default (localStorage):** works out of the box with no setup, and seeds
-  four realistic sample applications so the console has data immediately
-  (Step 4 of the brief). Great for demoing and testing the full flow.
-- **Supabase (the brief's stack):** open `table-for-four.html`, find the
-  config block near the top of the `<script>`, and paste your project URL and
-  anon key:
+- **Default (localStorage):** works out of the box, and seeds six Chicago
+  couples plus a past mixer with a real mutual pair so the console is alive on
+  first open.
+- **Supabase:** paste your project URL + anon key into the config block near the
+  top of the `<script>`. Every read/write then goes to your `applications`,
+  `events`, and `tables` tables, and console sign-in uses a real Supabase magic
+  link. The public front door only needs `INSERT` on `applications`; the console
+  needs an authenticated admin.
 
-  ```js
-  const SUPABASE_URL = "https://xxxx.supabase.co";
-  const SUPABASE_ANON_KEY = "your-anon-public-key";
-  ```
+## Out of scope (intentionally)
 
-  With both set, the app loads `supabase-js` and every read/write goes to your
-  `applications` / `tables` tables, and console sign-in uses a real Supabase
-  magic link. Create the two tables with Row Level Security per Step 1:
-  the public front door only needs `INSERT` on `applications`; the console
-  needs an authenticated admin (Dray's email) to read/write everything.
-
-## Out of scope (per the brief, intentionally not built)
-
-Matching algorithm / scoring / auto-pairing · public profiles / browsing /
-swiping · in-app messaging (follow-up happens over text) · payments /
-membership · the logged-in "couple status" page for applicants.
+Automated matching / scoring · public profiles / browsing / swiping · in-app
+messaging · payments / membership.
