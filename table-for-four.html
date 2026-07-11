@@ -279,6 +279,17 @@
   .fchip{background:#fbeee6;border:1px solid #e6d4c4;border-radius:9px;padding:6px 10px;font-size:12.5px;color:#8a5a3a;line-height:1.4}
   .mm-act{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
   .match-card.mm-blocked{opacity:.62}
+  .mb-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+  .mb-sizes{font-size:13px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .mb-size{border:1.5px solid var(--line2);background:#fffefb;width:34px;height:34px;border-radius:9px;font-weight:700;color:var(--ink)}
+  .mb-size.on{background:var(--forest);border-color:var(--forest);color:#fff}
+  .mb-size[disabled]{opacity:.35;cursor:not-allowed}
+  .mb-couples{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0 0 16px}
+  @media(max-width:460px){.mb-couples{grid-template-columns:1fr}}
+  .mb-couple{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .mb-couple .pn{font-weight:650;font-size:14.5px}
+  .mb-why{background:#faf3e6;border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+  .mb-why .lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
 
   /* board */
   .board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
@@ -477,16 +488,12 @@ const LIFE_STAGES = ["Kids at home","Expecting","Newly a couple","Married, no ki
 /* Specific interest tags (per partner). cat = broad category for reasoning; exact-tag overlap earns a bonus. */
 const TAGS = [
   {k:'golf',l:'Golf',e:'⛳',c:'sports'},{k:'biking',l:'Biking',e:'🚲',c:'outdoors'},{k:'running',l:'Running',e:'🏃',c:'outdoors'},
-  {k:'hiking',l:'Hiking',e:'🥾',c:'outdoors'},{k:'boating',l:'Boating',e:'⛵',c:'outdoors'},{k:'fishing',l:'Fishing',e:'🎣',c:'outdoors'},
-  {k:'skiing',l:'Skiing',e:'🎿',c:'sports'},{k:'tennis',l:'Tennis / pickleball',e:'🎾',c:'sports'},{k:'hoops',l:'Basketball',e:'🏀',c:'sports'},
-  {k:'gym',l:'Working out',e:'💪',c:'sports'},{k:'climbing',l:'Climbing',e:'🧗',c:'sports'},{k:'yoga',l:'Yoga',e:'🧘',c:'sports'},
-  {k:'cooking',l:'Cooking',e:'🍳',c:'cooking'},{k:'grilling',l:'Grilling',e:'🔥',c:'cooking'},{k:'dining',l:'Dining out',e:'🍽️',c:'cooking'},
-  {k:'wine',l:'Wine',e:'🍷',c:'drinks'},{k:'beer',l:'Craft beer',e:'🍺',c:'drinks'},{k:'cocktails',l:'Cocktails',e:'🍸',c:'drinks'},
-  {k:'music',l:'Live music',e:'🎶',c:'music'},{k:'art',l:'Art & museums',e:'🎨',c:'arts'},{k:'theater',l:'Theater',e:'🎭',c:'arts'},
-  {k:'movies',l:'Movies & TV',e:'🎬',c:'media'},{k:'reading',l:'Reading',e:'📚',c:'media'},{k:'games',l:'Board games',e:'🎲',c:'games'},
-  {k:'gaming',l:'Video games',e:'🎮',c:'games'},{k:'travel',l:'Travel',e:'✈️',c:'travel'},{k:'hosting',l:'Hosting',e:'🥂',c:'hosting'},
-  {k:'garden',l:'Gardening / DIY',e:'🌱',c:'home'},{k:'photo',l:'Photography',e:'📷',c:'arts'},{k:'thrift',l:'Thrifting',e:'🛍️',c:'arts'},
-  {k:'faith',l:'Faith & community',e:'⛪',c:'community'},{k:'volunteer',l:'Volunteering',e:'🤝',c:'community'},{k:'dogs',l:'Dogs / pets',e:'🐶',c:'pets'},
+  {k:'hiking',l:'Hiking',e:'🥾',c:'outdoors'},{k:'boating',l:'Boating',e:'⛵',c:'outdoors'},{k:'tennis',l:'Tennis / pickleball',e:'🎾',c:'sports'},
+  {k:'gym',l:'Working out',e:'💪',c:'sports'},{k:'cooking',l:'Cooking',e:'🍳',c:'cooking'},{k:'grilling',l:'Grilling',e:'🔥',c:'cooking'},
+  {k:'dining',l:'Dining out',e:'🍽️',c:'cooking'},{k:'wine',l:'Wine',e:'🍷',c:'drinks'},{k:'beer',l:'Craft beer',e:'🍺',c:'drinks'},
+  {k:'music',l:'Live music',e:'🎶',c:'music'},{k:'art',l:'Art & museums',e:'🎨',c:'arts'},{k:'movies',l:'Movies & TV',e:'🎬',c:'media'},
+  {k:'games',l:'Board games',e:'🎲',c:'games'},{k:'travel',l:'Travel',e:'✈️',c:'travel'},{k:'hosting',l:'Hosting',e:'🥂',c:'hosting'},
+  {k:'garden',l:'Gardening / DIY',e:'🌱',c:'home'},{k:'faith',l:'Faith & community',e:'⛪',c:'community'},{k:'dogs',l:'Dogs / pets',e:'🐶',c:'pets'},
 ];
 const TAG_BY = Object.fromEntries(TAGS.map(t=>[t.k,t]));
 function tagLabel(k){ return (TAG_BY[k]||{}).l||k; }
@@ -1068,8 +1075,9 @@ function openApplication(id){
 /* ---- Events (mixers) ---- */
 function drawEvents(){
   const body=$('#console-body'); const events=consoleState.events; body.innerHTML='';
-  body.appendChild(el(`<div class="panel-head"><h2>Events</h2><button class="btn sm" id="new_event">+ New mixer</button></div>`));
+  body.appendChild(el(`<div class="panel-head"><h2>Events</h2><div style="display:flex;gap:8px"><button class="btn sm gold" id="build_mixer">✨ Build me a mixer</button><button class="btn sm" id="new_event">+ New mixer</button></div></div>`));
   $('#new_event').onclick=openEventForm;
+  $('#build_mixer').onclick=openMixerBuilder;
   if(!events.length){ body.appendChild(el(`<div class="empty"><h3>No events yet</h3><p>Create a curated mixer, invite couples, and read the room afterward.</p></div>`)); return; }
   const grid=el(`<div class="grid-cards"></div>`);
   events.forEach(ev=>{
@@ -1283,6 +1291,66 @@ function drawMatchmaker(){
     }
     list.appendChild(card);
   });
+}
+/* Auto-compose the best mixer room: geographically coherent (no gated pairs), max chemistry */
+function roomAvg(ids){ let s=0,n=0; for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){ s+=compat(appById(ids[i]),appById(ids[j])).score; n++; } return n?s/n:0; }
+function composeMixers(pool, K){
+  K=Math.min(K,pool.length); const rooms=[]; const seen=new Set(); const seeds=[];
+  for(let i=0;i<pool.length;i++)for(let j=i+1;j<pool.length;j++){ const c=compat(pool[i],pool[j]); if(!c.blocked) seeds.push({x:pool[i].id,y:pool[j].id,s:c.score}); }
+  seeds.sort((a,b)=>b.s-a.s);
+  seeds.slice(0,10).forEach(seed=>{
+    const set=[seed.x,seed.y];
+    while(set.length<K){
+      let best=null,bestScore=-1;
+      pool.forEach(c=>{ if(set.includes(c.id))return; if(set.some(id=>compat(appById(id),c).blocked))return;
+        const add=set.reduce((sum,id)=>sum+compat(appById(id),c).score,0);
+        if(add>bestScore){ bestScore=add; best=c.id; } });
+      if(best===null) break; set.push(best);
+    }
+    if(set.length>=Math.min(K,3)){ const key=[...set].sort().join(','); if(!seen.has(key)){ seen.add(key); rooms.push({ids:set,score:Math.round(roomAvg(set))}); } }
+  });
+  return rooms.sort((a,b)=>b.score-a.score);
+}
+function roomHighlights(ids){
+  const out=[]; for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){ const c=compat(appById(ids[i]),appById(ids[j])); if(c.reasons[0]) out.push({s:c.score, txt:`${nameFor(ids[i])} & ${nameFor(ids[j])}: ${c.reasons[0].toLowerCase()}`}); }
+  return out.sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.txt);
+}
+function openMixerBuilder(){
+  const pool=consoleState.apps.filter(a=>a.status!=='paired'&&a.status!=='passed');
+  if(pool.length<3){ toast('Need at least 3 available couples to build a room'); return; }
+  let K=Math.min(4,pool.length), idx=0;
+  const scrim=el(`<div class="modal-scrim"><div class="modal"><div id="mb"></div></div></div>`);
+  document.body.appendChild(scrim);
+  const close=()=>scrim.remove(); scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  function render(){
+    const rooms=composeMixers(pool,K); const mb=scrim.querySelector('#mb');
+    if(!rooms.length){ mb.innerHTML=`<div class="modal-head"><h2>Build a mixer</h2></div><div class="modal-body"><div class="empty"><p>Couldn’t find a close-enough room. Try a smaller size.</p></div><div class="nav"><button class="btn ghost" data-cancel>Close</button></div></div>`; mb.querySelector('[data-cancel]').onclick=close; sizeWire(); return; }
+    const room=rooms[idx%rooms.length];
+    const tier=compatTier(room.score);
+    mb.innerHTML=`
+      <div class="modal-head"><h2>✨ Your mixer</h2><p>The best room I can build from your open applicants — close enough to keep it up, chosen for chemistry.</p></div>
+      <div class="modal-body">
+        <div class="mb-row"><div class="mb-sizes">Room size ${['3','4','5','6'].map(n=>`<button class="mb-size ${+n===K?'on':''}" data-size="${n}" ${+n>pool.length?'disabled':''}>${n}</button>`).join('')}</div>
+          <div class="mm-score s-${tier}" style="min-width:70px"><b>${room.score}</b><span>${tierLabel(tier)} room</span></div></div>
+        <div class="mb-couples">${room.ids.map(id=>{const a=appById(id);return `<div class="mb-couple"><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||'—'}</div></div>`;}).join('')}</div>
+        <div class="mb-why"><div class="lbl">Why this room works</div>${roomHighlights(room.ids).map(h=>`<div class="rchip" style="display:block;margin-bottom:6px">${esc(h)}</div>`).join('')}</div>
+        <div class="nav" style="margin-top:16px">
+          <button class="btn ghost" data-again>↻ Try another</button>
+          <button class="btn" data-create>Create this mixer →</button>
+        </div>
+        <div class="note" style="text-align:center">Option ${idx%rooms.length+1} of ${rooms.length} · you can tweak the roster after.</div>
+      </div>`;
+    sizeWire();
+    mb.querySelector('[data-again]').onclick=()=>{ idx++; render(); };
+    mb.querySelector('[data-create]').onclick=async()=>{
+      const ev=await DB.insertEvent({ title:'Curated mixer', venue:'', scheduled_at:null, capacity:K+2, status:'upcoming',
+        notes:'Auto-composed by the Matchmaker.', roster: room.ids.map(id=>({couple_id:id,attended:false,rsvp:null,likes:[]})) });
+      for(const id of room.ids){ const a=appById(id); if(a&&a.status==='new') await DB.updateApplication(id,{status:'invited'}); }
+      close(); toast('Mixer created — set the venue & date'); consoleState.tab='events'; await loadConsoleData(); openEvent(ev.id);
+    };
+    function sizeWire(){ mb.querySelectorAll('.mb-size').forEach(bn=>bn.onclick=()=>{ K=+bn.dataset.size; idx=0; render(); }); }
+  }
+  render();
 }
 async function createIntroDirect(x,y){
   const exists=consoleState.tables.find(t=>arr(t.couple_ids).includes(x)&&arr(t.couple_ids).includes(y));
