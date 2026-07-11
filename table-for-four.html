@@ -1609,7 +1609,7 @@ function seatTables(apps, perTable, avoid){
   const pen=(x,y)=> avoid && avoid.has(pairKey(x,y)) ? 45 : 0;
   const rem=apps.slice(); const tables=[];
   while(rem.length){
-    if(rem.length===1 && tables.length){ const c=rem.shift(); let bt=tables[0],bs=-1e9; tables.forEach(t=>{ const s=t.reduce((a,x)=>a+compat(x,c).score-pen(x,c),0); if(s>bs){bs=s;bt=t;} }); bt.push(c); break; }
+    if(rem.length===1){ const c=rem.shift(); if(tables.length){ let bt=tables[0],bs=-1e9; tables.forEach(t=>{ const s=t.reduce((a,x)=>a+compat(x,c).score-pen(x,c),0); if(s>bs){bs=s;bt=t;} }); bt.push(c); } else { tables.push([c]); } break; }
     let si=0,sj=1,best=-1e9;
     for(let i=0;i<rem.length;i++)for(let j=i+1;j<rem.length;j++){ const s=compat(rem[i],rem[j]).score-pen(rem[i],rem[j]); if(s>best){best=s;si=i;sj=j;} }
     const table=[rem[si],rem[sj]]; rem.splice(sj,1); rem.splice(si,1);
@@ -1652,7 +1652,7 @@ function runOfShow(startISO){
   const base=startISO?new Date(startISO):null;
   return steps.map(([m,t,d])=>({ clock: base?new Date(base.getTime()+m*60000):null, mins:m, title:t, desc:d }));
 }
-function fmtClock(dt){ return dt?dt.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):null; }
+function fmtClock(dt){ return (dt && !isNaN(dt.getTime()))?dt.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):null; }
 function tablesHTML(tables){
   return `<div class="rs-tables">${tables.map((t,i)=>{
     const chem=tableChem(t); const tier=compatTier(chem);
