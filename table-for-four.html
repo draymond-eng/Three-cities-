@@ -144,6 +144,13 @@
   .home-next,.home-idle,.home-refer{padding:2px 0}
   .home-intro{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;margin:0 0 10px}
   .home-intro .pn{font-weight:650;font-size:15.5px}
+  .countdown{display:inline-block;background:var(--forest);color:#f2eadc;font-family:var(--serif);font-size:15px;font-weight:600;padding:6px 16px;border-radius:999px;margin:2px 0 6px;letter-spacing:.02em}
+  .coming{margin-top:20px;background:#faf3e6;border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+  .coming .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .coming-row{font-family:var(--serif);font-size:16px;color:var(--ink);padding:5px 0;border-bottom:1px solid var(--line)}
+  .coming-row:last-of-type{border-bottom:none}
+  .coming-note{font-size:12px;color:var(--muted);margin-top:10px;font-style:italic}
+  .rate-row{display:flex;gap:9px;flex-wrap:wrap}
   .foot{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0 26px;line-height:1.7}
   .foot a{color:var(--muted);text-decoration:underline}
 
@@ -907,12 +914,29 @@ async function loadPublic(eventId){
   const events=await DB.listEvents(); const apps=await DB.listApplications();
   const ev=events.find(e=>e.id===eventId); return { ev, apps, nameOf:(id)=>{const a=apps.find(x=>x.id===id);return a?a.couple_name:'a couple';} };
 }
+/* anticipation + calendar helpers */
+function countdownText(iso){ if(!iso) return ''; const ms=new Date(iso)-new Date(); if(ms<0) return 'Happening now'; const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000); if(d>1) return 'In '+d+' days'; if(d===1) return 'Tomorrow night'; if(h>=1) return 'In '+h+' hours'; return 'Today'; }
+function coupleTeaser(a){ const hood=a.neighborhood?a.neighborhood.trim():''; const parents=arr(a.life_stage).includes('Kids at home')||arr(a.kid_ages).some(x=>x!=='No kids'&&x!=='Expecting');
+  const tag=[...(a.partner1_tags||[]),...(a.partner2_tags||[])][0];
+  let s=(parents?'Parents':'A couple')+(hood?' from '+hood:' in Chicago'); if(tag) s+=' who love '+tagLabel(tag).toLowerCase(); return s; }
+function comingTeasers(roster, apps, exclude){ return roster.filter(r=>r.couple_id!==exclude && r.rsvp!=='no').map(r=>apps.find(a=>a.id===r.couple_id)).filter(Boolean).slice(0,4).map(coupleTeaser); }
+function icsEsc(t){ return String(t||'').replace(/([,;\\])/g,'\\$1').replace(/\n/g,'\\n'); }
+function icsStamp(dt){ const p=n=>String(n).padStart(2,'0'); return dt.getUTCFullYear()+p(dt.getUTCMonth()+1)+p(dt.getUTCDate())+'T'+p(dt.getUTCHours())+p(dt.getUTCMinutes())+'00Z'; }
+function icsFor(o){ const start=new Date(o.start), end=new Date(start.getTime()+(o.mins||120)*60000);
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Kith Club//EN','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:'+uid()+'@kithclub','DTSTAMP:'+icsStamp(new Date()),'DTSTART:'+icsStamp(start),'DTEND:'+icsStamp(end),'SUMMARY:'+icsEsc(o.title),'LOCATION:'+icsEsc(o.venue||''),'DESCRIPTION:'+icsEsc(o.desc||''),'END:VEVENT','END:VCALENDAR'].join('\r\n'); }
+function downloadICS(name, content){ const blob=new Blob([content],{type:'text/calendar'}); const u=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),1500); }
+function addToCalBtn(o, label){ const b=el(`<button class="btn ghost block" style="margin-top:10px">${label||'Add to calendar'}</button>`); b.onclick=()=>downloadICS('kith-club.ics', icsFor(o)); return b; }
+
 async function renderInvite([eventId, coupleId]){
   const {ev, apps} = await loadPublic(eventId);
   const me=apps.find(a=>a.id===coupleId);
   if(!ev||!me){ return publicError("We couldn't find that invitation. The link may have expired."); }
   const roster=arr(ev.roster); let r=roster.find(x=>x.couple_id===coupleId);
   const past = ev.status==='happened';
+  const teasers=comingTeasers(roster, apps, coupleId);
+  const countdown=countdownText(ev.scheduled_at);
+  const cal={ title:'Kith Club: '+ev.title, venue:ev.venue||'Three Cities Social', start:ev.scheduled_at, mins:150, desc:'Your Kith Club supper. See you there.' };
+  const comingHtml = (!past&&teasers.length) ? `<div class="coming"><div class="lbl">Who's coming</div>${teasers.map(t=>`<div class="coming-row">${esc(t)}</div>`).join('')}<div class="coming-note">Names stay a mystery until you're across the table.</div></div>` : '';
   const doRSVP=async(val)=>{
     if(!r){ r={couple_id:coupleId, attended:false, likes:[]}; roster.push(r); }
     r.rsvp=val; await DB.updateEvent(ev.id,{roster});
@@ -924,15 +948,17 @@ async function renderInvite([eventId, coupleId]){
     <span class="kicker">${past?'A past evening':'You’re invited'}</span>
     <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">${past?'That night has passed.':`A seat for you two, ${esc(me.partner1_name)} &amp; ${esc(me.partner2_name)}.`}</h1>
     <div class="rule"></div>
+    ${(!past&&countdown)?`<div class="countdown">${esc(countdown)}</div>`:''}
     <div class="kv"><div class="k">The evening</div><div class="v" style="font-family:var(--serif);font-size:20px">${esc(ev.title)}</div></div>
     <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||'Details to come'}</div></div>
     <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
     <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after, and we'll take it from there.</p>
+    ${comingHtml}
     <div id="rsvp-area" style="margin-top:22px"></div>
   </div>`);
   const area = body.querySelector('#rsvp-area');
   if(past){ area.appendChild(el(`<div class="note" style="font-size:14px">This mixer has already happened. If you were there, you can <a href="#/picks/${eventId}/${coupleId}">tell us who you clicked with →</a></div>`)); }
-  else if(answered==='yes'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--good)">You're on the list. ✓</div><p class="note" style="margin-top:8px">We can't wait. We'll send the final details by text. Change of plans? <button class="link-btn" id="undo">Let us know</button></p></div>`)); area.querySelector('#undo').onclick=()=>doRSVP('no'); }
+  else if(answered==='yes'){ const box=el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:21px;color:var(--good)">You're confirmed.</div><p class="note" style="margin:8px 0 0">See you ${esc((countdown||'soon').toLowerCase())}. We'll send any final details by email.</p></div>`); area.appendChild(box); if(ev.scheduled_at) box.appendChild(addToCalBtn(cal)); box.appendChild(el(`<p class="note" style="margin-top:12px">Change of plans? <button class="link-btn" id="undo">Let us know</button></p>`)); area.querySelector('#undo').onclick=()=>doRSVP('no'); }
   else if(answered==='no'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--muted)">No worries. Maybe the next one.</div><p class="note" style="margin-top:8px">Changed your mind? <button class="link-btn" id="redo">We'd love to have you</button></p></div>`)); area.querySelector('#redo').onclick=()=>doRSVP('yes'); }
   else { const wrap=el(`<div class="nav"><button class="btn ghost" id="rsvp-no" style="flex:1">Can't make it</button><button class="btn" id="rsvp-yes" style="flex:2">We'll be there →</button></div>`); area.appendChild(wrap); wrap.querySelector('#rsvp-yes').onclick=()=>doRSVP('yes'); wrap.querySelector('#rsvp-no').onclick=()=>doRSVP('no'); }
   publicShell(body);
@@ -945,15 +971,21 @@ async function renderPicks([eventId, coupleId]){
   const roster=arr(ev.roster); let r=roster.find(x=>x.couple_id===coupleId);
   const others=roster.filter(x=>x.couple_id!==coupleId);
   const picked=new Set(r?arr(r.likes):[]);
+  let rating = r&&r.rating || '';
+  const RATES=[['loved','Loved it'],['good','Good night'],['meh','Not for us']];
   const body=el(`<div class="card">
     <span class="kicker">${esc(ev.title)}</span>
-    <h1 style="font-size:29px;line-height:1.15;margin:12px 0 0">So, who did you two click with?</h1>
-    <p class="lede" style="font-size:15px;margin-top:14px">Tap any couple you'd genuinely want to see again. It's private. They only hear if the feeling's mutual. No pressure to pick anyone.</p>
+    <h1 style="font-size:29px;line-height:1.15;margin:12px 0 0">How was the night?</h1>
+    <p class="lede" style="font-size:15px;margin-top:14px">A quick word for us, then the fun part: who you'd want to see again.</p>
+    <div class="field" style="margin-top:16px"><div class="rate-row" id="rate-row">${RATES.map(([v,t])=>`<div class="chip ${rating===v?'on':''}" data-rate="${v}">${t}</div>`).join('')}</div></div>
     <div class="rule"></div>
+    <h3 style="font-size:19px;margin:0 0 4px">Who did you two click with?</h3>
+    <p class="sub2" style="margin:0 0 14px">Tap any couple you'd want to see again. It's private. They only hear if it's mutual.</p>
     <div id="pick-list"></div>
     <button class="btn block" id="submit-picks" style="margin-top:18px">Send our picks</button>
     <div class="note" style="text-align:center">Only mutual matches ever get introduced.</div>
   </div>`);
+  body.querySelectorAll('#rate-row .chip').forEach(c=>c.onclick=()=>{ body.querySelectorAll('#rate-row .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); rating=c.dataset.rate; });
   const list=body.querySelector('#pick-list');
   if(!others.length){ list.appendChild(el(`<div class="note">You were the only couple on this roster. Nothing to pick yet.</div>`)); }
   others.forEach(o=>{ const a=apps.find(x=>x.id===o.couple_id); if(!a) return;
@@ -962,7 +994,7 @@ async function renderPicks([eventId, coupleId]){
     list.appendChild(p); });
   body.querySelector('#submit-picks').onclick=async()=>{
     if(!r){ r={couple_id:coupleId, attended:true, likes:[]}; roster.push(r); }
-    r.likes=[...picked]; r.attended=true; r.rsvp=r.rsvp||'yes';
+    r.likes=[...picked]; r.attended=true; r.rsvp=r.rsvp||'yes'; r.rating=rating;
     await DB.updateEvent(ev.id,{roster});
     const a=apps.find(x=>x.id===coupleId); if(a&&a.status!=='paired') await DB.updateApplication(coupleId,{status:'attended'});
     publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Got it. Thank you.</h2><p>We'll look for mutual sparks from the night. If a couple felt it both ways, we'll set the two of you a table and be in touch. ${picked.size?'':'And if nobody quite clicked this time, no worries, there’s always the next mixer.'}</p></div>`));
@@ -1003,6 +1035,7 @@ async function renderHome(token){
       <h3 style="margin:8px 0 0;font-size:22px">${esc(h.upcoming.title)}</h3>
       <div class="kv" style="margin-top:10px"><div class="k">When</div><div class="v">${esc(soon)}</div></div>
       <div class="kv"><div class="k">Where</div><div class="v">${h.upcoming.venue?esc(h.upcoming.venue):'Details to come'}</div></div>
+      ${h.upcoming.scheduled_at?`<div class="countdown" style="margin-top:8px">${esc(countdownText(h.upcoming.scheduled_at))}</div>`:''}
       <a class="btn block" style="margin-top:14px" href="#/invite/${esc(h.upcoming.event_id)}/${esc(h.upcoming.couple_id)}">RSVP →</a>
     </div>`;
   } else {
@@ -1229,10 +1262,11 @@ function openEvent(id){
         <div class="chips">${others.map(o=>{ const mutual=(arr((roster.find(x=>x.couple_id===o.couple_id)||{}).likes).includes(r.couple_id)) && arr(r.likes).includes(o.couple_id);
           return `<div class="minichip ${arr(r.likes).includes(o.couple_id)?(mutual?'mutual on':'on'):''}" data-like="${o.couple_id}" data-from="${r.couple_id}">${esc(nameFor(o.couple_id))}${mutual?' ⇄':''}</div>`;}).join('')}</div></div>` : '';
     const rsvpTag = r.rsvp==='yes'?'<span class="rsvp yes">Coming ✓</span>':r.rsvp==='no'?'<span class="rsvp no">Declined</span>':'<span class="rsvp none">No reply yet</span>';
+    const rateTag = r.rating?`<span class="rsvp ${r.rating==='meh'?'no':'yes'}">${({loved:'Loved it',good:'Good night',meh:'Not for us'})[r.rating]||r.rating}</span>`:'';
     return `<div class="roster-row" data-cid="${r.couple_id}">
       <div class="top"><div class="pn">${esc(a.couple_name)} <span class="sub2">· ${esc(a.neighborhood)||''}</span></div>
         <div class="toggle ${r.attended?'on':''}" data-attend="${r.couple_id}"><span class="sw"></span><span>${r.attended?'Attended':'Mark attended'}</span></div></div>
-      <div class="rlinks">${rsvpTag}
+      <div class="rlinks">${rsvpTag}${rateTag}
         <button class="linkbtn" data-copy="invite" data-cid="${r.couple_id}">⧉ Invite link</button>
         ${ev.status==='happened'?`<button class="linkbtn" data-copy="picks" data-cid="${r.couple_id}">⧉ Picks link</button>`:''}</div>
       ${likeChips}</div>`;
@@ -1498,6 +1532,7 @@ function tableCard(t){
   if(!isTerminal){ const f=el(`<button class="btn sm ghost">Fizzled</button>`); f.onclick=()=>advanceTable(t.id,'fizzled'); actions.appendChild(f); }
   const pl=el(`<button class="btn sm ghost">Plan</button>`); pl.onclick=()=>planTable(t); actions.appendChild(pl);
   if(arr(t.couple_ids).length===2){ const dr=el(`<button class="btn sm gold">✍ Intro text</button>`); dr.onclick=()=>draftIntro(t); actions.appendChild(dr); }
+  if(t.scheduled_at){ const cb=el(`<button class="btn sm ghost">Calendar</button>`); cb.onclick=()=>downloadICS('kith-club.ics', icsFor({title:'Kith Club: '+arr(t.couple_ids).map(nameFor).join(' + '), venue:t.place||'Three Cities Social', start:t.scheduled_at, mins:120, desc:'A Kith Club table.'})); actions.appendChild(cb); }
   const n=el(`<button class="btn sm ghost">＋ Note</button>`); n.onclick=()=>addTableNote(t); actions.appendChild(n);
   return card;
 }
