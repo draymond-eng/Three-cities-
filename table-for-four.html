@@ -487,7 +487,7 @@ const DB = (() => {
       // one past mixer with recorded attendance + likes (a mutual pair to demo Pairing)
       const [a0,a1,a2,a3]=apps; // Alvarez-Kims, Jordan&Priya, Osei, Sam&Theo
       const past={ id:uid(), created_at:nowISO(), title:'The Winter Table',
-        venue:'The Hideout, West Town', scheduled_at:new Date(Date.now()-6*86400e3).toISOString(),
+        venue:'Three Cities Social', scheduled_at:new Date(Date.now()-6*86400e3).toISOString(),
         capacity:12, status:'happened', notes:'First Chicago cohort. Great energy, two clear sparks.',
         roster:[
           {couple_id:a0.id, attended:true, rsvp:'yes', likes:[a1.id]},
@@ -496,7 +496,7 @@ const DB = (() => {
           {couple_id:a3.id, attended:true, rsvp:'yes', likes:[]},
         ]};
       const upcoming={ id:uid(), created_at:nowISO(), title:'Spring Supper Club, mixer no. 2',
-        venue:'Kumiko, West Loop', scheduled_at:new Date(Date.now()+12*86400e3).toISOString(),
+        venue:'Three Cities Social', scheduled_at:new Date(Date.now()+12*86400e3).toISOString(),
         capacity:12, status:'upcoming', notes:'', roster:[] };
       this._write(EKEY,[past,upcoming]);
       // reflect statuses: attendees -> attended
@@ -1054,7 +1054,7 @@ async function renderInvite([eventId, token]){
     <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||VENUE_NAME}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:2px">${esc(VENUE_LINE)} · your seat is the way in, no membership required</span></div></div>
     <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
     ${past?'':`<div class="kv"><div class="k">Your seats</div><div class="v">${esc(PRICE_LABEL)}${PRICE_TAG?` <span style="font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8c3f28;background:#f3e7d3;border:1px solid #e3caa0;padding:2px 8px;border-radius:999px;vertical-align:middle">${esc(PRICE_TAG)}</span>`:''}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:4px">includes ${esc(PRICE_INCLUDES)}</span></div></div>`}
-    <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room inside ${esc(ev.venue||VENUE_NAME)}, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after, and we'll take it from there.</p>
+    <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after, and we'll take it from there.</p>
     ${comingHtml}
     <div id="rsvp-area" style="margin-top:22px"></div>
   </div>`);
