@@ -105,6 +105,9 @@
   .chip:hover{border-color:var(--rust)}
   .chip.on{background:var(--rust);border-color:var(--rust);color:#fff}
   .chip.forest.on{background:var(--forest);border-color:var(--forest)}
+  .chips.tags{gap:7px}
+  .chip.tag{padding:7px 12px;font-size:13.5px;font-weight:600}
+  .chip.tag.on{background:var(--forest);border-color:var(--forest)}
   .slider-row{display:flex;align-items:center;gap:14px;margin-top:4px}
   .slider-row output{font-weight:700;color:var(--rust-d);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
   input[type=range]{-webkit-appearance:none;appearance:none;height:7px;border-radius:99px;flex:1;background:linear-gradient(90deg,var(--forest),var(--gold),var(--rust));cursor:pointer}
@@ -471,6 +474,23 @@ const SEED = [
 const SLOT_OPTIONS = ["Weekend afternoons","Sunday dinner","Friday evenings","Saturday nights","Weeknights after 7","Whenever, we're flexible"];
 const APPETITE_OPTIONS = ["Once a month feels right","Every couple of weeks","Whenever we can, honestly","Let's start slow and see"];
 const LIFE_STAGES = ["Kids at home","Expecting","Newly a couple","Married, no kids","Empty nesters","New to Chicago"];
+/* Specific interest tags (per partner). cat = broad category for reasoning; exact-tag overlap earns a bonus. */
+const TAGS = [
+  {k:'golf',l:'Golf',e:'⛳',c:'sports'},{k:'biking',l:'Biking',e:'🚲',c:'outdoors'},{k:'running',l:'Running',e:'🏃',c:'outdoors'},
+  {k:'hiking',l:'Hiking',e:'🥾',c:'outdoors'},{k:'boating',l:'Boating',e:'⛵',c:'outdoors'},{k:'fishing',l:'Fishing',e:'🎣',c:'outdoors'},
+  {k:'skiing',l:'Skiing',e:'🎿',c:'sports'},{k:'tennis',l:'Tennis / pickleball',e:'🎾',c:'sports'},{k:'hoops',l:'Basketball',e:'🏀',c:'sports'},
+  {k:'gym',l:'Working out',e:'💪',c:'sports'},{k:'climbing',l:'Climbing',e:'🧗',c:'sports'},{k:'yoga',l:'Yoga',e:'🧘',c:'sports'},
+  {k:'cooking',l:'Cooking',e:'🍳',c:'cooking'},{k:'grilling',l:'Grilling',e:'🔥',c:'cooking'},{k:'dining',l:'Dining out',e:'🍽️',c:'cooking'},
+  {k:'wine',l:'Wine',e:'🍷',c:'drinks'},{k:'beer',l:'Craft beer',e:'🍺',c:'drinks'},{k:'cocktails',l:'Cocktails',e:'🍸',c:'drinks'},
+  {k:'music',l:'Live music',e:'🎶',c:'music'},{k:'art',l:'Art & museums',e:'🎨',c:'arts'},{k:'theater',l:'Theater',e:'🎭',c:'arts'},
+  {k:'movies',l:'Movies & TV',e:'🎬',c:'media'},{k:'reading',l:'Reading',e:'📚',c:'media'},{k:'games',l:'Board games',e:'🎲',c:'games'},
+  {k:'gaming',l:'Video games',e:'🎮',c:'games'},{k:'travel',l:'Travel',e:'✈️',c:'travel'},{k:'hosting',l:'Hosting',e:'🥂',c:'hosting'},
+  {k:'garden',l:'Gardening / DIY',e:'🌱',c:'home'},{k:'photo',l:'Photography',e:'📷',c:'arts'},{k:'thrift',l:'Thrifting',e:'🛍️',c:'arts'},
+  {k:'faith',l:'Faith & community',e:'⛪',c:'community'},{k:'volunteer',l:'Volunteering',e:'🤝',c:'community'},{k:'dogs',l:'Dogs / pets',e:'🐶',c:'pets'},
+];
+const TAG_BY = Object.fromEntries(TAGS.map(t=>[t.k,t]));
+function tagLabel(k){ return (TAG_BY[k]||{}).l||k; }
+function tagCat(k){ return (TAG_BY[k]||{}).c||k; }
 const APP_STATUSES = ["new","invited","attended","paired","passed"];
 const TABLE_STATUSES = ["proposed","confirmed","happened","matched","fizzled"];
 const TABLE_FLOW = ["proposed","confirmed","happened","matched"];
@@ -510,7 +530,7 @@ const intake = { data:{}, step:0 };
 function renderDoor(){
   if(!sessionStorage.getItem(SPLASH_KEY)){ showSplash(renderDoor); return; }
   intake.step = 0;
-  intake.data = { partner1_posture:50, partner2_posture:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'' };
+  intake.data = { energy:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'', partner1_tags:[], partner2_tags:[] };
   const app = $('#app'); app.innerHTML = '';
   app.appendChild(el(`
     <div class="wrap door">
@@ -527,7 +547,7 @@ function renderDoor(){
   drawStep();
 }
 
-const STEPS = [drawIntro, drawWhoYouAre, drawYourLife, drawYourRhythm, drawThePairOfYou, drawOpenQuestions, drawReview];
+const STEPS = [drawIntro, drawWhoYouAre, drawYourLife, drawYourVibe, drawYourRhythm, drawOneQuestion, drawReview];
 const FORM_STEPS = 6;
 
 function drawStep(){ const b=$('#door-body'); b.innerHTML=''; STEPS[intake.step](); window.scrollTo({top:0,behavior:'smooth'}); }
@@ -545,7 +565,7 @@ function drawIntro(){
       <p class="lede">Making a real <em>couple</em> friend — another two people you both want to see on a Tuesday — is weirdly hard once you're grown. So we do the awkward part for you, the civilized way: over dinner, with couples worth meeting.</p>
       <div class="rule"></div>
       <div class="steps3">
-        <div class="s"><div class="n">I</div><div class="t"><b>Apply.</b> Tell us about the two of you and the friends you're hoping to find. About four minutes.</div></div>
+        <div class="s"><div class="n">I</div><div class="t"><b>Apply.</b> Tell us about the two of you and the friends you're hoping to find. About three minutes.</div></div>
         <div class="s"><div class="n">II</div><div class="t"><b>Come to a curated mixer.</b> A handful of vetted couples, a beautiful Chicago room, zero pressure. Just a good night out.</div></div>
         <div class="s"><div class="n">III</div><div class="t"><b>Tell us who you clicked with.</b> We privately pair the couples who felt it both ways into a proper hang. You just show up.</div></div>
       </div>
@@ -620,48 +640,44 @@ function drawYourRhythm(){
   wireNav(()=>{ if(!intake.data.hang_appetite){ toast('Pick how often feels good'); return false; } if(!intake.data.bonds_by){ toast('Doing, talking, or both?'); return false; } return true; });
 }
 
-function drawThePairOfYou(){
+function drawYourVibe(){
   const d=intake.data;
-  const slider=(who,val)=>`
-    <div class="field"><label>${who==1?esc(d.partner1_name||'First partner'):esc(d.partner2_name||'Second partner')} — with new people, they're…</label>
-      <div class="slider-row"><input type="range" min="0" max="100" value="${val}" id="f_post${who}" /><output id="o_post${who}">${val}</output></div>
-      <div class="scale-ends"><span>Reserved · slow to warm</span><span>Expansive · dives right in</span></div></div>`;
+  const grid=(who)=>`
+    <div class="field"><label>${who==1?esc(d.partner1_name||'First partner'):esc(d.partner2_name||'Second partner')} is into… <span class="hint">tap a few</span></label>
+      <div class="chips tags" id="tags${who}">${TAGS.map(t=>`<div class="chip tag ${(d['partner'+who+'_tags']||[]).includes(t.k)?'on':''}" data-tag="${t.k}" data-who="${who}">${t.e} ${esc(t.l)}</div>`).join('')}</div></div>`;
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
-      <div class="kicker rustk">The pair of you</div>
-      <h2>What are you each like?</h2>
-      <p class="sub">A couple is two people. We pair far better when we know both of you — no couple is a single temperature.</p>
-      ${slider(1,d.partner1_posture)}
-      ${slider(2,d.partner2_posture)}
-      <div class="two">
-        <div class="field"><label>${esc(d.partner1_name||'First partner')} is into…</label><input type="text" id="f_l1" value="${esc(d.partner1_likes||'')}" placeholder="e.g. trail runs, cooking, live music" /></div>
-        <div class="field"><label>${esc(d.partner2_name||'Second partner')} is into…</label><input type="text" id="f_l2" value="${esc(d.partner2_likes||'')}" placeholder="e.g. board games, pottery, IPAs" /></div>
-      </div>
+      <div class="kicker rustk">What lights you up</div>
+      <h2>What are you two into?</h2>
+      <p class="sub">Tap what each of you loves — golf, boating, cooking, whatever it is. This is how we find couples you'll actually click with, and yes, both of you count.</p>
+      ${grid(1)}
+      ${grid(2)}
+      <div class="field"><label>When you meet new people, you two are…</label>
+        <div class="chips" id="f_energy">${[['25','Slow to warm'],['50','Somewhere in between'],['80','Quick to dive in']].map(([v,t])=>`<div class="chip ${String(d.energy)===v?'on':''}" data-energy="${v}">${t}</div>`).join('')}</div></div>
       ${navButtons('Continue')}
     </div>`));
-  [1,2].forEach(w=>{ const r=$('#f_post'+w),o=$('#o_post'+w); r.oninput=()=>{ o.textContent=r.value; intake.data['partner'+w+'_posture']=+r.value; }; });
-  wireNav(()=>{ intake.data.partner1_likes=$('#f_l1').value.trim(); intake.data.partner2_likes=$('#f_l2').value.trim(); return true; });
+  [1,2].forEach(w=>$('#tags'+w).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ c.classList.toggle('on'); const key='partner'+w+'_tags'; const s=new Set(intake.data[key]||[]); c.classList.contains('on')?s.add(c.dataset.tag):s.delete(c.dataset.tag); intake.data[key]=[...s]; }));
+  $('#f_energy').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#f_energy').querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); intake.data.energy=+c.dataset.energy; });
+  wireNav(()=>{ if(!(intake.data.partner1_tags||[]).length&&!(intake.data.partner2_tags||[]).length){ toast('Tap a few things you’re into'); return false; } return true; });
 }
 
-function drawOpenQuestions(){
+function drawOneQuestion(){
   const d=intake.data;
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
-      <div class="kicker rustk">The real questions</div>
-      <h2>Now the good part.</h2>
-      <p class="sub">These are what we actually read to seat you well. Say more than you think you should.</p>
-      <div class="field"><label>Tell us about a couple you were once close with. <span class="hint">what was it like — and what happened?</span></label>
-        <textarea id="f_past" placeholder="The couple you did Sunday dinners with, the friends who moved away, the foursome that fell apart…">${esc(d.past_couple||'')}</textarea></div>
-      <div class="field"><label>What are you hoping to find? <span class="hint">paint the picture</span></label>
-        <textarea id="f_hope" placeholder="One family we can be unpolished around, a standing thing, another creative couple…">${esc(d.hoping_for||'')}</textarea></div>
-      <div class="field"><label>Any hard no's? <span class="hint">deal-breakers, no judgment</span></label>
-        <textarea id="f_no" placeholder="e.g. no super-early mornings, nothing flaky, no bar-only hangs…" style="min-height:80px">${esc(d.hard_no||'')}</textarea></div>
+      <div class="kicker rustk">The good part</div>
+      <h2>Last thing — in your words.</h2>
+      <p class="sub">This is the one bit Dray reads by hand. A few honest lines is all we need.</p>
+      <div class="field"><label>What are you hoping to find in another couple?</label>
+        <textarea id="f_hope" placeholder="One family we can be unpolished around, a standing Sunday thing, another couple who takes friendship as seriously as we do…">${esc(d.hoping_for||'')}</textarea></div>
+      <div class="field"><label>Anything that's a hard no? <span class="hint">optional</span></label>
+        <textarea id="f_no" placeholder="e.g. no super-early mornings, nothing flaky, no bar-only hangs…" style="min-height:72px">${esc(d.hard_no||'')}</textarea></div>
       ${navButtons('Review our application')}
     </div>`));
-  wireNav(()=>{ intake.data.past_couple=$('#f_past').value.trim(); intake.data.hoping_for=$('#f_hope').value.trim(); intake.data.hard_no=$('#f_no').value.trim();
-    if(!intake.data.past_couple){ toast('This one matters — give it a few lines'); return false; } return true; });
+  wireNav(()=>{ intake.data.hoping_for=$('#f_hope').value.trim(); intake.data.hard_no=$('#f_no').value.trim();
+    if(!intake.data.hoping_for){ toast('Give us a line or two here — it matters'); return false; } return true; });
 }
 
 function drawReview(){
@@ -679,9 +695,8 @@ function drawReview(){
         ${row('Life stage', d.life_stage.join(', '))}
         ${row('At home', d.kids + (d.kid_ages.length?`  ·  ${d.kid_ages.join(', ')}`:''))}
         ${row('Rhythm', [d.hang_appetite, d.free_slots.join(', '), d.bonds_by&&('bonds by '+d.bonds_by)].filter(Boolean).join('  ·  '))}
-        ${row('Temperaments', `${esc(d.partner1_name)}: ${d.partner1_posture}/100 · ${esc(d.partner2_name)}: ${d.partner2_posture}/100`)}
-        ${row('Into', [d.partner1_likes,d.partner2_likes].filter(Boolean).join('  ·  '))}
-        ${row('A couple you were close with', d.past_couple)}
+        ${row(esc(d.partner1_name||'Partner 1')+' is into', (d.partner1_tags||[]).map(tagLabel).join(', '))}
+        ${row(esc(d.partner2_name||'Partner 2')+' is into', (d.partner2_tags||[]).map(tagLabel).join(', '))}
         ${row('Hoping to find', d.hoping_for)}
         ${row("Hard no's", d.hard_no)}
       </dl>
@@ -697,9 +712,11 @@ function drawReview(){
 async function submitApplication(){
   const btn=$('#door-body [data-send]'); btn.disabled=true; btn.textContent='Sending…';
   const d=intake.data;
+  const p1t=d.partner1_tags||[], p2t=d.partner2_tags||[];
   const row={ couple_name:d.couple_name, partner1_name:d.partner1_name, partner2_name:d.partner2_name, neighborhood:d.neighborhood,
     life_stage:d.life_stage, kids:d.kids||'', kid_ages:d.kid_ages, hang_appetite:d.hang_appetite||'', free_slots:d.free_slots, bonds_by:d.bonds_by||'',
-    partner1_posture:d.partner1_posture, partner2_posture:d.partner2_posture, partner1_likes:d.partner1_likes||'', partner2_likes:d.partner2_likes||'',
+    partner1_posture:d.energy||50, partner2_posture:d.energy||50,
+    partner1_tags:p1t, partner2_tags:p2t, partner1_likes:p1t.map(tagLabel).join(', '), partner2_likes:p2t.map(tagLabel).join(', '),
     past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:'new' };
   try{ await DB.insertApplication(row); drawDone(); }
   catch(e){ console.error(e); toast('Something went wrong — try again'); btn.disabled=false; btn.textContent='Send our application'; }
@@ -755,16 +772,23 @@ const CATS = {
   community:['church','volunteer','community','faith'],
   hosting:['host','dinner party','entertain'],
 };
-const CAT_LABEL={outdoors:'the outdoors',cooking:'cooking',drinks:'good drinks',games:'games',music:'live music',arts:'arts & culture',sports:'sports',media:'shows & books',community:'community',hosting:'hosting'};
+const CAT_LABEL={outdoors:'the outdoors',cooking:'cooking',drinks:'good drinks',games:'games',music:'live music',arts:'arts & culture',sports:'sports',media:'shows & books',community:'community',hosting:'hosting',travel:'travel',home:'projects at home',pets:'their dogs'};
 function cats(text){ const t=(text||'').toLowerCase(); const out=new Set(); for(const c in CATS){ if(CATS[c].some(k=>t.includes(k))) out.add(c); } return out; }
+/* Per-partner interest categories — prefer tapped tags, fall back to free-text (seed data) */
+function tagsOf(app,which){ const t=app['partner'+which+'_tags']; return Array.isArray(t)?t:[]; }
+function catsOf(app,which){ const t=tagsOf(app,which); if(t.length) return new Set(t.map(tagCat)); return cats(app['partner'+which+'_likes']); }
 function hobbyScore(a,b){
-  const a1=cats(a.partner1_likes),a2=cats(a.partner2_likes),b1=cats(b.partner1_likes),b2=cats(b.partner2_likes);
+  const a1=catsOf(a,1),a2=catsOf(a,2),b1=catsOf(b,1),b2=catsOf(b,2);
   const ap=new Set([...a1,...a2]),bp=new Set([...b1,...b2]);
   const shared=[...ap].filter(x=>bp.has(x));
   let score=Math.min(shared.length,4)*4;
+  // exact specific-tag overlap is a stronger signal (two people who BOTH tapped 'golf')
+  const at=new Set([...tagsOf(a,1),...tagsOf(a,2)]), bt=new Set([...tagsOf(b,1),...tagsOf(b,2)]);
+  const exact=[...at].filter(x=>bt.has(x));
+  score+=Math.min(exact.length,3)*4;
   const both = [...a1].some(x=>bp.has(x))&&[...a2].some(x=>bp.has(x))&&[...b1].some(x=>ap.has(x))&&[...b2].some(x=>ap.has(x));
   if(both) score+=6;
-  return { score, shared, both };
+  return { score, shared, exact, both };
 }
 function hardNoFlags(a,b){
   const flags=[]; const barish=(x)=>{const c=cats(x.partner1_likes),d=cats(x.partner2_likes); return c.has('drinks')||d.has('drinks');};
@@ -796,9 +820,10 @@ function compat(a,b){
   if(ka.length){ score+=Math.min(ka.length,2)*13; reasons.push(`Kids the same age (${ka.slice(0,2).join(', ')})`); }
   if(arr(a.kid_ages).includes('Expecting')&&arr(b.kid_ages).includes('Expecting')){ score+=14; reasons.push('Both expecting — same season'); }
   if(arr(a.kid_ages).includes('No kids')&&arr(b.kid_ages).includes('No kids')){ score+=12; reasons.push('Both kid-free'); }
-  // Hobbies — both spouses
+  // Hobbies — both spouses; name the specific shared ones when we have them
   const h=hobbyScore(a,b); score+=h.score;
-  if(h.shared.length) reasons.push(`Share ${h.shared.slice(0,3).map(c=>CAT_LABEL[c]||c).join(', ')}`);
+  if(h.exact&&h.exact.length) reasons.push(`Both love ${h.exact.slice(0,3).map(k=>tagLabel(k).toLowerCase()).join(', ')}`);
+  else if(h.shared.length) reasons.push(`Share ${h.shared.slice(0,3).map(c=>CAT_LABEL[c]||c).join(', ')}`);
   if(h.both) reasons.push('Both partners find common ground');
   // Life stage
   const ls=inter(a.life_stage,b.life_stage); if(ls.length){ score+=Math.min(ls.length,2)*7; reasons.push(`Both ${ls.slice(0,2).join(' & ').toLowerCase()}`); }
@@ -1321,7 +1346,8 @@ function introReasons(a,b){
   else if(arr(a.kid_ages).includes('Expecting')&&arr(b.kid_ages).includes('Expecting')) out.push('you’re both about to be new parents');
   else if(arr(a.kid_ages).includes('No kids')&&arr(b.kid_ages).includes('No kids')) out.push('you’re both kid-free and up for adventures');
   const h=hobbyScore(a,b);
-  if(h.shared.length) out.push(`you all love ${joinList(h.shared.slice(0,2).map(x=>CAT_LABEL[x]||x))}`);
+  if(h.exact&&h.exact.length) out.push(`you all love ${joinList(h.exact.slice(0,2).map(k=>tagLabel(k).toLowerCase()))}`);
+  else if(h.shared.length) out.push(`you all love ${joinList(h.shared.slice(0,2).map(x=>CAT_LABEL[x]||x))}`);
   else if(h.both) out.push('both of you have plenty in common with both of them');
   if(out.length<3&&a.hang_appetite&&a.hang_appetite===b.hang_appetite) out.push('you want to hang at the same pace');
   return out.slice(0,3);
