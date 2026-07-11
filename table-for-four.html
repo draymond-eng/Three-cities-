@@ -3,265 +3,281 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#4a5a41" />
-<title>Table for Four</title>
+<meta name="theme-color" content="#26201a" />
+<title>Table for Four · Chicago</title>
 <style>
   :root{
-    --bg:#f6efe4;
-    --bg2:#efe5d5;
-    --card:#fffaf2;
-    --ink:#2b241d;
-    --muted:#8a7c68;
-    --line:#e4d8c4;
-    --line2:#d8c9b0;
-    --terra:#c4623f;
-    --terra-d:#a94f30;
-    --olive:#4a5a41;
-    --olive-d:#3a4733;
-    --gold:#d9a441;
-    --cream:#fffdf8;
+    --bg:#f4ede1;
+    --bg2:#ece2d1;
+    --paper:#fffdf8;
+    --ink:#241f19;
+    --ink2:#3b342b;
+    --muted:#8c7f6c;
+    --line:#e5dac6;
+    --line2:#d7c8ad;
+    --rust:#b3543a;
+    --rust-d:#8c3f28;
+    --forest:#33402f;
+    --forest-d:#26301f;
+    --gold:#c39a4e;
+    --gold-l:#e6c987;
     --good:#4a7a4f;
-    --warn:#b8863b;
-    --bad:#b1533a;
-    --shadow:0 12px 34px rgba(74,58,38,.14);
-    --shadow-sm:0 4px 14px rgba(74,58,38,.10);
+    --shadow:0 18px 46px rgba(48,38,24,.15);
+    --shadow-sm:0 6px 20px rgba(48,38,24,.10);
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
-    font-family:var(--sans);
-    color:var(--ink);
-    background:var(--bg);
-    background-image:radial-gradient(1100px 600px at 50% -8%,#fbf5ea 0%,var(--bg) 55%);
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
+    font-family:var(--sans);color:var(--ink);background:var(--bg);
+    background-image:radial-gradient(1200px 640px at 50% -10%,#faf4ea 0%,var(--bg) 58%);
+    min-height:100vh;-webkit-font-smoothing:antialiased;
   }
-  a{color:var(--terra-d)}
+  a{color:var(--rust-d)}
   button{font-family:inherit;cursor:pointer}
   .hidden{display:none !important}
   h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:.2px}
+  .wrap{max-width:660px;margin:0 auto;padding:0 20px}
+  .console-wrap{max-width:1060px;margin:0 auto;padding:0 20px}
 
-  /* ---------- Shell ---------- */
-  .wrap{max-width:640px;margin:0 auto;padding:0 18px}
-  .console-wrap{max-width:1000px;margin:0 auto;padding:0 18px}
+  /* monogram */
+  .mono{width:46px;height:46px;border-radius:13px;flex:none;position:relative;display:grid;place-items:center;
+    background:linear-gradient(155deg,var(--rust),var(--rust-d));box-shadow:var(--shadow-sm);color:#fdf3e6;
+    font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:1px}
+  .mono::after{content:"";position:absolute;inset:5px;border:1px solid rgba(255,244,228,.32);border-radius:9px}
 
-  /* ---------- Buttons ---------- */
-  .btn{
-    border:none;border-radius:14px;font-size:16px;font-weight:600;
-    padding:15px 22px;transition:transform .06s ease,filter .15s ease,background .15s;
-    background:var(--terra);color:#fff;box-shadow:var(--shadow-sm);
-  }
-  .btn:hover{filter:brightness(1.04)}
+  /* buttons */
+  .btn{border:none;border-radius:12px;font-size:16px;font-weight:600;padding:15px 24px;letter-spacing:.2px;
+    transition:transform .06s ease,filter .15s ease;background:var(--rust);color:#fff;box-shadow:var(--shadow-sm)}
+  .btn:hover{filter:brightness(1.05)}
   .btn:active{transform:translateY(1px)}
-  .btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+  .btn[disabled]{opacity:.4;cursor:not-allowed;filter:none}
   .btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:1.5px solid var(--line2)}
-  .btn.ghost:hover{background:#fff7ec}
-  .btn.olive{background:var(--olive)}
-  .btn.sm{padding:9px 15px;font-size:14px;border-radius:11px}
+  .btn.ghost:hover{background:#fbf5ea}
+  .btn.forest{background:var(--forest)}
+  .btn.gold{background:linear-gradient(155deg,var(--gold),#a8823c);color:#2a2113}
+  .btn.sm{padding:9px 15px;font-size:14px;border-radius:10px}
   .btn.block{display:block;width:100%}
 
-  /* ---------- Front door ---------- */
-  .door{padding:26px 0 60px}
-  .door-top{display:flex;align-items:center;gap:12px;padding:22px 0 8px}
-  .mark{
-    width:44px;height:44px;border-radius:12px;flex:none;position:relative;
-    background:linear-gradient(150deg,var(--terra),var(--terra-d));
-    box-shadow:var(--shadow-sm);
-  }
-  .mark::before,.mark::after{content:"";position:absolute;background:#fff8ee;border-radius:2px}
-  .mark::before{width:3px;height:16px;left:14px;top:14px;box-shadow:6px 0 0 #fff8ee,12px 0 0 #fff8ee}
-  .mark::after{width:26px;height:3px;left:9px;top:27px;opacity:.9}
-  .wordmark{font-family:var(--serif);font-size:19px;font-weight:600}
-  .wordmark small{display:block;font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:1px}
+  /* front door */
+  .door{padding:20px 0 64px}
+  .door-top{display:flex;align-items:center;justify-content:space-between;padding:22px 0 6px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .wordmark{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1}
+  .wordmark small{display:block;font-family:var(--sans);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:4px}
+  .door-top .city{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700}
 
-  .card{
-    background:var(--card);border:1px solid var(--line);border-radius:22px;
-    box-shadow:var(--shadow);padding:30px 26px;margin-top:18px;
-  }
-  .hero h1{font-size:33px;line-height:1.14;margin:6px 0 0}
-  .hero .lede{color:var(--muted);font-size:16px;line-height:1.55;margin:16px 0 0}
-  .hero .pill{display:inline-block;background:#f3e7d3;color:var(--olive-d);font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:999px}
-  .hero ul{list-style:none;padding:0;margin:22px 0 0}
-  .hero li{display:flex;gap:12px;align-items:flex-start;padding:9px 0;color:var(--ink);font-size:15.5px}
-  .hero li b{font-weight:600}
-  .tick{flex:none;width:22px;height:22px;border-radius:50%;background:#efe0c8;color:var(--terra-d);display:grid;place-items:center;font-size:13px;font-weight:800;margin-top:1px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:34px 30px;margin-top:20px}
+  .rule{height:1px;background:linear-gradient(90deg,transparent,var(--line2),transparent);margin:22px 0}
+  .kicker{font-size:11.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);}
+  .kicker.rustk{color:var(--rust-d)}
 
-  /* ---------- Steps / form ---------- */
-  .progress{display:flex;gap:6px;margin:2px 0 20px}
-  .progress i{flex:1;height:6px;border-radius:99px;background:var(--line2);transition:background .2s}
-  .progress i.on{background:var(--terra)}
-  .step-kicker{font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--terra-d)}
-  .step h2{font-size:25px;margin:6px 0 4px}
-  .step .sub{color:var(--muted);font-size:14.5px;line-height:1.5;margin:0 0 20px}
-  .field{margin:0 0 18px}
-  .field > label{display:block;font-weight:650;font-size:14.5px;margin:0 0 7px}
+  .hero h1{font-size:37px;line-height:1.1;margin:14px 0 0;letter-spacing:.1px}
+  .hero .lede{color:var(--ink2);font-size:16.5px;line-height:1.6;margin:18px 0 0}
+  .hero .lede em{color:var(--rust-d);font-style:italic}
+  .steps3{margin:26px 0 0;counter-reset:s}
+  .steps3 .s{display:flex;gap:15px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
+  .steps3 .s:first-child{border-top:none}
+  .steps3 .n{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);color:var(--rust-d);display:grid;place-items:center;font-family:var(--serif);font-size:15px;font-weight:600;margin-top:1px}
+  .steps3 .t{font-size:15.5px;line-height:1.5;color:var(--ink2)}
+  .steps3 .t b{color:var(--ink);font-weight:650}
+
+  /* form */
+  .progress{display:flex;gap:6px;margin:0 0 22px}
+  .progress i{flex:1;height:5px;border-radius:99px;background:var(--line2);transition:background .2s}
+  .progress i.on{background:var(--rust)}
+  .step h2{font-size:26px;margin:8px 0 4px}
+  .step .sub{color:var(--muted);font-size:14.5px;line-height:1.55;margin:0 0 22px}
+  .field{margin:0 0 19px}
+  .field > label{display:block;font-weight:650;font-size:14.5px;margin:0 0 8px}
   .field .hint{color:var(--muted);font-weight:400;font-size:13px;margin-left:2px}
-  input[type=text],input[type=email],input[type=datetime-local],textarea,select{
-    width:100%;border:1.5px solid var(--line2);background:#fffdf9;border-radius:12px;
-    padding:13px 14px;font-size:16px;font-family:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s;
-  }
-  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--terra);box-shadow:0 0 0 3px rgba(196,98,63,.14)}
-  textarea{min-height:104px;resize:vertical;line-height:1.5}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:460px){.two{grid-template-columns:1fr}}
-
+  input[type=text],input[type=email],input[type=datetime-local],input[type=number],textarea,select{
+    width:100%;border:1.5px solid var(--line2);background:#fffefb;border-radius:11px;padding:13px 14px;font-size:16px;font-family:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--rust);box-shadow:0 0 0 3px rgba(179,84,58,.14)}
+  textarea{min-height:106px;resize:vertical;line-height:1.55}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  @media(max-width:470px){.two{grid-template-columns:1fr}}
   .chips{display:flex;flex-wrap:wrap;gap:9px}
-  .chip{
-    border:1.5px solid var(--line2);background:#fffdf9;border-radius:999px;padding:10px 15px;
-    font-size:14.5px;font-weight:600;color:var(--ink);transition:all .12s;user-select:none;
-  }
-  .chip:hover{border-color:var(--terra)}
-  .chip.on{background:var(--terra);border-color:var(--terra);color:#fff}
-  .chip.olive.on{background:var(--olive);border-color:var(--olive)}
-
+  .chip{border:1.5px solid var(--line2);background:#fffefb;border-radius:999px;padding:10px 16px;font-size:14.5px;font-weight:600;color:var(--ink);transition:all .12s;user-select:none}
+  .chip:hover{border-color:var(--rust)}
+  .chip.on{background:var(--rust);border-color:var(--rust);color:#fff}
+  .chip.forest.on{background:var(--forest);border-color:var(--forest)}
   .slider-row{display:flex;align-items:center;gap:14px;margin-top:4px}
-  .slider-row output{font-weight:700;color:var(--terra-d);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
-  input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:99px;flex:1;
-    background:linear-gradient(90deg,var(--olive),var(--gold),var(--terra));cursor:pointer}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--terra);box-shadow:var(--shadow-sm)}
-  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--terra)}
+  .slider-row output{font-weight:700;color:var(--rust-d);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:7px;border-radius:99px;flex:1;background:linear-gradient(90deg,var(--forest),var(--gold),var(--rust));cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:25px;height:25px;border-radius:50%;background:#fff;border:3px solid var(--rust);box-shadow:var(--shadow-sm)}
+  input[type=range]::-moz-range-thumb{width:21px;height:21px;border-radius:50%;background:#fff;border:3px solid var(--rust)}
   .scale-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
-
-  .nav{display:flex;gap:12px;margin-top:8px}
+  .nav{display:flex;gap:12px;margin-top:6px}
   .nav .btn{flex:1}
-  .nav .btn.ghost{flex:0 0 auto;min-width:96px}
+  .nav .btn.ghost{flex:0 0 auto;min-width:92px}
 
   .review dl{margin:0}
-  .review .rrow{padding:12px 0;border-bottom:1px solid var(--line)}
+  .review .rrow{padding:13px 0;border-bottom:1px solid var(--line)}
   .review .rrow:last-child{border-bottom:none}
-  .review dt{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-  .review dd{margin:5px 0 0;font-size:15.5px;line-height:1.5;white-space:pre-wrap}
+  .review dt{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .review dd{margin:6px 0 0;font-size:15.5px;line-height:1.55;white-space:pre-wrap}
 
-  .done{text-align:center;padding:44px 26px}
-  .done .big{width:74px;height:74px;border-radius:50%;background:#e7efdf;color:var(--olive-d);display:grid;place-items:center;margin:0 auto 18px;font-size:36px}
-  .done h2{font-size:27px;margin:0 0 8px}
-  .done p{color:var(--muted);font-size:16px;line-height:1.55;margin:0 auto;max-width:420px}
-
-  .foot{text-align:center;color:var(--muted);font-size:12.5px;padding:26px 0 30px}
+  .done{text-align:center;padding:46px 28px}
+  .done .seal{width:78px;height:78px;border-radius:50%;border:1.5px solid var(--gold);color:var(--rust-d);display:grid;place-items:center;margin:0 auto 20px;font-size:34px;font-family:var(--serif)}
+  .done h2{font-size:28px;margin:0 0 10px}
+  .done p{color:var(--ink2);font-size:16px;line-height:1.6;margin:0 auto;max-width:440px}
+  .foot{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0 26px;line-height:1.7}
   .foot a{color:var(--muted);text-decoration:underline}
 
-  /* ---------- Console ---------- */
-  .cbar{background:var(--olive);color:#fff}
-  .cbar-in{max-width:1000px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;gap:14px;justify-content:space-between}
-  .cbar .brandc{display:flex;align-items:center;gap:11px;font-family:var(--serif);font-size:17px}
-  .cbar .markc{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.14);position:relative}
-  .cbar .markc::before{content:"";position:absolute;width:2.5px;height:12px;left:10px;top:10px;background:#fff;box-shadow:5px 0 0 #fff,10px 0 0 #fff;border-radius:2px}
-  .cbar .markc::after{content:"";position:absolute;width:20px;height:2.5px;left:6px;top:20px;background:#fff;border-radius:2px;opacity:.85}
-  .tabs{display:flex;gap:4px;background:rgba(0,0,0,.12);border-radius:12px;padding:4px}
-  .tabs button{background:transparent;border:none;color:#e8efe2;font-weight:650;font-size:14px;padding:8px 15px;border-radius:9px}
-  .tabs button.on{background:#fff;color:var(--olive-d)}
-  .cbar .who{font-size:12.5px;opacity:.85;display:flex;align-items:center;gap:10px}
+  /* splash */
+  .splash{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:radial-gradient(900px 560px at 50% 8%,#3c4a35 0%,#2a3323 55%,#20281b 100%);animation:sfade .35s ease}
+  @keyframes sfade{from{opacity:0}to{opacity:1}}
+  .splash-card{max-width:500px;width:100%;text-align:center;color:#f2eadc}
+  .splash .mono{margin:0 auto 24px;width:54px;height:54px}
+  .splash .kicker{color:var(--gold-l)}
+  .splash h1{font-family:var(--serif);font-size:40px;line-height:1.08;margin:16px 0 0;color:#fffdf8;font-weight:600}
+  .splash .thin{width:52px;height:1px;background:var(--gold);margin:22px auto 0;opacity:.7}
+  .splash .sub{color:#cdd2c1;font-size:16px;line-height:1.62;margin:22px auto 0;max-width:430px}
+  .splash .sub b{color:#f0e7d3;font-weight:600}
+  .splash .btn{margin-top:30px;padding:15px 40px}
+  .splash .fine{color:#939c86;font-size:12px;margin-top:18px;letter-spacing:.02em}
+  @media(max-width:470px){.splash h1{font-size:31px}}
+
+  /* console */
+  .cbar{background:var(--forest);color:#f2eadc;border-bottom:2px solid var(--gold)}
+  .cbar-in{max-width:1060px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}
+  .cbar .brandc{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-size:17px}
+  .cbar .monoc{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-family:var(--serif);font-size:14px;color:#fdf3e6;letter-spacing:1px}
+  .tabs{display:flex;gap:3px;background:rgba(0,0,0,.16);border-radius:12px;padding:4px}
+  .tabs button{background:transparent;border:none;color:#dfe6d5;font-weight:650;font-size:13.5px;padding:8px 15px;border-radius:9px}
+  .tabs button.on{background:#fffdf8;color:var(--forest-d)}
+  .cbar .who{font-size:12px;opacity:.85;display:flex;align-items:center;gap:10px}
   .cbar .who a{color:#fff}
 
-  .panel{margin-top:22px}
-  .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
-  .panel-head h2{font-size:22px;margin:0}
-  .panel-head .count{color:var(--muted);font-size:13.5px}
+  .panel{margin-top:24px;padding-bottom:60px}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .panel-head h2{font-size:23px;margin:0}
+  .panel-head .count{color:var(--muted);font-size:13px}
 
-  table.list{width:100%;border-collapse:collapse;background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
-  table.list th{text-align:left;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:13px 16px;border-bottom:1px solid var(--line);background:#fbf4e8}
+  table.list{width:100%;border-collapse:collapse;background:var(--paper);border-radius:15px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+  table.list th{text-align:left;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:13px 16px;border-bottom:1px solid var(--line);background:#faf3e6}
   table.list td{padding:14px 16px;border-bottom:1px solid var(--line);font-size:15px;vertical-align:middle}
   table.list tr:last-child td{border-bottom:none}
   table.list tbody tr{cursor:pointer;transition:background .1s}
-  table.list tbody tr:hover{background:#fbf4e8}
+  table.list tbody tr:hover{background:#faf3e6}
   .cn{font-weight:650}
   .sub2{color:var(--muted);font-size:12.5px}
 
-  .badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.04em;padding:4px 11px;border-radius:999px;text-transform:capitalize}
-  .b-new{background:#e7efdf;color:var(--olive-d)}
-  .b-seated{background:#f3e3cf;color:#8a5a24}
-  .b-matched{background:#e6ddef;color:#6b4a8a}
+  .badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 11px;border-radius:999px;text-transform:capitalize}
+  .b-new{background:#e7efdf;color:var(--forest-d)}
+  .b-invited{background:#e0ecf3;color:#2f6a8a}
+  .b-attended{background:#f3e9d0;color:#8a6a24}
+  .b-paired{background:#e6ddef;color:#6b4a8a}
   .b-passed{background:#eee3df;color:#8a5a4a}
-  .b-proposed{background:#eef1e9;color:var(--olive-d)}
+  .b-proposed{background:#eef1e9;color:var(--forest-d)}
   .b-confirmed{background:#e0ecf3;color:#2f6a8a}
-  .b-happened{background:#f3e9d3;color:#8a6a24}
+  .b-happened{background:#f3e9d0;color:#8a6a24}
   .b-fizzled{background:#eee1de;color:#9a5040}
+  .b-upcoming{background:#e0ecf3;color:#2f6a8a}
 
-  .empty{background:var(--card);border:1px dashed var(--line2);border-radius:18px;padding:44px 26px;text-align:center;color:var(--muted)}
+  .empty{background:var(--paper);border:1px dashed var(--line2);border-radius:18px;padding:46px 26px;text-align:center;color:var(--muted)}
   .empty h3{color:var(--ink);margin:0 0 6px;font-size:19px}
 
-  /* detail drawer */
-  .scrim{position:fixed;inset:0;background:rgba(43,36,29,.42);backdrop-filter:blur(2px);z-index:40;display:flex;justify-content:flex-end}
-  .drawer{width:min(560px,100%);background:var(--bg);height:100%;overflow-y:auto;box-shadow:-14px 0 40px rgba(0,0,0,.2);animation:slidein .22s ease}
+  .grid-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.grid-cards{grid-template-columns:1fr}}
+  .ecard{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px 20px;cursor:pointer;transition:transform .07s,box-shadow .15s}
+  .ecard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .ecard h3{margin:0;font-size:19px}
+  .ecard .meta{color:var(--muted);font-size:13.5px;margin:8px 0 0;line-height:1.5}
+  .ecard .rosterline{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+  .ecard .avstack{display:flex}
+  .ecard .av{width:26px;height:26px;border-radius:50%;background:var(--bg2);border:2px solid var(--paper);margin-left:-7px;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--rust-d)}
+  .ecard .av:first-child{margin-left:0}
+
+  /* drawer */
+  .scrim{position:fixed;inset:0;background:rgba(36,31,25,.44);backdrop-filter:blur(2px);z-index:40;display:flex;justify-content:flex-end}
+  .drawer{width:min(580px,100%);background:var(--bg);height:100%;overflow-y:auto;box-shadow:-14px 0 40px rgba(0,0,0,.22);animation:slidein .22s ease}
   @keyframes slidein{from{transform:translateX(30px);opacity:.4}to{transform:none;opacity:1}}
-  .drawer-head{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;z-index:2}
+  .drawer-head{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;z-index:2}
   .drawer-head h2{margin:0;font-size:21px}
   .x{border:none;background:#f0e6d5;width:36px;height:36px;border-radius:10px;font-size:18px;color:var(--ink)}
   .drawer-body{padding:22px}
-  .kv{margin:0 0 18px}
-  .kv .k{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .kv{margin:0 0 17px}
+  .kv .k{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
   .kv .v{margin-top:4px;font-size:15.5px;line-height:1.55;white-space:pre-wrap}
-  .open-answer{background:#fbf4e8;border:1px solid var(--line);border-left:4px solid var(--terra);border-radius:12px;padding:15px 16px;margin:0 0 16px}
-  .open-answer .k{color:var(--terra-d)}
+  .open-answer{background:#faf3e6;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:15px 16px;margin:0 0 14px}
+  .open-answer .k{color:var(--rust-d)}
   .posture{display:flex;align-items:center;gap:10px;margin-top:6px}
-  .posture .bar{flex:1;height:9px;border-radius:99px;background:var(--line2);position:relative;overflow:hidden}
-  .posture .bar span{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--olive),var(--terra));border-radius:99px}
-  .posture .num{font-variant-numeric:tabular-nums;font-weight:700;color:var(--terra-d);min-width:30px;text-align:right}
-  .sect-title{font-family:var(--serif);font-size:15px;color:var(--muted);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
-  .savebar{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:14px 22px;display:flex;gap:10px;align-items:center}
-  .savebar select{max-width:180px}
+  .posture .bar{flex:1;height:8px;border-radius:99px;background:var(--line2);position:relative;overflow:hidden}
+  .posture .bar span{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--forest),var(--rust));border-radius:99px}
+  .posture .num{font-variant-numeric:tabular-nums;font-weight:700;color:var(--rust-d);min-width:30px;text-align:right}
+  .sect-title{font-family:var(--serif);font-size:13px;color:var(--muted);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.09em;font-weight:700}
+  .savebar{position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--line);padding:14px 22px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .savebar select{max-width:170px}
   .saved-note{color:var(--good);font-size:13px;font-weight:600;opacity:0;transition:opacity .2s}
   .saved-note.show{opacity:1}
 
+  /* roster rows */
+  .roster-row{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin:0 0 10px}
+  .roster-row .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .roster-row .pn{font-weight:650;font-size:15px}
+  .toggle{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none}
+  .toggle .sw{width:40px;height:23px;border-radius:99px;background:var(--line2);position:relative;transition:background .15s}
+  .toggle .sw::after{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .toggle.on .sw{background:var(--good)}
+  .toggle.on .sw::after{left:19px}
+  .toggle.on{color:var(--good)}
+  .likes-wrap{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line2)}
+  .likes-wrap .lbl{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .minichip{border:1.5px solid var(--line2);background:#fffefb;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;transition:all .12s}
+  .minichip:hover{border-color:var(--rust)}
+  .minichip.on{background:var(--rust);border-color:var(--rust);color:#fff}
+  .minichip.mutual{background:var(--forest);border-color:var(--forest);color:#fff}
+
+  /* pairing */
+  .match-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px 20px;margin:0 0 13px}
+  .match-card .pairline{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-size:18px;font-weight:600;flex-wrap:wrap}
+  .match-card .vs{color:var(--gold);font-size:20px}
+  .match-card .mutual-tag{display:inline-block;background:#e7efdf;color:var(--forest-d);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-left:auto}
+  .match-card .why{color:var(--muted);font-size:13.5px;margin:10px 0 0;line-height:1.5}
+  .match-card .act{margin-top:14px}
+
   /* board */
   .board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
-  @media(max-width:900px){.board{grid-template-columns:1fr 1fr}}
-  @media(max-width:560px){.board{grid-template-columns:1fr}}
-  .col{background:var(--bg2);border-radius:16px;padding:6px}
-  .col > h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:10px 12px;display:flex;justify-content:space-between}
-  .tcard{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;margin:8px 4px;box-shadow:var(--shadow-sm)}
+  @media(max-width:940px){.board{grid-template-columns:1fr 1fr}}
+  @media(max-width:580px){.board{grid-template-columns:1fr}}
+  .col{background:var(--bg2);border-radius:15px;padding:6px}
+  .col > h3{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:11px 12px;display:flex;justify-content:space-between}
+  .tcard{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:14px;margin:8px 4px;box-shadow:var(--shadow-sm)}
   .tcard .couples{font-weight:650;font-size:15px;line-height:1.4}
   .tcard .plan{color:var(--muted);font-size:13px;margin:7px 0 0;line-height:1.5}
   .tcard .plan b{color:var(--ink);font-weight:600}
-  .tcard .tnote{background:#fbf4e8;border-radius:9px;padding:9px 11px;font-size:13px;margin:10px 0 0;line-height:1.5;white-space:pre-wrap}
+  .tcard .from{font-size:11.5px;color:var(--gold);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:8px}
+  .tcard .tnote{background:#faf3e6;border-radius:9px;padding:9px 11px;font-size:13px;margin:10px 0 0;line-height:1.5;white-space:pre-wrap}
   .tcard .actions{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
   .tcard .actions button{font-size:12.5px;padding:7px 11px;border-radius:9px}
 
-  .modal-scrim{position:fixed;inset:0;background:rgba(43,36,29,.42);z-index:50;display:grid;place-items:center;padding:18px}
-  .modal{background:var(--bg);border-radius:20px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
-  .modal-head{padding:20px 22px 0}
+  .modal-scrim{position:fixed;inset:0;background:rgba(36,31,25,.44);z-index:50;display:grid;place-items:center;padding:18px}
+  .modal{background:var(--bg);border-radius:20px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+  .modal-head{padding:22px 24px 0}
   .modal-head h2{margin:0;font-size:22px}
-  .modal-head p{color:var(--muted);font-size:14px;margin:6px 0 0}
-  .modal-body{padding:18px 22px 22px}
-  .pick{border:1.5px solid var(--line2);border-radius:12px;padding:12px 14px;margin:0 0 9px;display:flex;align-items:center;gap:12px;cursor:pointer;background:#fffdf9;transition:all .12s}
-  .pick:hover{border-color:var(--terra)}
-  .pick.on{border-color:var(--terra);background:#fdf1e9}
+  .modal-head p{color:var(--muted);font-size:14px;margin:6px 0 0;line-height:1.5}
+  .modal-body{padding:18px 24px 24px}
+  .pick{border:1.5px solid var(--line2);border-radius:12px;padding:12px 14px;margin:0 0 9px;display:flex;align-items:center;gap:12px;cursor:pointer;background:#fffefb;transition:all .12s}
+  .pick:hover{border-color:var(--rust)}
+  .pick.on{border-color:var(--rust);background:#fdf1e9}
   .pick .box{width:22px;height:22px;border-radius:7px;border:2px solid var(--line2);flex:none;display:grid;place-items:center;color:#fff;font-size:13px}
-  .pick.on .box{background:var(--terra);border-color:var(--terra)}
+  .pick.on .box{background:var(--rust);border-color:var(--rust)}
   .pick .pn{font-weight:600;font-size:15px}
 
-  /* login */
-  .login-wrap{max-width:420px;margin:0 auto;padding:70px 18px}
-  .login-card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:34px 28px;text-align:center}
-  .login-card .mark{margin:0 auto 16px}
-  .login-card h1{font-size:25px;margin:0 0 6px}
-  .login-card p{color:var(--muted);font-size:14.5px;line-height:1.5;margin:0 0 22px}
+  .login-wrap{max-width:430px;margin:0 auto;padding:76px 20px}
+  .login-card{background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:36px 30px;text-align:center}
+  .login-card .mono{margin:0 auto 18px}
+  .login-card h1{font-size:26px;margin:0 0 6px}
+  .login-card p{color:var(--muted);font-size:14.5px;line-height:1.55;margin:0 0 24px}
   .login-card .field{text-align:left}
-  .note{font-size:12.5px;color:var(--muted);margin-top:16px;line-height:1.5}
-  .link-btn{background:none;border:none;color:var(--terra-d);font-weight:600;text-decoration:underline;font-size:13px;padding:0}
+  .note{font-size:12.5px;color:var(--muted);margin-top:16px;line-height:1.55}
+  .link-btn{background:none;border:none;color:var(--rust-d);font-weight:600;text-decoration:underline;font-size:13px;padding:0}
 
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 20px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:80;box-shadow:var(--shadow)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:120;box-shadow:var(--shadow)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-  /* ---------- Not-for-swingers splash ---------- */
-  .splash{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:22px;
-    background:radial-gradient(1000px 600px at 50% -6%,#3f4d38 0%,#2c3527 60%,#232b1f 100%);
-    animation:sfade .3s ease}
-  @keyframes sfade{from{opacity:0}to{opacity:1}}
-  .splash-card{max-width:480px;width:100%;text-align:center;color:#f6efe4}
-  .splash .mark{width:58px;height:58px;border-radius:15px;margin:0 auto 22px}
-  .splash .kicker{font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#d9a441}
-  .splash h1{font-family:var(--serif);font-size:38px;line-height:1.1;margin:14px 0 0;color:#fffaf2}
-  .splash h1 .strike{position:relative;white-space:nowrap}
-  .splash h1 .strike::after{content:"";position:absolute;left:-4px;right:-4px;top:54%;height:5px;border-radius:4px;background:var(--terra);transform:rotate(-3deg)}
-  .splash .punch{font-family:var(--serif);font-size:23px;margin:20px 0 0;color:#f6efe4;line-height:1.35}
-  .splash .punch b{color:#f0c86a}
-  .splash .sub{color:#c7cdbb;font-size:15px;line-height:1.55;margin:18px auto 0;max-width:400px}
-  .splash .btn{margin-top:30px}
-  .splash .fine{color:#9aa38c;font-size:12.5px;margin-top:16px}
-  @media(max-width:460px){.splash h1{font-size:30px}.splash .punch{font-size:20px}}
 </style>
 </head>
 <body>
@@ -270,124 +286,147 @@
 
 <script>
 /* ============================================================
-   Table for Four — concierge build (Steps 1–6 of the brief)
-   Self-contained, no build step. Runs on static hosting.
+   Table for Four — Chicago  ·  curated club for couple friends
+   Model: apply → curated mixer → flag who you clicked with →
+          concierge pairs the mutual sparks into a 1:1 hang.
+   Self-contained, no build step, runs on static hosting.
 
-   DATA LAYER
-   ----------
-   Default: browser localStorage, so the app works out of the box
-   and the console has seed data immediately.
-
-   To use the real backend from the brief (Supabase / Postgres),
-   paste your project URL + anon key below. When both are set the
-   app loads supabase-js from CDN and every read/write goes to your
-   `applications` and `tables` tables instead of localStorage.
-   RLS from Step 1 still applies: the public front door only needs
-   INSERT on applications; the console needs an authenticated admin.
+   DATA LAYER — localStorage by default (seeds sample data so the
+   console is alive immediately). To use the real backend, paste a
+   Supabase URL + anon key below and every read/write goes there.
    ============================================================ */
-const SUPABASE_URL = "";      // e.g. "https://xxxx.supabase.co"
-const SUPABASE_ANON_KEY = "";  // your anon public key
-const ADMIN_EMAIL = "draymond@threecitiessocial.com"; // only this email reaches the console
-
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
+const ADMIN_EMAIL = "draymond@threecitiessocial.com";
 const USE_SUPABASE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-/* ---------- tiny helpers ---------- */
+/* helpers */
 const $ = (sel, root=document) => root.querySelector(sel);
 const el = (html) => { const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; };
 const esc = (s) => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => 'a'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
 const nowISO = () => new Date().toISOString();
+const initials = (name) => (name||'?').split(/[\s&]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2200); }
 function fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+function fmtDay(iso){ if(!iso) return 'no date set'; const d=new Date(iso); return d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}); }
 function timeAgo(iso){ const s=(Date.now()-new Date(iso).getTime())/1000; if(s<60)return'just now'; if(s<3600)return Math.floor(s/60)+'m ago'; if(s<86400)return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago'; }
 
-/* ============================================================
-   DB — abstracts localStorage vs Supabase behind one interface
-   ============================================================ */
+/* ============================================================ DB ============================================================ */
 const DB = (() => {
-  const AKEY='t4_applications', TKEY='t4_tables', SEEDED='t4_seeded_v1';
-
-  // ---- localStorage implementation ----
+  const AKEY='t4_applications', TKEY='t4_tables', EKEY='t4_events', SEEDED='t4_seeded_chi_v1';
   const ls = {
     _read(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ return []; } },
     _write(k,v){ localStorage.setItem(k, JSON.stringify(v)); },
     async listApplications(){ return this._read(AKEY).sort((a,b)=> b.created_at.localeCompare(a.created_at)); },
-    async insertApplication(row){ const r={...row,id:uid(),created_at:nowISO(),status:'new'}; const all=this._read(AKEY); all.push(r); this._write(AKEY,all); return r; },
+    async insertApplication(row){ const r={...row,id:uid(),created_at:nowISO(),status:row.status||'new'}; const all=this._read(AKEY); all.push(r); this._write(AKEY,all); return r; },
     async updateApplication(id,patch){ const all=this._read(AKEY); const i=all.findIndex(x=>x.id===id); if(i>=0){ all[i]={...all[i],...patch}; this._write(AKEY,all); return all[i]; } },
     async listTables(){ return this._read(TKEY).sort((a,b)=> b.created_at.localeCompare(a.created_at)); },
     async insertTable(row){ const r={...row,id:uid(),created_at:nowISO()}; const all=this._read(TKEY); all.push(r); this._write(TKEY,all); return r; },
     async updateTable(id,patch){ const all=this._read(TKEY); const i=all.findIndex(x=>x.id===id); if(i>=0){ all[i]={...all[i],...patch}; this._write(TKEY,all); return all[i]; } },
+    async listEvents(){ return this._read(EKEY).sort((a,b)=> (b.scheduled_at||'').localeCompare(a.scheduled_at||'')); },
+    async insertEvent(row){ const r={...row,id:uid(),created_at:nowISO(),roster:row.roster||[]}; const all=this._read(EKEY); all.push(r); this._write(EKEY,all); return r; },
+    async updateEvent(id,patch){ const all=this._read(EKEY); const i=all.findIndex(x=>x.id===id); if(i>=0){ all[i]={...all[i],...patch}; this._write(EKEY,all); return all[i]; } },
     seedIfEmpty(){
       if(localStorage.getItem(SEEDED)) return;
-      SEED.forEach((s,i)=>{ const all=this._read(AKEY); all.push({...s,id:uid(),created_at:new Date(Date.now()-(SEED.length-i)*3600e3*7).toISOString()}); this._write(AKEY,all); });
+      const apps=[];
+      SEED.forEach((s,i)=>{ apps.push({...s,id:uid(),created_at:new Date(Date.now()-(SEED.length-i)*3600e3*11).toISOString()}); });
+      this._write(AKEY,apps);
+      // one past mixer with recorded attendance + likes (a mutual pair to demo Pairing)
+      const [a0,a1,a2,a3]=apps; // Alvarez-Kims, Jordan&Priya, Osei, Sam&Theo
+      const past={ id:uid(), created_at:nowISO(), title:'The Winter Table — a curated mixer',
+        venue:'The Hideout, West Town', scheduled_at:new Date(Date.now()-6*86400e3).toISOString(),
+        capacity:12, status:'happened', notes:'First Chicago cohort. Great energy, two clear sparks.',
+        roster:[
+          {couple_id:a0.id, attended:true, likes:[a1.id]},
+          {couple_id:a1.id, attended:true, likes:[a0.id, a2.id]}, // a0<->a1 mutual
+          {couple_id:a2.id, attended:true, likes:[]},
+          {couple_id:a3.id, attended:true, likes:[]},
+        ]};
+      const upcoming={ id:uid(), created_at:nowISO(), title:'Spring Supper Club — mixer no. 2',
+        venue:'Kumiko, West Loop', scheduled_at:new Date(Date.now()+12*86400e3).toISOString(),
+        capacity:12, status:'upcoming', notes:'', roster:[] };
+      this._write(EKEY,[past,upcoming]);
+      // reflect statuses: attendees -> attended
+      apps.forEach(a=>{ if([a0.id,a1.id,a2.id,a3.id].includes(a.id)) a.status='attended'; });
+      this._write(AKEY,apps);
       localStorage.setItem(SEEDED,'1');
     }
   };
-
-  // ---- Supabase implementation ----
   let sb=null;
   const remote = {
     async _client(){ if(sb) return sb; await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js'); sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); return sb; },
-    async listApplications(){ const c=await this._client(); const {data,error}=await c.from('applications').select('*').order('created_at',{ascending:false}); if(error)throw error; return data; },
-    async insertApplication(row){ const c=await this._client(); const {data,error}=await c.from('applications').insert([row]).select().single(); if(error)throw error; return data; },
-    async updateApplication(id,patch){ const c=await this._client(); const {data,error}=await c.from('applications').update(patch).eq('id',id).select().single(); if(error)throw error; return data; },
-    async listTables(){ const c=await this._client(); const {data,error}=await c.from('tables').select('*').order('created_at',{ascending:false}); if(error)throw error; return data; },
-    async insertTable(row){ const c=await this._client(); const {data,error}=await c.from('tables').insert([row]).select().single(); if(error)throw error; return data; },
-    async updateTable(id,patch){ const c=await this._client(); const {data,error}=await c.from('tables').update(patch).eq('id',id).select().single(); if(error)throw error; return data; },
-    seedIfEmpty(){ /* seed by hand in Supabase for the real backend */ },
+    async _q(fn){ const c=await this._client(); const {data,error}=await fn(c); if(error)throw error; return data; },
+    async listApplications(){ return this._q(c=>c.from('applications').select('*').order('created_at',{ascending:false})); },
+    async insertApplication(row){ return this._q(c=>c.from('applications').insert([row]).select().single()); },
+    async updateApplication(id,patch){ return this._q(c=>c.from('applications').update(patch).eq('id',id).select().single()); },
+    async listTables(){ return this._q(c=>c.from('tables').select('*').order('created_at',{ascending:false})); },
+    async insertTable(row){ return this._q(c=>c.from('tables').insert([row]).select().single()); },
+    async updateTable(id,patch){ return this._q(c=>c.from('tables').update(patch).eq('id',id).select().single()); },
+    async listEvents(){ return this._q(c=>c.from('events').select('*').order('scheduled_at',{ascending:false})); },
+    async insertEvent(row){ return this._q(c=>c.from('events').insert([row]).select().single()); },
+    async updateEvent(id,patch){ return this._q(c=>c.from('events').update(patch).eq('id',id).select().single()); },
+    seedIfEmpty(){},
     async magicLink(email){ const c=await this._client(); return c.auth.signInWithOtp({email}); },
-    async session(){ const c=await this._client(); const {data}=await c.auth.getSession(); return data.session; }
   };
-
   return USE_SUPABASE ? remote : ls;
 })();
-
 function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
 
-/* ============================================================
-   Seed applications (Step 4 of brief — 4 fake couples so the
-   console has something to read before real couples exist)
-   ============================================================ */
+/* ============================================================ Seed (Chicago) ============================================================ */
 const SEED = [
-  { couple_name:"The Alvarez-Kims", partner1_name:"Mara", partner2_name:"Danny", neighborhood:"Cherokee Triangle",
-    kids:"Two — 4 and 7", kid_ages:["3-5","6-9"], hang_appetite:"Once a month feels right", free_slots:["Weekend afternoons","Sunday dinner"],
-    bonds_by:"both", partner1_posture:70, partner2_posture:45, partner1_likes:"Trail runs, cooking projects, live music", partner2_likes:"Board games, IPAs, fixing bikes",
-    past_couple:"We had another couple we did everything with before they moved to Denver. Sunday dinners, the kids grew up together. We haven't found that again and honestly miss it more than we say out loud.",
+  { couple_name:"The Alvarez-Kims", partner1_name:"Mara", partner2_name:"Danny", neighborhood:"Logan Square",
+    life_stage:["Kids at home"], kids:"Two — 4 and 7", kid_ages:["3-5","6-9"], hang_appetite:"Once a month feels right",
+    free_slots:["Weekend afternoons","Sunday dinner"], bonds_by:"both", partner1_posture:70, partner2_posture:45,
+    partner1_likes:"Trail runs on the 606, cooking projects, live music at Thalia Hall", partner2_likes:"Board games, Half Acre IPAs, fixing bikes",
+    past_couple:"We had another couple we did everything with before they moved to Denver. Sunday dinners, the kids grew up together. Haven't found that again and miss it more than we say out loud.",
     hoping_for:"One family we can be unpolished around — show up in sweatpants, split a pizza, let the kids melt down without anyone judging.",
-    hard_no:"Nothing that turns into a sales pitch or an MLM. And no super early mornings.", status:"new" },
-  { couple_name:"Jordan & Priya", partner1_name:"Jordan", partner2_name:"Priya", neighborhood:"Clifton",
-    kids:"One on the way (due Sept)", kid_ages:["Expecting"], hang_appetite:"Every couple of weeks", free_slots:["Friday evenings","Weekend afternoons"],
-    bonds_by:"talking", partner1_posture:85, partner2_posture:80, partner1_likes:"Long dinners, natural wine, politics we mostly agree on", partner2_likes:"Pottery, hiking, true crime podcasts",
-    past_couple:"Never really had a couple friend as a unit — our friends are mostly solo people we knew before each other. Now with a baby coming we realize we want another couple in the same season.",
+    hard_no:"Nothing that turns into a sales pitch. And no super-early mornings.", status:"new" },
+  { couple_name:"Jordan & Priya", partner1_name:"Jordan", partner2_name:"Priya", neighborhood:"Andersonville",
+    life_stage:["Expecting"], kids:"One on the way (due Sept)", kid_ages:["Expecting"], hang_appetite:"Every couple of weeks",
+    free_slots:["Friday evenings","Weekend afternoons"], bonds_by:"talking", partner1_posture:85, partner2_posture:80,
+    partner1_likes:"Long dinners, natural wine at Gilt Bar, politics we mostly agree on", partner2_likes:"Pottery, lakefront walks, true-crime podcasts",
+    past_couple:"Never really had a couple friend as a unit — our friends are mostly solo people we knew before each other. With a baby coming we want another couple in the same season.",
     hoping_for:"Another about-to-be or new-parent couple so we're all figuring it out together and no one's precious about it.",
     hard_no:"Not looking for a double-date-once-and-never-again thing. We want repeat.", status:"new" },
-  { couple_name:"The Osei Family", partner1_name:"Kwame", partner2_name:"Lena", neighborhood:"Germantown",
-    kids:"Three — 2, 5, 9", kid_ages:["0-2","3-5","6-9"], hang_appetite:"Whenever we can, honestly", free_slots:["Sunday dinner","Weekend afternoons","Weeknights after 7"],
-    bonds_by:"doing", partner1_posture:60, partner2_posture:55, partner1_likes:"Pickup basketball, grilling, church community", partner2_likes:"Gardening, big Sunday cooks, thrifting",
-    past_couple:"Our closest couple friends are our neighbors but they're empty-nesters, so the kids don't have counterparts. We want a family in the same chaos we're in.",
+  { couple_name:"The Osei Family", partner1_name:"Kwame", partner2_name:"Lena", neighborhood:"Hyde Park",
+    life_stage:["Kids at home"], kids:"Three — 2, 5, 9", kid_ages:["0-2","3-5","6-9"], hang_appetite:"Whenever we can, honestly",
+    free_slots:["Sunday dinner","Weekend afternoons","Weeknights after 7"], bonds_by:"doing", partner1_posture:60, partner2_posture:55,
+    partner1_likes:"Pickup basketball, grilling, church community", partner2_likes:"Gardening, big Sunday cooks, thrifting on 53rd",
+    past_couple:"Our closest couple friends are empty-nesters, so the kids don't have counterparts. We want a family in the same chaos we're in.",
     hoping_for:"A family with kids around our middle one's age. Somewhere the whole crew can go feral in a backyard while the adults actually talk.",
     hard_no:"No bar-only hangs. Our life is kids-first and we need friends who get that.", status:"new" },
-  { couple_name:"Sam & Theo", partner1_name:"Sam", partner2_name:"Theo", neighborhood:"NuLu",
-    kids:"No kids, two dogs", kid_ages:["No kids"], hang_appetite:"Once or twice a month", free_slots:["Friday evenings","Saturday nights"],
-    bonds_by:"both", partner1_posture:40, partner2_posture:75, partner1_likes:"Rock climbing, cooking, quiet nights in", partner2_likes:"Trivia, cocktails, hosting big loud dinners",
-    past_couple:"We had a tight foursome for years then a falling-out two years ago and it wrecked us. We've been gun-shy since. Trying to be brave again.",
-    hoping_for:"A low-stakes, no-drama couple where it's okay if we only click slowly. We're introverts on one side and not on the other, so patience matters.",
-    hard_no:"No pressure to be constantly available. And please, no gossip triangulation — that's what ended the last one.", status:"new" },
+  { couple_name:"Sam & Theo", partner1_name:"Sam", partner2_name:"Theo", neighborhood:"Wicker Park",
+    life_stage:["Married, no kids"], kids:"No kids, two dogs", kid_ages:["No kids"], hang_appetite:"Once or twice a month",
+    free_slots:["Friday evenings","Saturday nights"], bonds_by:"both", partner1_posture:40, partner2_posture:75,
+    partner1_likes:"Rock climbing at Movement, cooking, quiet nights in", partner2_likes:"Trivia, cocktails, hosting big loud dinners",
+    past_couple:"We had a tight foursome for years then a falling-out two years ago and it wrecked us. Been gun-shy since. Trying to be brave again.",
+    hoping_for:"A low-stakes, no-drama couple where it's okay if we click slowly. Introverts on one side and not on the other, so patience matters.",
+    hard_no:"No pressure to be constantly available. And no gossip triangulation — that's what ended the last one.", status:"new" },
+  { couple_name:"The Bianchis", partner1_name:"Gio", partner2_name:"Renata", neighborhood:"Oak Park",
+    life_stage:["Kids at home","New to Chicago"], kids:"Two — 6 and 8", kid_ages:["6-9"], hang_appetite:"Every couple of weeks",
+    free_slots:["Weekend afternoons","Sunday dinner"], bonds_by:"doing", partner1_posture:65, partner2_posture:60,
+    partner1_likes:"Cycling, woodworking, Italian cooking", partner2_likes:"Book club, museums, marathon training",
+    past_couple:"Left our whole village behind in Boston last year. In Boston we had three couples on speed-dial; here our phones are quiet and it's lonely.",
+    hoping_for:"A family near Oak Park or the near-west 'burbs to build a new village with. Standing weekend thing would be the dream.",
+    hard_no:"Nothing flaky — we're rebuilding a whole social life and can't do maybes.", status:"new" },
+  { couple_name:"Nia & Cole", partner1_name:"Nia", partner2_name:"Cole", neighborhood:"Pilsen",
+    life_stage:["Newly a couple"], kids:"No kids yet", kid_ages:["No kids"], hang_appetite:"Let's start slow and see",
+    free_slots:["Saturday nights","Weeknights after 7"], bonds_by:"talking", partner1_posture:55, partner2_posture:50,
+    partner1_likes:"Gallery openings, vintage shopping, tacos on 18th", partner2_likes:"Vinyl, pickup soccer, cooking Oaxacan food",
+    past_couple:"We're new as a couple and all our couple-friends are actually one person's friends. We want friends that are ours together, from scratch.",
+    hoping_for:"Another creative couple in their early 30s who takes friendship as seriously as we're trying to.",
+    hard_no:"No couples who only talk about their kids all night (love kids, but we're not there yet).", status:"new" },
 ];
 
-/* ============================================================
-   Front-door intake config
-   ============================================================ */
 const SLOT_OPTIONS = ["Weekend afternoons","Sunday dinner","Friday evenings","Saturday nights","Weeknights after 7","Whenever, we're flexible"];
 const APPETITE_OPTIONS = ["Once a month feels right","Every couple of weeks","Whenever we can, honestly","Let's start slow and see"];
-
-const APP_STATUSES = ["new","seated","matched","passed"];
+const LIFE_STAGES = ["Kids at home","Expecting","Newly a couple","Married, no kids","Empty nesters","New to Chicago"];
+const APP_STATUSES = ["new","invited","attended","paired","passed"];
 const TABLE_STATUSES = ["proposed","confirmed","happened","matched","fizzled"];
-const TABLE_FLOW = ["proposed","confirmed","happened","matched"]; // fizzled is a side exit
+const TABLE_FLOW = ["proposed","confirmed","happened","matched"];
 
-/* ============================================================
-   ROUTER
-   ============================================================ */
+/* ============================================================ Router ============================================================ */
 function route(){
   const h = location.hash.replace(/^#\/?/,'');
   if(h.startsWith('console')) renderConsole();
@@ -395,230 +434,153 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 
-/* ============================================================
-   FRONT DOOR  (Step 2)
-   ============================================================ */
-const intake = { data:{}, step:0 };
-
+/* ============================================================ Splash ============================================================ */
 const SPLASH_KEY='t4_splash_seen';
 function showSplash(onDone){
-  const app=$('#app');
-  app.innerHTML='';
+  const app=$('#app'); app.innerHTML='';
   const s=el(`
-    <div class="splash">
-      <div class="splash-card">
-        <div class="mark"></div>
-        <div class="kicker">Read this first · one second</div>
-        <h1>This is <span class="strike">not for swingers</span>, you freaks.</h1>
-        <p class="punch">It's for finding your new <b>couple friends</b> — the kind you actually like.</p>
-        <p class="sub">No swiping, no key bowls, no weird stuff. Just another family to split a pizza with, wrangle kids alongside, and text on a Tuesday. Pinky promise.</p>
-        <button class="btn" data-enter>Cool, we're normal — let's go →</button>
-        <div class="fine">By continuing you confirm you're here for friendship, not… the other thing.</div>
-      </div>
-    </div>`);
+    <div class="splash"><div class="splash-card">
+      <div class="mono">IV</div>
+      <div class="kicker">Table for Four · Chicago</div>
+      <h1>Not that kind of couples club.</h1>
+      <div class="thin"></div>
+      <p class="sub">No swiping. No key bowls. Just Chicago's most quietly excellent way to find the <b>couple friends you both actually like</b> — over a great dinner, with people worth meeting.</p>
+      <button class="btn gold" data-enter>Come in →</button>
+      <div class="fine">Strictly platonic. Wonderfully so.</div>
+    </div></div>`);
   app.appendChild(s);
   s.querySelector('[data-enter]').onclick=()=>{ sessionStorage.setItem(SPLASH_KEY,'1'); onDone(); };
 }
 
+/* ============================================================ Front door ============================================================ */
+const intake = { data:{}, step:0 };
+
 function renderDoor(){
   if(!sessionStorage.getItem(SPLASH_KEY)){ showSplash(renderDoor); return; }
-  intake.step = 0; intake.data = {
-    partner1_posture:50, partner2_posture:50, free_slots:[], kid_ages:[], bonds_by:''
-  };
-  const app = $('#app');
-  app.innerHTML = '';
+  intake.step = 0;
+  intake.data = { partner1_posture:50, partner2_posture:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'' };
+  const app = $('#app'); app.innerHTML = '';
   app.appendChild(el(`
     <div class="wrap door">
       <div class="door-top">
-        <div class="mark"></div>
-        <div class="wordmark">Table for Four<small>Three Cities Social</small></div>
+        <div class="brand"><div class="mono">IV</div>
+          <div class="wordmark">Table for Four<small>Three Cities Social</small></div></div>
+        <div class="city">Chicago</div>
       </div>
       <div id="door-body"></div>
       <div class="foot">
-        Made for couples who miss having <em>that</em> other family. &nbsp;·&nbsp;
-        <a href="#/console">Concierge sign-in</a>
+        A curated club for couples who want real couple friends.<br>
+        Chicago · by application &nbsp;·&nbsp; <a href="#/console">Concierge sign-in</a>
       </div>
-    </div>
-  `));
+    </div>`));
   drawStep();
 }
 
-const STEPS = [
-  drawIntro,        // 0
-  drawWhoYouAre,    // 1
-  drawYourLife,     // 2
-  drawYourRhythm,   // 3
-  drawThePairOfYou, // 4
-  drawOpenQuestions,// 5
-  drawReview,       // 6
-];
-const FORM_STEPS = 6; // steps 1..6 show a progress bar
+const STEPS = [drawIntro, drawWhoYouAre, drawYourLife, drawYourRhythm, drawThePairOfYou, drawOpenQuestions, drawReview];
+const FORM_STEPS = 6;
 
-function drawStep(){
-  const body = $('#door-body');
-  body.innerHTML = '';
-  STEPS[intake.step]();
-  window.scrollTo({top:0,behavior:'smooth'});
-}
+function drawStep(){ const b=$('#door-body'); b.innerHTML=''; STEPS[intake.step](); window.scrollTo({top:0,behavior:'smooth'}); }
 function goNext(){ if(intake.step<STEPS.length-1){ intake.step++; drawStep(); } }
 function goBack(){ if(intake.step>0){ intake.step--; drawStep(); } }
+function progressBar(){ let s=''; for(let i=1;i<=FORM_STEPS;i++) s+=`<i class="${i<=intake.step?'on':''}"></i>`; return `<div class="progress">${s}</div>`; }
+function navButtons(nextLabel){ return `<div class="nav">${intake.step>1?'<button class="btn ghost" data-back>Back</button>':''}<button class="btn" data-next>${nextLabel||'Continue'}</button></div>`; }
+function wireNav(validate){ const b=$('#door-body'); const back=b.querySelector('[data-back]'); if(back) back.onclick=goBack; const next=b.querySelector('[data-next]'); if(next) next.onclick=()=>{ if(!validate||validate()) goNext(); }; }
 
-function progressBar(){
-  let s=''; for(let i=1;i<=FORM_STEPS;i++){ s+=`<i class="${i<=intake.step?'on':''}"></i>`; }
-  return `<div class="progress">${s}</div>`;
-}
-function navButtons(nextLabel, canNext=true){
-  return `<div class="nav">
-    ${intake.step>1?'<button class="btn ghost" data-back>Back</button>':''}
-    <button class="btn" data-next ${canNext?'':'disabled'}>${nextLabel||'Continue'}</button>
-  </div>`;
-}
-function wireNav(validate){
-  const b=$('#door-body');
-  const back=b.querySelector('[data-back]'); if(back) back.onclick=goBack;
-  const next=b.querySelector('[data-next]');
-  if(next) next.onclick=()=>{ if(!validate||validate()) goNext(); };
-}
-
-/* Step 0 — intro */
 function drawIntro(){
   $('#door-body').appendChild(el(`
     <div class="card hero">
-      <span class="pill">Louisville · by hand, for now</span>
-      <h1>Find the other family your family's been missing.</h1>
-      <p class="lede">Making a real <em>couple</em> friend — another set of parents you actually want to see on a Tuesday — is weirdly hard as an adult. Table for Four does the awkward part for you.</p>
-      <ul>
-        <li><span class="tick">1</span><span>Tell us about the two of you and the family you're hoping to find. Takes about four minutes.</span></li>
-        <li><span class="tick">2</span><span>A real person (hi, it's Dray) reads every application by hand — no algorithm, no swiping.</span></li>
-        <li><span class="tick">3</span><span>When there's a family worth meeting, we set the table: a dinner or an outing. You just show up.</span></li>
-      </ul>
-      <div style="margin-top:26px">
-        <button class="btn block" data-next>Start our application</button>
+      <span class="kicker">Chicago · by application</span>
+      <h1>The couple friends you didn't think you'd find as adults.</h1>
+      <p class="lede">Making a real <em>couple</em> friend — another two people you both want to see on a Tuesday — is weirdly hard once you're grown. So we do the awkward part for you, the civilized way: over dinner, with couples worth meeting.</p>
+      <div class="rule"></div>
+      <div class="steps3">
+        <div class="s"><div class="n">I</div><div class="t"><b>Apply.</b> Tell us about the two of you and the friends you're hoping to find. About four minutes.</div></div>
+        <div class="s"><div class="n">II</div><div class="t"><b>Come to a curated mixer.</b> A handful of vetted couples, a beautiful Chicago room, zero pressure. Just a good night out.</div></div>
+        <div class="s"><div class="n">III</div><div class="t"><b>Tell us who you clicked with.</b> We privately pair the couples who felt it both ways into a proper hang. You just show up.</div></div>
       </div>
-    </div>
-  `));
+      <div style="margin-top:28px"><button class="btn block" data-next>Apply to join</button></div>
+    </div>`));
   $('#door-body [data-next]').onclick=goNext;
 }
 
-/* Step 1 — who you are */
 function drawWhoYouAre(){
   const d=intake.data;
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
-      <div class="step-kicker">The two of you</div>
+      <div class="kicker rustk">The two of you</div>
       <h2>Who's applying?</h2>
       <p class="sub">The couple looking for another couple. However you'd introduce yourselves is perfect.</p>
-      <div class="field">
-        <label>What should we call you as a couple? <span class="hint">e.g. "The Alvarez-Kims" or "Sam & Theo"</span></label>
-        <input type="text" id="f_couple" value="${esc(d.couple_name||'')}" placeholder="Your couple name" />
-      </div>
+      <div class="field"><label>What should we call you as a couple? <span class="hint">e.g. "The Alvarez-Kims" or "Sam & Theo"</span></label>
+        <input type="text" id="f_couple" value="${esc(d.couple_name||'')}" placeholder="Your couple name" /></div>
       <div class="two">
-        <div class="field"><label>First partner's name</label><input type="text" id="f_p1" value="${esc(d.partner1_name||'')}" placeholder="Name" /></div>
-        <div class="field"><label>Second partner's name</label><input type="text" id="f_p2" value="${esc(d.partner2_name||'')}" placeholder="Name" /></div>
+        <div class="field"><label>First partner</label><input type="text" id="f_p1" value="${esc(d.partner1_name||'')}" placeholder="Name" /></div>
+        <div class="field"><label>Second partner</label><input type="text" id="f_p2" value="${esc(d.partner2_name||'')}" placeholder="Name" /></div>
       </div>
-      <div class="field">
-        <label>Which neighborhood are you in? <span class="hint">helps us keep tables close</span></label>
-        <input type="text" id="f_hood" value="${esc(d.neighborhood||'')}" placeholder="e.g. Clifton, Germantown, St. Matthews" />
-      </div>
+      <div class="field"><label>Which Chicago neighborhood? <span class="hint">helps us seat you near your people</span></label>
+        <input type="text" id="f_hood" value="${esc(d.neighborhood||'')}" placeholder="e.g. Logan Square, Hyde Park, Oak Park" /></div>
       ${navButtons('Continue')}
-    </div>
-  `));
-  wireNav(()=>{
-    const d=intake.data;
-    d.couple_name=$('#f_couple').value.trim();
-    d.partner1_name=$('#f_p1').value.trim();
-    d.partner2_name=$('#f_p2').value.trim();
-    d.neighborhood=$('#f_hood').value.trim();
-    if(!d.couple_name||!d.partner1_name||!d.partner2_name){ toast('Tell us your names first'); return false; }
-    return true;
-  });
+    </div>`));
+  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.neighborhood=$('#f_hood').value.trim();
+    if(!d.couple_name||!d.partner1_name||!d.partner2_name){ toast('Tell us your names first'); return false; } return true; });
 }
 
-/* Step 2 — your life / kids */
 function drawYourLife(){
   const d=intake.data;
   const ageOpts=["Expecting","No kids","0-2","3-5","6-9","10-13","14+"];
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
-      <div class="step-kicker">Your household</div>
-      <h2>Who's at home?</h2>
-      <p class="sub">Kids, no kids, pets, expecting — no wrong answer. This is just so we pair you with a family in a similar season.</p>
-      <div class="field">
-        <label>Tell us about your crew <span class="hint">kids &amp; ages, or "no kids"</span></label>
-        <input type="text" id="f_kids" value="${esc(d.kids||'')}" placeholder="e.g. Two — 4 and 7, plus a golden retriever" />
-      </div>
-      <div class="field">
-        <label>Ages in the mix <span class="hint">tap all that apply</span></label>
-        <div class="chips" id="f_ages">
-          ${ageOpts.map(a=>`<div class="chip olive ${d.kid_ages.includes(a)?'on':''}" data-age="${esc(a)}">${esc(a)}</div>`).join('')}
-        </div>
-      </div>
+      <div class="kicker rustk">Your world</div>
+      <h2>Where are you two in life?</h2>
+      <p class="sub">Kids, no kids, newly together, new to the city — all welcome. This just helps us seat you with couples in a similar season.</p>
+      <div class="field"><label>Life stage <span class="hint">tap all that fit</span></label>
+        <div class="chips" id="f_stage">${LIFE_STAGES.map(s=>`<div class="chip ${d.life_stage.includes(s)?'on':''}" data-stage="${esc(s)}">${esc(s)}</div>`).join('')}</div></div>
+      <div class="field"><label>Anyone else at home? <span class="hint">kids &amp; ages, pets, or "just us"</span></label>
+        <input type="text" id="f_kids" value="${esc(d.kids||'')}" placeholder='e.g. Two — 4 and 7, plus a golden. Or "just us two."' /></div>
+      <div class="field"><label>Ages in the mix <span class="hint">optional — skip if no kids</span></label>
+        <div class="chips" id="f_ages">${ageOpts.map(a=>`<div class="chip forest ${d.kid_ages.includes(a)?'on':''}" data-age="${esc(a)}">${esc(a)}</div>`).join('')}</div></div>
       ${navButtons('Continue')}
-    </div>
-  `));
-  $('#f_ages').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
-    const a=c.dataset.age; c.classList.toggle('on');
-    const s=new Set(intake.data.kid_ages); c.classList.contains('on')?s.add(a):s.delete(a); intake.data.kid_ages=[...s];
-  });
-  wireNav(()=>{ intake.data.kids=$('#f_kids').value.trim(); return true; });
+    </div>`));
+  $('#f_stage').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ c.classList.toggle('on'); const s=new Set(intake.data.life_stage); c.classList.contains('on')?s.add(c.dataset.stage):s.delete(c.dataset.stage); intake.data.life_stage=[...s]; });
+  $('#f_ages').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ c.classList.toggle('on'); const s=new Set(intake.data.kid_ages); c.classList.contains('on')?s.add(c.dataset.age):s.delete(c.dataset.age); intake.data.kid_ages=[...s]; });
+  wireNav(()=>{ intake.data.kids=$('#f_kids').value.trim(); if(!intake.data.life_stage.length){ toast('Pick at least one life stage'); return false; } return true; });
 }
 
-/* Step 3 — rhythm */
 function drawYourRhythm(){
   const d=intake.data;
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
-      <div class="step-kicker">Your rhythm</div>
+      <div class="kicker rustk">Your rhythm</div>
       <h2>How would you want to hang?</h2>
-      <p class="sub">So we set a table at a time you'd actually keep.</p>
-      <div class="field">
-        <label>How often feels good?</label>
-        <div class="chips" id="f_app">
-          ${APPETITE_OPTIONS.map(a=>`<div class="chip ${d.hang_appetite===a?'on':''}" data-app="${esc(a)}">${esc(a)}</div>`).join('')}
-        </div>
-      </div>
-      <div class="field">
-        <label>When are you usually free? <span class="hint">pick a few</span></label>
-        <div class="chips" id="f_slots">
-          ${SLOT_OPTIONS.map(s=>`<div class="chip olive ${d.free_slots.includes(s)?'on':''}" data-slot="${esc(s)}">${esc(s)}</div>`).join('')}
-        </div>
-      </div>
-      <div class="field">
-        <label>Do you bond more by <b>doing</b> or by <b>talking</b>?</label>
-        <div class="chips" id="f_bonds">
-          ${[['doing','By doing — go do a thing together'],['talking','By talking — a long table &amp; a bottle of wine'],['both','Honestly, both']].map(([v,t])=>`<div class="chip ${d.bonds_by===v?'on':''}" data-bond="${v}">${t}</div>`).join('')}
-        </div>
-      </div>
+      <p class="sub">So we pair you with couples who keep a similar pace.</p>
+      <div class="field"><label>How often feels good?</label>
+        <div class="chips" id="f_app">${APPETITE_OPTIONS.map(a=>`<div class="chip ${d.hang_appetite===a?'on':''}" data-app="${esc(a)}">${esc(a)}</div>`).join('')}</div></div>
+      <div class="field"><label>When are you usually free? <span class="hint">pick a few</span></label>
+        <div class="chips" id="f_slots">${SLOT_OPTIONS.map(s=>`<div class="chip forest ${d.free_slots.includes(s)?'on':''}" data-slot="${esc(s)}">${esc(s)}</div>`).join('')}</div></div>
+      <div class="field"><label>Do you bond more by <b>doing</b> or by <b>talking</b>?</label>
+        <div class="chips" id="f_bonds">${[['doing','By doing — go do a thing together'],['talking','By talking — a long table &amp; a bottle of wine'],['both','Honestly, both']].map(([v,t])=>`<div class="chip ${d.bonds_by===v?'on':''}" data-bond="${v}">${t}</div>`).join('')}</div></div>
       ${navButtons('Continue')}
-    </div>
-  `));
+    </div>`));
   $('#f_app').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#f_app').querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); intake.data.hang_appetite=c.dataset.app; });
   $('#f_bonds').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#f_bonds').querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); intake.data.bonds_by=c.dataset.bond; });
   $('#f_slots').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ c.classList.toggle('on'); const s=new Set(intake.data.free_slots); c.classList.contains('on')?s.add(c.dataset.slot):s.delete(c.dataset.slot); intake.data.free_slots=[...s]; });
   wireNav(()=>{ if(!intake.data.hang_appetite){ toast('Pick how often feels good'); return false; } if(!intake.data.bonds_by){ toast('Doing, talking, or both?'); return false; } return true; });
 }
 
-/* Step 4 — the pair of you (postures + likes) */
 function drawThePairOfYou(){
   const d=intake.data;
   const slider=(who,val)=>`
-    <div class="field">
-      <label>${who==1?esc(d.partner1_name||'First partner'):esc(d.partner2_name||'Second partner')} — how they show up with new people</label>
-      <div class="slider-row">
-        <input type="range" min="0" max="100" value="${val}" id="f_post${who}" />
-        <output id="o_post${who}">${val}</output>
-      </div>
-      <div class="scale-ends"><span>Reserved · slow to warm</span><span>Expansive · dives right in</span></div>
-    </div>`;
+    <div class="field"><label>${who==1?esc(d.partner1_name||'First partner'):esc(d.partner2_name||'Second partner')} — with new people, they're…</label>
+      <div class="slider-row"><input type="range" min="0" max="100" value="${val}" id="f_post${who}" /><output id="o_post${who}">${val}</output></div>
+      <div class="scale-ends"><span>Reserved · slow to warm</span><span>Expansive · dives right in</span></div></div>`;
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
-      <div class="step-kicker">The pair of you</div>
+      <div class="kicker rustk">The pair of you</div>
       <h2>What are you each like?</h2>
-      <p class="sub">Couples are two people. We pair better when we know both of you — no couple is a single temperature.</p>
+      <p class="sub">A couple is two people. We pair far better when we know both of you — no couple is a single temperature.</p>
       ${slider(1,d.partner1_posture)}
       ${slider(2,d.partner2_posture)}
       <div class="two">
@@ -626,73 +588,57 @@ function drawThePairOfYou(){
         <div class="field"><label>${esc(d.partner2_name||'Second partner')} is into…</label><input type="text" id="f_l2" value="${esc(d.partner2_likes||'')}" placeholder="e.g. board games, pottery, IPAs" /></div>
       </div>
       ${navButtons('Continue')}
-    </div>
-  `));
+    </div>`));
   [1,2].forEach(w=>{ const r=$('#f_post'+w),o=$('#o_post'+w); r.oninput=()=>{ o.textContent=r.value; intake.data['partner'+w+'_posture']=+r.value; }; });
   wireNav(()=>{ intake.data.partner1_likes=$('#f_l1').value.trim(); intake.data.partner2_likes=$('#f_l2').value.trim(); return true; });
 }
 
-/* Step 5 — the open questions */
 function drawOpenQuestions(){
   const d=intake.data;
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
-      <div class="step-kicker">The real questions</div>
+      <div class="kicker rustk">The real questions</div>
       <h2>Now the good part.</h2>
-      <p class="sub">These are what Dray actually reads to make the call. Say more than you think you should.</p>
-      <div class="field">
-        <label>Tell us about a couple you were once close with. <span class="hint">what was it like — and what happened?</span></label>
-        <textarea id="f_past" placeholder="The couple you did Sunday dinners with, the friends who moved away, the foursome that fell apart…">${esc(d.past_couple||'')}</textarea>
-      </div>
-      <div class="field">
-        <label>What are you hoping to find? <span class="hint">paint the picture</span></label>
-        <textarea id="f_hope" placeholder="One family we can be unpolished around, kids who tolerate each other, a standing thing…">${esc(d.hoping_for||'')}</textarea>
-      </div>
-      <div class="field">
-        <label>Any hard no's? <span class="hint">deal-breakers, no judgment</span></label>
-        <textarea id="f_no" placeholder="e.g. no super-early mornings, nothing that turns into a sales pitch…" style="min-height:80px">${esc(d.hard_no||'')}</textarea>
-      </div>
+      <p class="sub">These are what we actually read to seat you well. Say more than you think you should.</p>
+      <div class="field"><label>Tell us about a couple you were once close with. <span class="hint">what was it like — and what happened?</span></label>
+        <textarea id="f_past" placeholder="The couple you did Sunday dinners with, the friends who moved away, the foursome that fell apart…">${esc(d.past_couple||'')}</textarea></div>
+      <div class="field"><label>What are you hoping to find? <span class="hint">paint the picture</span></label>
+        <textarea id="f_hope" placeholder="One family we can be unpolished around, a standing thing, another creative couple…">${esc(d.hoping_for||'')}</textarea></div>
+      <div class="field"><label>Any hard no's? <span class="hint">deal-breakers, no judgment</span></label>
+        <textarea id="f_no" placeholder="e.g. no super-early mornings, nothing flaky, no bar-only hangs…" style="min-height:80px">${esc(d.hard_no||'')}</textarea></div>
       ${navButtons('Review our application')}
-    </div>
-  `));
-  wireNav(()=>{
-    intake.data.past_couple=$('#f_past').value.trim();
-    intake.data.hoping_for=$('#f_hope').value.trim();
-    intake.data.hard_no=$('#f_no').value.trim();
-    if(!intake.data.past_couple){ toast('This one matters — give it a few lines'); return false; }
-    return true;
-  });
+    </div>`));
+  wireNav(()=>{ intake.data.past_couple=$('#f_past').value.trim(); intake.data.hoping_for=$('#f_hope').value.trim(); intake.data.hard_no=$('#f_no').value.trim();
+    if(!intake.data.past_couple){ toast('This one matters — give it a few lines'); return false; } return true; });
 }
 
-/* Step 6 — review + send */
 function drawReview(){
   const d=intake.data;
   const row=(k,v)=>`<div class="rrow"><dt>${k}</dt><dd>${v?esc(v):'—'}</dd></div>`;
-  const postures=`${esc(d.partner1_name)}: ${d.partner1_posture}/100 · ${esc(d.partner2_name)}: ${d.partner2_posture}/100`;
   $('#door-body').appendChild(el(`
     <div class="card step review">
-      <div class="step-kicker">One last look</div>
+      <div class="kicker rustk">One last look</div>
       <h2>Does this sound like you?</h2>
       <p class="sub">Edit anything with Back. When it's right, send it our way.</p>
       <dl>
         ${row('Couple', d.couple_name)}
         ${row('Partners', [d.partner1_name,d.partner2_name].filter(Boolean).join(' & '))}
         ${row('Neighborhood', d.neighborhood)}
-        ${row('Household', d.kids + (d.kid_ages.length?`  ·  ${d.kid_ages.join(', ')}`:''))}
+        ${row('Life stage', d.life_stage.join(', '))}
+        ${row('At home', d.kids + (d.kid_ages.length?`  ·  ${d.kid_ages.join(', ')}`:''))}
         ${row('Rhythm', [d.hang_appetite, d.free_slots.join(', '), d.bonds_by&&('bonds by '+d.bonds_by)].filter(Boolean).join('  ·  '))}
-        ${row('Temperaments', postures)}
+        ${row('Temperaments', `${esc(d.partner1_name)}: ${d.partner1_posture}/100 · ${esc(d.partner2_name)}: ${d.partner2_posture}/100`)}
         ${row('Into', [d.partner1_likes,d.partner2_likes].filter(Boolean).join('  ·  '))}
         ${row('A couple you were close with', d.past_couple)}
         ${row('Hoping to find', d.hoping_for)}
         ${row("Hard no's", d.hard_no)}
       </dl>
-      <div class="nav" style="margin-top:22px">
+      <div class="nav" style="margin-top:24px">
         <button class="btn ghost" data-back>Back</button>
         <button class="btn" data-send>Send our application</button>
       </div>
-    </div>
-  `));
+    </div>`));
   $('#door-body [data-back]').onclick=goBack;
   $('#door-body [data-send]').onclick=submitApplication;
 }
@@ -700,347 +646,371 @@ function drawReview(){
 async function submitApplication(){
   const btn=$('#door-body [data-send]'); btn.disabled=true; btn.textContent='Sending…';
   const d=intake.data;
-  const row={
-    couple_name:d.couple_name, partner1_name:d.partner1_name, partner2_name:d.partner2_name,
-    neighborhood:d.neighborhood, kids:d.kids||'', kid_ages:d.kid_ages,
-    hang_appetite:d.hang_appetite||'', free_slots:d.free_slots, bonds_by:d.bonds_by||'',
-    partner1_posture:d.partner1_posture, partner2_posture:d.partner2_posture,
-    partner1_likes:d.partner1_likes||'', partner2_likes:d.partner2_likes||'',
-    past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:'new'
-  };
-  try{
-    await DB.insertApplication(row);
-    drawDone();
-  }catch(e){
-    console.error(e); toast('Something went wrong — try again'); btn.disabled=false; btn.textContent='Send our application';
-  }
+  const row={ couple_name:d.couple_name, partner1_name:d.partner1_name, partner2_name:d.partner2_name, neighborhood:d.neighborhood,
+    life_stage:d.life_stage, kids:d.kids||'', kid_ages:d.kid_ages, hang_appetite:d.hang_appetite||'', free_slots:d.free_slots, bonds_by:d.bonds_by||'',
+    partner1_posture:d.partner1_posture, partner2_posture:d.partner2_posture, partner1_likes:d.partner1_likes||'', partner2_likes:d.partner2_likes||'',
+    past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:'new' };
+  try{ await DB.insertApplication(row); drawDone(); }
+  catch(e){ console.error(e); toast('Something went wrong — try again'); btn.disabled=false; btn.textContent='Send our application'; }
 }
 
 function drawDone(){
   $('#door-body').innerHTML='';
   $('#door-body').appendChild(el(`
     <div class="card done">
-      <div class="big">✓</div>
-      <h2>Your table's in the works.</h2>
-      <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. Dray reads every application personally — you'll hear from us by text when there's a family worth meeting. No feed to check, no swiping. Just a note when the table's set.</p>
-      <div style="margin-top:26px"><button class="btn ghost" onclick="location.hash='#/'">Back to start</button></div>
-    </div>
-  `));
+      <div class="seal">IV</div>
+      <h2>Welcome to the table.</h2>
+      <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. We read every application by hand. When the next Chicago mixer has a seat with your name on it, you'll get a personal note — no feed to check, no swiping. Just an invitation worth saying yes to.</p>
+      <div style="margin-top:28px"><button class="btn ghost" onclick="location.hash='#/'">Back to start</button></div>
+    </div>`));
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* ============================================================
-   CONSOLE  (Steps 3–6) — magic-link gate, then tabs
-   ============================================================ */
+/* ============================================================ Console ============================================================ */
 const AUTH_KEY='t4_admin_ok';
-const consoleState = { tab:'applications', apps:[], tables:[], openId:null };
-
-function isAuthed(){ return sessionStorage.getItem(AUTH_KEY)==='1' || localStorage.getItem(AUTH_KEY)==='1'; }
+const consoleState = { tab:'applications', apps:[], tables:[], events:[] };
+function isAuthed(){ return sessionStorage.getItem(AUTH_KEY)==='1'; }
+function appById(id){ return consoleState.apps.find(x=>x.id===id); }
+function nameFor(id){ const a=appById(id); return a?a.couple_name:'(removed)'; }
 
 function renderConsole(){
   if(!isAuthed()){ renderLogin(); return; }
-  const app=$('#app');
-  app.innerHTML='';
+  const app=$('#app'); app.innerHTML='';
+  const T=consoleState.tab;
   app.appendChild(el(`
     <div>
-    <div class="cbar">
-      <div class="cbar-in">
-        <div class="brandc"><div class="markc"></div> Table for Four <span style="opacity:.6;font-size:13px">· Concierge console</span></div>
-        <div class="tabs">
-          <button data-tab="applications" class="${consoleState.tab==='applications'?'on':''}">Applications</button>
-          <button data-tab="seat" class="${consoleState.tab==='seat'?'on':''}">Seat a table</button>
-          <button data-tab="board" class="${consoleState.tab==='board'?'on':''}">The board</button>
-        </div>
-        <div class="who">${esc(ADMIN_EMAIL)} <a href="#" data-signout>Sign out</a></div>
+    <div class="cbar"><div class="cbar-in">
+      <div class="brandc"><div class="monoc">IV</div> Table for Four <span style="opacity:.6;font-size:13px">· Chicago concierge</span></div>
+      <div class="tabs">
+        <button data-tab="applications" class="${T==='applications'?'on':''}">Applications</button>
+        <button data-tab="events" class="${T==='events'?'on':''}">Events</button>
+        <button data-tab="pairing" class="${T==='pairing'?'on':''}">Pairing</button>
+        <button data-tab="board" class="${T==='board'?'on':''}">Board</button>
       </div>
-    </div>
+      <div class="who">${esc(ADMIN_EMAIL)} <a href="#" data-signout>Sign out</a></div>
+    </div></div>
     <div class="console-wrap"><div id="console-body" class="panel"></div></div>
-    </div>
-  `));
+    </div>`));
   app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ consoleState.tab=b.dataset.tab; renderConsole(); });
-  app.querySelector('[data-signout]').onclick=(e)=>{ e.preventDefault(); sessionStorage.removeItem(AUTH_KEY); localStorage.removeItem(AUTH_KEY); location.hash='#/'; };
+  app.querySelector('[data-signout]').onclick=(e)=>{ e.preventDefault(); sessionStorage.removeItem(AUTH_KEY); location.hash='#/'; };
   loadConsoleData();
 }
 
 async function loadConsoleData(){
   consoleState.apps = await DB.listApplications();
   consoleState.tables = await DB.listTables();
+  consoleState.events = await DB.listEvents();
   const body=$('#console-body'); if(!body) return;
-  if(consoleState.tab==='applications') drawApplications();
-  else if(consoleState.tab==='seat') drawSeat();
-  else drawBoard();
+  ({applications:drawApplications, events:drawEvents, pairing:drawPairing, board:drawBoard}[consoleState.tab]||drawApplications)();
 }
 
-/* ---- Login (Step 3) ---- */
+/* login */
 function renderLogin(){
-  const app=$('#app');
-  app.innerHTML='';
+  const app=$('#app'); app.innerHTML='';
   app.appendChild(el(`
-    <div class="login-wrap">
-      <div class="login-card">
-        <div class="mark"></div>
-        <h1>Concierge sign-in</h1>
-        <p>The console is private — just for Dray. Enter the admin email to get a sign-in link.</p>
-        <div class="field"><label>Admin email</label><input type="email" id="l_email" placeholder="you@threecitiessocial.com" /></div>
-        <button class="btn block" id="l_send">Send me a link</button>
-        <div id="l_note" class="note">Logged-out visitors can't see any applications.</div>
-        <div style="margin-top:18px"><a href="#/" class="link-btn">← Back to the front door</a></div>
-      </div>
-    </div>
-  `));
-  $('#l_email').value = '';
+    <div class="login-wrap"><div class="login-card">
+      <div class="mono">IV</div>
+      <h1>Concierge sign-in</h1>
+      <p>The console is private — just for the host. Enter the admin email to get a sign-in link.</p>
+      <div class="field"><label>Admin email</label><input type="email" id="l_email" placeholder="you@threecitiessocial.com" /></div>
+      <button class="btn block" id="l_send">Send me a link</button>
+      <div id="l_note" class="note">Logged-out visitors can't see any applications.</div>
+      <div style="margin-top:18px"><a href="#/" class="link-btn">← Back to the front door</a></div>
+    </div></div>`));
   $('#l_send').onclick=doLogin;
   $('#l_email').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
 }
-
 async function doLogin(){
-  const email=$('#l_email').value.trim().toLowerCase();
-  const note=$('#l_note');
-  if(email!==ADMIN_EMAIL.toLowerCase()){ note.style.color='var(--bad)'; note.textContent='That email isn’t on the admin list.'; return; }
-
-  if(USE_SUPABASE){
-    // Real magic-link via Supabase auth
-    try{
-      note.style.color='var(--muted)'; note.textContent='Sending your link…';
-      await DB.magicLink(ADMIN_EMAIL);
-      note.textContent='Check your inbox for a sign-in link, then return here.';
-    }catch(e){ note.style.color='var(--bad)'; note.textContent='Could not send the link. Check Supabase auth settings.'; }
-    return;
-  }
-
-  // Local mode: no mail server, so simulate the magic-link click inline.
+  const email=$('#l_email').value.trim().toLowerCase(); const note=$('#l_note');
+  if(email!==ADMIN_EMAIL.toLowerCase()){ note.style.color='var(--rust-d)'; note.textContent='That email isn’t on the admin list.'; return; }
+  if(USE_SUPABASE){ try{ note.style.color='var(--muted)'; note.textContent='Sending your link…'; await DB.magicLink(ADMIN_EMAIL); note.textContent='Check your inbox for a sign-in link, then return here.'; }
+    catch(e){ note.style.color='var(--rust-d)'; note.textContent='Could not send the link. Check Supabase auth settings.'; } return; }
   const card=$('.login-card');
   card.innerHTML=`
-    <div class="mark" style="margin:0 auto 16px"></div>
+    <div class="mono" style="margin:0 auto 18px">IV</div>
     <h1>Check your inbox</h1>
     <p>We sent a sign-in link to <b>${esc(ADMIN_EMAIL)}</b>.</p>
-    <div style="background:#fbf4e8;border:1px solid var(--line);border-radius:14px;padding:16px;margin:6px 0 4px;text-align:left">
-      <div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">📬 Demo inbox</div>
-      <div style="font-size:14px;line-height:1.5;color:var(--ink)">Subject: <b>Your Table for Four sign-in link</b><br><span style="color:var(--muted)">This build has no mail server, so tap the link to continue.</span></div>
-      <button class="btn block olive" id="l_go" style="margin-top:12px">Tap to sign in →</button>
+    <div style="background:#faf3e6;border:1px solid var(--line);border-radius:14px;padding:16px;margin:6px 0 4px;text-align:left">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Demo inbox</div>
+      <div style="font-size:14px;line-height:1.5">Subject: <b>Your Table for Four sign-in link</b><br><span style="color:var(--muted)">This build has no mail server, so tap the link to continue.</span></div>
+      <button class="btn block forest" id="l_go" style="margin-top:12px">Tap to sign in →</button>
     </div>
     <div class="note">Only <b>${esc(ADMIN_EMAIL)}</b> can reach the console.</div>`;
   $('#l_go').onclick=()=>{ sessionStorage.setItem(AUTH_KEY,'1'); consoleState.tab='applications'; renderConsole(); };
 }
 
-/* ---- Applications list + detail (Step 4) ---- */
 function statusBadge(s){ return `<span class="badge b-${esc(s)}">${esc(s)}</span>`; }
+function cap(s){ return (s||'').charAt(0).toUpperCase()+(s||'').slice(1); }
 
+/* ---- Applications ---- */
 function drawApplications(){
-  const body=$('#console-body');
-  const apps=consoleState.apps;
-  body.innerHTML='';
-  const head=el(`<div class="panel-head"><h2>Applications</h2><div class="count">${apps.length} total · newest first</div></div>`);
-  body.appendChild(head);
-  if(!apps.length){
-    body.appendChild(el(`<div class="empty"><h3>No applications yet</h3><p>When a couple sends one from the front door, it lands here.</p></div>`));
-    return;
-  }
+  const body=$('#console-body'); const apps=consoleState.apps; body.innerHTML='';
+  body.appendChild(el(`<div class="panel-head"><h2>Applications</h2><div class="count">${apps.length} total · newest first</div></div>`));
+  if(!apps.length){ body.appendChild(el(`<div class="empty"><h3>No applications yet</h3><p>When a couple applies from the front door, it lands here.</p></div>`)); return; }
   const t=el(`<table class="list"><thead><tr><th>Couple</th><th>Neighborhood</th><th>Applied</th><th>Status</th></tr></thead><tbody></tbody></table>`);
   const tb=t.querySelector('tbody');
-  apps.forEach(a=>{
-    const tr=el(`<tr data-id="${a.id}">
+  apps.forEach(a=>{ const tr=el(`<tr data-id="${a.id}">
       <td><div class="cn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></td>
-      <td>${esc(a.neighborhood)||'—'}</td>
-      <td class="sub2">${timeAgo(a.created_at)}</td>
-      <td>${statusBadge(a.status)}</td>
-    </tr>`);
-    tr.onclick=()=>openApplication(a.id);
-    tb.appendChild(tr);
-  });
+      <td>${esc(a.neighborhood)||'—'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
+    tr.onclick=()=>openApplication(a.id); tb.appendChild(tr); });
   body.appendChild(t);
 }
-
+function arr(v){ return Array.isArray(v)?v:(v?[v]:[]); }
 function openApplication(id){
-  const a=consoleState.apps.find(x=>x.id===id); if(!a) return;
-  const arr=(v)=>Array.isArray(v)?v:(v?[v]:[]);
+  const a=appById(id); if(!a) return;
   const posture=(name,v)=>`<div class="kv"><div class="k">${esc(name)}</div><div class="posture"><div class="bar"><span style="width:${v||0}%"></span></div><div class="num">${v||0}</div></div><div class="sub2" style="margin-top:3px">0 reserved · 100 expansive</div></div>`;
   const scrim=el(`<div class="scrim"><div class="drawer">
     <div class="drawer-head"><h2>${esc(a.couple_name)}</h2><button class="x" data-close>×</button></div>
     <div class="drawer-body">
       <div class="kv"><div class="k">Partners</div><div class="v">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></div>
       <div class="kv"><div class="k">Neighborhood</div><div class="v">${esc(a.neighborhood)||'—'}</div></div>
-      <div class="kv"><div class="k">Household</div><div class="v">${esc(a.kids)||'—'}${arr(a.kid_ages).length?`  ·  ${esc(arr(a.kid_ages).join(', '))}`:''}</div></div>
-
+      <div class="kv"><div class="k">Life stage</div><div class="v">${esc(arr(a.life_stage).join(', '))||'—'}</div></div>
+      <div class="kv"><div class="k">At home</div><div class="v">${esc(a.kids)||'—'}${arr(a.kid_ages).length?`  ·  ${esc(arr(a.kid_ages).join(', '))}`:''}</div></div>
       <div class="sect-title">What they're hoping for</div>
       <div class="open-answer"><div class="k">A couple they were close with</div><div class="v" style="margin-top:6px">${esc(a.past_couple)||'—'}</div></div>
       <div class="open-answer"><div class="k">Hoping to find</div><div class="v" style="margin-top:6px">${esc(a.hoping_for)||'—'}</div></div>
       <div class="kv"><div class="k">Hard no's</div><div class="v">${esc(a.hard_no)||'—'}</div></div>
-
       <div class="sect-title">Rhythm</div>
       <div class="kv"><div class="k">Appetite</div><div class="v">${esc(a.hang_appetite)||'—'}</div></div>
       <div class="kv"><div class="k">Free when</div><div class="v">${esc(arr(a.free_slots).join(', '))||'—'}</div></div>
       <div class="kv"><div class="k">Bonds by</div><div class="v" style="text-transform:capitalize">${esc(a.bonds_by)||'—'}</div></div>
-
       <div class="sect-title">The pair of them</div>
       ${posture(a.partner1_name+"’s posture", a.partner1_posture)}
       ${posture(a.partner2_name+"’s posture", a.partner2_posture)}
       <div class="kv"><div class="k">${esc(a.partner1_name)} is into</div><div class="v">${esc(a.partner1_likes)||'—'}</div></div>
       <div class="kv"><div class="k">${esc(a.partner2_name)} is into</div><div class="v">${esc(a.partner2_likes)||'—'}</div></div>
-
       <div class="sect-title">Your notes</div>
-      <div class="field"><textarea id="d_notes" placeholder="Your read on this couple, who they might pair with, follow-ups…">${esc(a.notes||'')}</textarea></div>
+      <div class="field"><textarea id="d_notes" placeholder="Your read on this couple, who they might click with, follow-ups…">${esc(a.notes||'')}</textarea></div>
     </div>
     <div class="savebar">
       <label style="font-size:13px;font-weight:650">Status</label>
       <select id="d_status">${APP_STATUSES.map(s=>`<option value="${s}" ${a.status===s?'selected':''}>${s}</option>`).join('')}</select>
-      <button class="btn sm" id="d_save">Save</button>
-      <span class="saved-note" id="d_saved">Saved ✓</span>
-    </div>
-  </div></div>`);
+      <button class="btn sm" id="d_save">Save</button><span class="saved-note" id="d_saved">Saved ✓</span>
+    </div></div></div>`);
   document.body.appendChild(scrim);
   const close=()=>scrim.remove();
-  scrim.querySelector('[data-close]').onclick=close;
-  scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('[data-close]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   scrim.querySelector('#d_save').onclick=async()=>{
     const patch={ notes:$('#d_notes').value, status:$('#d_status').value };
-    await DB.updateApplication(id, patch);
-    Object.assign(a, patch);
+    await DB.updateApplication(id, patch); Object.assign(a, patch);
     const sv=$('#d_saved'); sv.classList.add('show'); setTimeout(()=>sv.classList.remove('show'),1600);
-    consoleState.apps = await DB.listApplications();
-    drawApplications();
+    consoleState.apps = await DB.listApplications(); drawApplications();
   };
 }
 
-/* ---- Seat a table (Step 5) ---- */
-function drawSeat(){
-  const body=$('#console-body');
-  const seatable=consoleState.apps.filter(a=>a.status==='new'||a.status==='seated');
-  body.innerHTML='';
-  body.appendChild(el(`<div class="panel-head"><h2>Seat a table</h2><div class="count">Pick 2 or 3 couples</div></div>`));
-  if(seatable.length<2){
-    body.appendChild(el(`<div class="empty"><h3>Not enough couples yet</h3><p>You need at least two applications to seat a table.</p></div>`));
-    return;
-  }
-  const sel=new Set();
-  const card=el(`<div class="card" style="max-width:640px">
-    <div class="field"><label>Who's at this table? <span class="hint">2 or 3 couples</span></label>
-      <div id="seat_picks"></div>
-    </div>
-    <div class="field"><label>Where?</label><input type="text" id="s_place" placeholder="e.g. Naive in Butchertown, or a picnic at Cherokee Park" /></div>
-    <div class="two">
-      <div class="field"><label>When?</label><input type="datetime-local" id="s_when" /></div>
-      <div class="field"><label>Format</label>
-        <div class="chips" id="s_format" style="margin-top:2px">
-          <div class="chip on" data-fmt="dinner">Dinner</div>
-          <div class="chip" data-fmt="outing">Outing</div>
-        </div>
-      </div>
-    </div>
-    <div class="field"><label>Opening note <span class="hint">optional</span></label><textarea id="s_notes" style="min-height:70px" placeholder="Why you're putting these couples together…"></textarea></div>
-    <button class="btn block" id="s_save" disabled>Seat this table</button>
-  </div>`);
-  body.appendChild(card);
-  const picks=card.querySelector('#seat_picks');
-  seatable.forEach(a=>{
-    const p=el(`<div class="pick" data-id="${a.id}"><div class="box">✓</div><div><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||'—'} · ${statusBadgeText(a.status)}</div></div></div>`);
-    p.onclick=()=>{
-      if(sel.has(a.id)){ sel.delete(a.id); p.classList.remove('on'); }
-      else{ if(sel.size>=3){ toast('A table seats at most 3 couples'); return; } sel.add(a.id); p.classList.add('on'); }
-      card.querySelector('#s_save').disabled = sel.size<2;
-    };
-    picks.appendChild(p);
+/* ---- Events (mixers) ---- */
+function drawEvents(){
+  const body=$('#console-body'); const events=consoleState.events; body.innerHTML='';
+  body.appendChild(el(`<div class="panel-head"><h2>Events</h2><button class="btn sm" id="new_event">+ New mixer</button></div>`));
+  $('#new_event').onclick=openEventForm;
+  if(!events.length){ body.appendChild(el(`<div class="empty"><h3>No events yet</h3><p>Create a curated mixer, invite couples, and read the room afterward.</p></div>`)); return; }
+  const grid=el(`<div class="grid-cards"></div>`);
+  events.forEach(ev=>{
+    const roster=arr(ev.roster); const att=roster.filter(r=>r.attended).length;
+    const avs=roster.slice(0,5).map(r=>`<div class="av">${esc(initials(nameFor(r.couple_id)))}</div>`).join('');
+    const c=el(`<div class="ecard">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
+        <h3>${esc(ev.title)}</h3>${statusBadge(ev.status)}</div>
+      <div class="meta">${esc(ev.venue)||'Venue TBD'}<br>${fmtDay(ev.scheduled_at)}</div>
+      <div class="rosterline"><div class="avstack">${avs||'<span class="sub2">No couples yet</span>'}</div>
+        <div class="sub2">${roster.length} on roster${ev.status==='happened'?` · ${att} attended`:''}</div></div></div>`);
+    c.onclick=()=>openEvent(ev.id); grid.appendChild(c);
   });
-  let fmt='dinner';
-  card.querySelectorAll('#s_format .chip').forEach(c=>c.onclick=()=>{ card.querySelectorAll('#s_format .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); fmt=c.dataset.fmt; });
-  card.querySelector('#s_save').onclick=async()=>{
-    const place=card.querySelector('#s_place').value.trim();
-    const when=card.querySelector('#s_when').value;
-    if(!place){ toast('Where are they meeting?'); return; }
-    const ids=[...sel];
-    const trow={ couple_ids:ids, place, scheduled_at: when?new Date(when).toISOString():null, format:fmt, status:'proposed', notes:card.querySelector('#s_notes').value.trim() };
-    await DB.insertTable(trow);
-    for(const id of ids){ await DB.updateApplication(id,{status:'seated'}); }
-    toast('Table seated — see the board');
-    consoleState.tab='board';
-    renderConsole();
+  body.appendChild(grid);
+}
+function openEventForm(){
+  const scrim=el(`<div class="modal-scrim"><div class="modal">
+    <div class="modal-head"><h2>New mixer</h2><p>A curated night for a handful of Chicago couples.</p></div>
+    <div class="modal-body">
+      <div class="field"><label>Title</label><input type="text" id="e_title" placeholder="e.g. Spring Supper Club — mixer no. 2" /></div>
+      <div class="field"><label>Venue</label><input type="text" id="e_venue" placeholder="e.g. Kumiko, West Loop" /></div>
+      <div class="two">
+        <div class="field"><label>Date &amp; time</label><input type="datetime-local" id="e_when" /></div>
+        <div class="field"><label>Capacity (couples)</label><input type="number" id="e_cap" value="12" min="2" /></div>
+      </div>
+      <div class="field"><label>Notes <span class="hint">optional</span></label><textarea id="e_notes" style="min-height:70px"></textarea></div>
+      <div class="nav"><button class="btn ghost" data-cancel>Cancel</button><button class="btn" data-save>Create mixer</button></div>
+    </div></div></div>`);
+  document.body.appendChild(scrim);
+  const close=()=>scrim.remove();
+  scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('[data-save]').onclick=async()=>{
+    const title=$('#e_title').value.trim(); if(!title){ toast('Give it a title'); return; }
+    const when=$('#e_when').value;
+    await DB.insertEvent({ title, venue:$('#e_venue').value.trim(), scheduled_at: when?new Date(when).toISOString():null,
+      capacity:+$('#e_cap').value||12, status:'upcoming', notes:$('#e_notes').value.trim(), roster:[] });
+    close(); toast('Mixer created'); await loadConsoleData();
   };
 }
-function statusBadgeText(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function openEvent(id){
+  const ev=consoleState.events.find(e=>e.id===id); if(!ev) return;
+  const roster=arr(ev.roster);
+  const onRoster=new Set(roster.map(r=>r.couple_id));
+  const attendees=roster.filter(r=>r.attended);
+  const rosterRows = roster.map(r=>{
+    const a=appById(r.couple_id); if(!a) return '';
+    const others=attendees.filter(o=>o.couple_id!==r.couple_id);
+    const likeChips = r.attended && others.length ? `
+      <div class="likes-wrap"><div class="lbl">Clicked with — who they'd see again</div>
+        <div class="chips">${others.map(o=>{ const mutual=(arr((roster.find(x=>x.couple_id===o.couple_id)||{}).likes).includes(r.couple_id)) && arr(r.likes).includes(o.couple_id);
+          return `<div class="minichip ${arr(r.likes).includes(o.couple_id)?(mutual?'mutual on':'on'):''}" data-like="${o.couple_id}" data-from="${r.couple_id}">${esc(nameFor(o.couple_id))}${mutual?' ⇄':''}</div>`;}).join('')}</div></div>` : '';
+    return `<div class="roster-row" data-cid="${r.couple_id}">
+      <div class="top"><div class="pn">${esc(a.couple_name)} <span class="sub2">· ${esc(a.neighborhood)||''}</span></div>
+        <div class="toggle ${r.attended?'on':''}" data-attend="${r.couple_id}"><span class="sw"></span><span>${r.attended?'Attended':'Mark attended'}</span></div></div>
+      ${likeChips}</div>`;
+  }).join('');
+  const scrim=el(`<div class="scrim"><div class="drawer">
+    <div class="drawer-head"><h2>${esc(ev.title)}</h2><button class="x" data-close>×</button></div>
+    <div class="drawer-body">
+      <div class="kv"><div class="k">Venue</div><div class="v">${esc(ev.venue)||'—'}</div></div>
+      <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
+      <div class="kv"><div class="k">Status</div><div class="v" style="display:flex;align-items:center;gap:10px">${statusBadge(ev.status)}
+        ${ev.status==='upcoming'?'<button class="btn sm forest" id="mark_happened">Mark as happened</button>':''}</div></div>
+      ${ev.notes?`<div class="kv"><div class="k">Notes</div><div class="v">${esc(ev.notes)}</div></div>`:''}
+      <div class="sect-title" style="display:flex;justify-content:space-between;align-items:center">Roster (${roster.length}) <button class="btn sm ghost" id="add_couples">+ Add couples</button></div>
+      <div id="roster_list">${rosterRows||'<div class="sub2" style="padding:6px 0">No couples on the roster yet. Add a few to fill this mixer.</div>'}</div>
+      ${ev.status==='happened'?`<div class="sub2" style="margin-top:14px;line-height:1.5">Tip: toggle who attended, then tap the couples each one clicked with. Mutual picks (⇄) turn green and show up under <b>Pairing</b>.</div>`:''}
+    </div></div></div>`);
+  document.body.appendChild(scrim);
+  const close=()=>scrim.remove();
+  scrim.querySelector('[data-close]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  const mh=scrim.querySelector('#mark_happened'); if(mh) mh.onclick=async()=>{ await DB.updateEvent(id,{status:'happened'}); toast('Marked as happened'); await loadConsoleData(); close(); openEvent(id); };
+  scrim.querySelector('#add_couples').onclick=()=>addCouplesToEvent(ev, onRoster);
+  scrim.querySelectorAll('[data-attend]').forEach(t=>t.onclick=async()=>{
+    const cid=t.dataset.attend; const r=roster.find(x=>x.couple_id===cid); r.attended=!r.attended;
+    await DB.updateEvent(id,{roster}); const a=appById(cid); if(a&&r.attended&&a.status==='invited') await DB.updateApplication(cid,{status:'attended'});
+    await loadConsoleData(); close(); openEvent(id);
+  });
+  scrim.querySelectorAll('[data-like]').forEach(ch=>ch.onclick=async()=>{
+    const from=ch.dataset.from, to=ch.dataset.like; const r=roster.find(x=>x.couple_id===from); const likes=new Set(arr(r.likes));
+    likes.has(to)?likes.delete(to):likes.add(to); r.likes=[...likes];
+    await DB.updateEvent(id,{roster}); await loadConsoleData(); close(); openEvent(id);
+  });
+}
+function addCouplesToEvent(ev, onRoster){
+  const candidates=consoleState.apps.filter(a=>!onRoster.has(a.id));
+  const sel=new Set();
+  const scrim=el(`<div class="modal-scrim"><div class="modal">
+    <div class="modal-head"><h2>Add couples</h2><p>Invite applicants to “${esc(ev.title)}.” They'll show as <b>invited</b>.</p></div>
+    <div class="modal-body"><div id="cand_list">${candidates.length?'':'<div class="sub2">Everyone is already on the roster.</div>'}</div>
+      <button class="btn block" id="add_go" ${candidates.length?'':'disabled'} style="margin-top:8px">Add selected</button>
+    </div></div></div>`);
+  document.body.appendChild(scrim);
+  const list=scrim.querySelector('#cand_list');
+  candidates.forEach(a=>{ const p=el(`<div class="pick" data-id="${a.id}"><div class="box">✓</div><div><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||'—'} · ${cap(a.status)}</div></div></div>`);
+    p.onclick=()=>{ sel.has(a.id)?(sel.delete(a.id),p.classList.remove('on')):(sel.add(a.id),p.classList.add('on')); }; list.appendChild(p); });
+  const close=()=>scrim.remove(); scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('#add_go').onclick=async()=>{
+    if(!sel.size){ toast('Pick at least one couple'); return; }
+    const roster=arr(ev.roster);
+    for(const cid of sel){ roster.push({couple_id:cid, attended:false, likes:[]}); const a=appById(cid); if(a&&a.status==='new') await DB.updateApplication(cid,{status:'invited'}); }
+    await DB.updateEvent(ev.id,{roster}); close(); toast('Added to the mixer'); await loadConsoleData(); openEvent(ev.id);
+  };
+}
 
-/* ---- The board (Step 6) ---- */
+/* ---- Pairing (mutual matches from events) ---- */
+function drawPairing(){
+  const body=$('#console-body'); body.innerHTML='';
+  const happened=consoleState.events.filter(e=>e.status==='happened');
+  body.appendChild(el(`<div class="panel-head"><h2>Pairing</h2><div class="count">Mutual sparks from your mixers</div></div>`));
+  if(!happened.length){ body.appendChild(el(`<div class="empty"><h3>No mixers to pair from yet</h3><p>Once an event is marked “happened” and you've noted who clicked, mutual matches appear here.</p></div>`)); return; }
+  happened.forEach(ev=>{
+    const roster=arr(ev.roster);
+    const mutuals=[];
+    for(let i=0;i<roster.length;i++) for(let j=i+1;j<roster.length;j++){
+      const A=roster[i],B=roster[j];
+      if(A.attended&&B.attended&&arr(A.likes).includes(B.couple_id)&&arr(B.likes).includes(A.couple_id)) mutuals.push([A.couple_id,B.couple_id]);
+    }
+    const section=el(`<div style="margin-bottom:26px">
+      <div style="font-family:var(--serif);font-size:16px;margin:0 0 12px;color:var(--ink2)">${esc(ev.title)} <span class="sub2">· ${fmtDay(ev.scheduled_at)}</span></div>
+      <div id="mlist"></div></div>`);
+    const ml=section.querySelector('#mlist');
+    if(!mutuals.length){ ml.appendChild(el(`<div class="empty" style="padding:26px"><p>No mutual matches yet. Note who each couple clicked with in the event roster.</p></div>`)); }
+    mutuals.forEach(([x,y])=>{
+      const exists=consoleState.tables.find(t=>t.event_id===ev.id && arr(t.couple_ids).includes(x) && arr(t.couple_ids).includes(y));
+      const A=appById(x),B=appById(y);
+      const card=el(`<div class="match-card">
+        <div class="pairline">${esc(nameFor(x))} <span class="vs">⇄</span> ${esc(nameFor(y))} <span class="mutual-tag">Mutual</span></div>
+        <div class="why">${esc(A?A.neighborhood:'')} &amp; ${esc(B?B.neighborhood:'')} · both flagged each other after the mixer.</div>
+        <div class="act">${exists?`<span class="badge b-${esc(exists.status)}">Intro ${esc(exists.status)}</span>`:'<button class="btn sm">Create the intro →</button>'}</div></div>`);
+      const btn=card.querySelector('button'); if(btn) btn.onclick=()=>createIntro(ev,x,y);
+      ml.appendChild(card);
+    });
+    body.appendChild(section);
+  });
+}
+async function createIntro(ev,x,y){
+  await DB.insertTable({ couple_ids:[x,y], event_id:ev.id, place:'', scheduled_at:null, format:'dinner', status:'proposed',
+    notes:`Paired from ${ev.title}.` });
+  for(const cid of [x,y]) await DB.updateApplication(cid,{status:'paired'});
+  toast('Intro created — see the Board'); consoleState.tab='board'; renderConsole();
+}
+
+/* ---- Board ---- */
 function drawBoard(){
-  const body=$('#console-body');
-  const tables=consoleState.tables;
-  const nameFor=(id)=>{ const a=consoleState.apps.find(x=>x.id===id); return a?a.couple_name:'(removed)'; };
-  body.innerHTML='';
-  body.appendChild(el(`<div class="panel-head"><h2>The board</h2><div class="count">${tables.length} table${tables.length===1?'':'s'} · run the cadence by hand</div></div>`));
-  if(!tables.length){
-    body.appendChild(el(`<div class="empty"><h3>No tables yet</h3><p>Seat one from the “Seat a table” tab and it’ll show up here.</p></div>`));
-    return;
-  }
+  const body=$('#console-body'); const tables=consoleState.tables; body.innerHTML='';
+  body.appendChild(el(`<div class="panel-head"><h2>The board</h2><div class="count">${tables.length} intro${tables.length===1?'':'s'} · run the cadence by hand</div></div>`));
+  if(!tables.length){ body.appendChild(el(`<div class="empty"><h3>No intros yet</h3><p>Pair a mutual match under “Pairing” and it’ll show up here to shepherd.</p></div>`)); return; }
   const cols=[['proposed','Proposed'],['confirmed','Confirmed'],['happened','Happened'],['matched','Matched / Fizzled']];
   const board=el(`<div class="board"></div>`);
   cols.forEach(([key,label])=>{
-    const inCol = key==='matched'
-      ? tables.filter(t=>t.status==='matched'||t.status==='fizzled')
-      : tables.filter(t=>t.status===key);
+    const inCol = key==='matched' ? tables.filter(t=>t.status==='matched'||t.status==='fizzled') : tables.filter(t=>t.status===key);
     const col=el(`<div class="col"><h3>${label}<span>${inCol.length}</span></h3></div>`);
-    inCol.forEach(t=>col.appendChild(tableCard(t,nameFor)));
-    board.appendChild(col);
+    inCol.forEach(t=>col.appendChild(tableCard(t))); board.appendChild(col);
   });
   body.appendChild(board);
 }
-
-function tableCard(t, nameFor){
-  const couples=(t.couple_ids||[]).map(nameFor).join('  +  ');
+function tableCard(t){
+  const couples=arr(t.couple_ids).map(nameFor).join('  +  ');
+  const ev=t.event_id&&consoleState.events.find(e=>e.id===t.event_id);
   const idx=TABLE_FLOW.indexOf(t.status);
-  const nextStatus = (idx>=0 && idx<TABLE_FLOW.length-1) ? TABLE_FLOW[idx+1] : null;
-  const isTerminal = t.status==='matched'||t.status==='fizzled';
+  const nextStatus=(idx>=0&&idx<TABLE_FLOW.length-1)?TABLE_FLOW[idx+1]:null;
+  const isTerminal=t.status==='matched'||t.status==='fizzled';
   const card=el(`<div class="tcard">
     <div class="couples">${esc(couples)}</div>
-    <div class="plan">
-      <b>${esc(statusBadgeText(t.format||'dinner'))}</b>${t.place?' · '+esc(t.place):''}<br>
-      ${t.scheduled_at?fmtDate(t.scheduled_at):'<span style="opacity:.6">no date set</span>'}
-    </div>
+    ${ev?`<div class="from">From ${esc(ev.title.split('—')[0].trim())}</div>`:''}
+    <div class="plan"><b>${esc(cap(t.format||'dinner'))}</b>${t.place?' · '+esc(t.place):''}<br>${t.scheduled_at?fmtDate(t.scheduled_at):'<span style="opacity:.6">no date set</span>'}</div>
     ${t.notes?`<div class="tnote">${esc(t.notes)}</div>`:''}
-    <div class="actions"></div>
-  </div>`);
+    <div class="actions"></div></div>`);
   const actions=card.querySelector('.actions');
-  if(nextStatus){
-    const b=el(`<button class="btn sm">→ ${statusBadgeText(nextStatus)}</button>`);
-    b.onclick=()=>advanceTable(t.id, nextStatus);
-    actions.appendChild(b);
-  }
-  if(!isTerminal){
-    const f=el(`<button class="btn sm ghost">Fizzled</button>`);
-    f.onclick=()=>advanceTable(t.id,'fizzled');
-    actions.appendChild(f);
-  }
-  const n=el(`<button class="btn sm ghost">＋ Note</button>`);
-  n.onclick=()=>addTableNote(t);
-  actions.appendChild(n);
+  if(nextStatus){ const b=el(`<button class="btn sm">→ ${cap(nextStatus)}</button>`); b.onclick=()=>advanceTable(t.id,nextStatus); actions.appendChild(b); }
+  if(!isTerminal){ const f=el(`<button class="btn sm ghost">Fizzled</button>`); f.onclick=()=>advanceTable(t.id,'fizzled'); actions.appendChild(f); }
+  const pl=el(`<button class="btn sm ghost">Plan</button>`); pl.onclick=()=>planTable(t); actions.appendChild(pl);
+  const n=el(`<button class="btn sm ghost">＋ Note</button>`); n.onclick=()=>addTableNote(t); actions.appendChild(n);
   return card;
 }
-
-async function advanceTable(id, status){
+async function advanceTable(id,status){
   const t=consoleState.tables.find(x=>x.id===id);
   await DB.updateTable(id,{status});
-  // When a table matches, mark its couples matched; if it fizzles, release them back to 'new'
-  if(t){
-    if(status==='matched'){ for(const cid of (t.couple_ids||[])){ await DB.updateApplication(cid,{status:'matched'}); } }
-    if(status==='fizzled'){ for(const cid of (t.couple_ids||[])){ const a=consoleState.apps.find(x=>x.id===cid); if(a&&a.status==='seated') await DB.updateApplication(cid,{status:'new'}); } }
-  }
-  toast('Moved to '+status);
-  await loadConsoleData();
+  if(t){ if(status==='matched'){ for(const cid of arr(t.couple_ids)) await DB.updateApplication(cid,{status:'paired'}); }
+    if(status==='fizzled'){ for(const cid of arr(t.couple_ids)){ const a=appById(cid); if(a&&a.status==='paired') await DB.updateApplication(cid,{status:'attended'}); } } }
+  toast('Moved to '+status); await loadConsoleData();
 }
-
+function planTable(t){
+  const scrim=el(`<div class="modal-scrim"><div class="modal">
+    <div class="modal-head"><h2>Set the plan</h2><p>${esc(arr(t.couple_ids).map(nameFor).join('  +  '))}</p></div>
+    <div class="modal-body">
+      <div class="field"><label>Where</label><input type="text" id="p_place" value="${esc(t.place||'')}" placeholder="e.g. Lula Cafe, Logan Square" /></div>
+      <div class="two"><div class="field"><label>When</label><input type="datetime-local" id="p_when" value="${t.scheduled_at?new Date(t.scheduled_at).toISOString().slice(0,16):''}" /></div>
+        <div class="field"><label>Format</label><div class="chips" id="p_fmt" style="margin-top:2px"><div class="chip ${t.format!=='outing'?'on':''}" data-fmt="dinner">Dinner</div><div class="chip ${t.format==='outing'?'on':''}" data-fmt="outing">Outing</div></div></div></div>
+      <div class="nav"><button class="btn ghost" data-cancel>Cancel</button><button class="btn" data-save>Save plan</button></div>
+    </div></div></div>`);
+  document.body.appendChild(scrim);
+  let fmt=t.format||'dinner';
+  scrim.querySelectorAll('#p_fmt .chip').forEach(c=>c.onclick=()=>{ scrim.querySelectorAll('#p_fmt .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); fmt=c.dataset.fmt; });
+  const close=()=>scrim.remove(); scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('[data-save]').onclick=async()=>{ const when=$('#p_when').value;
+    await DB.updateTable(t.id,{place:$('#p_place').value.trim(), scheduled_at:when?new Date(when).toISOString():null, format:fmt});
+    close(); toast('Plan saved'); await loadConsoleData(); };
+}
 function addTableNote(t){
   const scrim=el(`<div class="modal-scrim"><div class="modal">
-    <div class="modal-head"><h2>Add a note</h2><p>${esc((t.couple_ids||[]).map(id=>{const a=consoleState.apps.find(x=>x.id===id);return a?a.couple_name:'';}).filter(Boolean).join('  +  '))}</p></div>
-    <div class="modal-body">
-      <div class="field"><textarea id="m_note" placeholder="What happened, next step, how it felt…">${esc(t.notes||'')}</textarea></div>
-      <div class="nav"><button class="btn ghost" data-cancel>Cancel</button><button class="btn" data-save>Save note</button></div>
-    </div>
-  </div></div>`);
+    <div class="modal-head"><h2>Add a note</h2><p>${esc(arr(t.couple_ids).map(nameFor).join('  +  '))}</p></div>
+    <div class="modal-body"><div class="field"><textarea id="m_note" placeholder="What happened, next step, how it felt…">${esc(t.notes||'')}</textarea></div>
+      <div class="nav"><button class="btn ghost" data-cancel>Cancel</button><button class="btn" data-save>Save note</button></div></div></div></div>`);
   document.body.appendChild(scrim);
-  const close=()=>scrim.remove();
-  scrim.querySelector('[data-cancel]').onclick=close;
-  scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
-  scrim.querySelector('[data-save]').onclick=async()=>{
-    await DB.updateTable(t.id,{notes:$('#m_note').value});
-    close(); toast('Note saved'); await loadConsoleData();
-  };
+  const close=()=>scrim.remove(); scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('[data-save]').onclick=async()=>{ await DB.updateTable(t.id,{notes:$('#m_note').value}); close(); toast('Note saved'); await loadConsoleData(); };
 }
 
 /* ============================================================ */
