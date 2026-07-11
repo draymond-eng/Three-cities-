@@ -371,6 +371,46 @@
 
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:120;box-shadow:var(--shadow)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ---- Run sheet (mixer-night toolkit) ---- */
+  .rs-scrim{position:fixed;inset:0;z-index:130;background:rgba(28,22,16,.5);overflow:auto;padding:24px}
+  .rs-bar{max-width:820px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .rs-bar .t{color:#f4ede1;font-family:var(--serif);font-size:16px}
+  .rs-page{max-width:820px;margin:0 auto;background:#fffdf8;border-radius:16px;padding:34px 38px 44px;box-shadow:var(--shadow)}
+  .rs-head{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:6px}
+  .rs-head .mk{width:46px;height:46px;border-radius:12px;background:linear-gradient(155deg,#3c4a35,#26301f);display:grid;place-items:center;flex:none}
+  .rs-head .mk svg{width:60%;height:60%}
+  .rs-head h1{font-family:var(--serif);font-size:24px;font-weight:600;margin:0}
+  .rs-head .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .rs-sect{margin-top:26px}
+  .rs-sect h2{font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 12px}
+  .rs-time{display:flex;gap:14px;padding:9px 0;border-top:1px solid var(--line)}
+  .rs-time:first-of-type{border-top:none}
+  .rs-time .clock{flex:none;width:64px;font-family:var(--serif);font-weight:600;color:var(--rust-d);font-size:15px}
+  .rs-time .body b{font-size:14.5px}
+  .rs-time .body .d{color:var(--muted);font-size:13px;margin-top:1px}
+  .rs-tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .rs-tcard{border:1px solid var(--line);border-radius:14px;padding:15px 16px;background:linear-gradient(180deg,#fcf6ea,#fffdf8);break-inside:avoid}
+  .rs-tcard .tnum{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--forest);display:flex;justify-content:space-between;align-items:baseline}
+  .rs-tcard .tnum .chem{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px}
+  .rs-tcard .cpl{font-size:14px;font-weight:600;margin-top:8px}
+  .rs-tcard .cpl span{color:var(--muted);font-weight:400;font-size:12.5px}
+  .rs-tcard .why{color:var(--rust-d);font-size:12.5px;font-style:italic;margin-top:8px;font-family:var(--serif)}
+  .rs-tcard .prompts{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+  .rs-tcard .prompts .pl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:5px}
+  .rs-tcard .prompts li{font-size:12.5px;line-height:1.45;margin:0 0 4px 16px}
+  .chem.strong{background:#e7efdf;color:#3f6a2e}.chem.promising{background:#f3e7d3;color:#8c3f28}.chem.worth{background:#efe7d6;color:#7a6b52}
+  .rs-note{border:1px solid #e3caa0;background:#f9f0dd;border-radius:12px;padding:12px 15px;font-size:13px;line-height:1.5;color:#6b5836}
+  .rs-flag{color:#9a5040;font-size:13px;margin-top:4px}
+  @media print{
+    body{background:#fff}
+    body>*{display:none !important}
+    .rs-scrim{position:static;padding:0;background:none;display:block !important}
+    .rs-scrim>*{display:block}
+    .rs-bar{display:none !important}
+    .rs-page{box-shadow:none;max-width:none;padding:0}
+    .rs-tables{grid-template-columns:repeat(2,1fr)}
+  }
 </style>
 </head>
 <body>
@@ -1379,7 +1419,7 @@ function openEvent(id){
       <div class="kv"><div class="k">Status</div><div class="v" style="display:flex;align-items:center;gap:10px">${statusBadge(ev.status)}
         ${ev.status==='upcoming'?'<button class="btn sm forest" id="mark_happened">Mark as happened</button>':''}</div></div>
       ${ev.notes?`<div class="kv"><div class="k">Notes</div><div class="v">${esc(ev.notes)}</div></div>`:''}
-      <div class="sect-title" style="display:flex;justify-content:space-between;align-items:center">Roster (${roster.length}) <button class="btn sm ghost" id="add_couples">+ Add couples</button></div>
+      <div class="sect-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px">Roster (${roster.length}) <div style="display:flex;gap:8px">${roster.length>=2?`<button class="btn sm gold" id="plan_night">Plan the night →</button>`:''}<button class="btn sm ghost" id="add_couples">+ Add couples</button></div></div>
       <div id="roster_list">${rosterRows||'<div class="sub2" style="padding:6px 0">No couples on the roster yet. Add a few to fill this mixer.</div>'}</div>
       ${ev.status==='happened'?`<div class="sub2" style="margin-top:14px;line-height:1.5">Tip: mark who attended, or send each couple their <b>Picks link</b> to note who they clicked with themselves. Mutual picks (⇄) turn green and show up under <b>Pairing</b>.</div>`:`<div class="sub2" style="margin-top:14px;line-height:1.5">Send each couple their <b>Invite link</b> to RSVP. Then read the room below.</div>`}
       ${suggestBlock(roster)}
@@ -1389,6 +1429,7 @@ function openEvent(id){
   scrim.querySelector('[data-close]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   const mh=scrim.querySelector('#mark_happened'); if(mh) mh.onclick=async()=>{ await DB.updateEvent(id,{status:'happened'}); toast('Marked as happened'); await loadConsoleData(); close(); openEvent(id); };
   scrim.querySelector('#add_couples').onclick=()=>addCouplesToEvent(ev, onRoster);
+  const pn=scrim.querySelector('#plan_night'); if(pn) pn.onclick=()=>openRunSheet(ev);
   scrim.querySelectorAll('[data-attend]').forEach(t=>t.onclick=async()=>{
     const cid=t.dataset.attend; const r=roster.find(x=>x.couple_id===cid); r.attended=!r.attended;
     await DB.updateEvent(id,{roster}); const a=appById(cid); if(a&&r.attended&&a.status==='invited') await DB.updateApplication(cid,{status:'attended'});
@@ -1548,6 +1589,100 @@ function composeMixers(pool, K){
 function roomHighlights(ids){
   const out=[]; for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){ const c=compat(appById(ids[i]),appById(ids[j])); if(c.reasons[0]) out.push({s:c.score, txt:`${nameFor(ids[i])} & ${nameFor(ids[j])}: ${c.reasons[0].toLowerCase()}`}); }
   return out.sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.txt);
+}
+/* ---- Mixer-night toolkit: seat the room, run of show, prompt cards ---- */
+function pairKey(a,b){ return [a.id,b.id].sort().join('|'); }
+function tableChem(apps){ if(apps.length<2) return 0; let s=0,n=0; for(let i=0;i<apps.length;i++)for(let j=i+1;j<apps.length;j++){ s+=compat(apps[i],apps[j]).score; n++; } return Math.round(s/n); }
+function seatTables(apps, perTable, avoid){
+  const pen=(x,y)=> avoid && avoid.has(pairKey(x,y)) ? 45 : 0;
+  const rem=apps.slice(); const tables=[];
+  while(rem.length){
+    if(rem.length===1 && tables.length){ const c=rem.shift(); let bt=tables[0],bs=-1e9; tables.forEach(t=>{ const s=t.reduce((a,x)=>a+compat(x,c).score-pen(x,c),0); if(s>bs){bs=s;bt=t;} }); bt.push(c); break; }
+    let si=0,sj=1,best=-1e9;
+    for(let i=0;i<rem.length;i++)for(let j=i+1;j<rem.length;j++){ const s=compat(rem[i],rem[j]).score-pen(rem[i],rem[j]); if(s>best){best=s;si=i;sj=j;} }
+    const table=[rem[si],rem[sj]]; rem.splice(sj,1); rem.splice(si,1);
+    while(table.length<perTable && rem.length>1){ let bi=0,bsc=-1e9; rem.forEach((c,idx)=>{ const s=table.reduce((a,x)=>a+compat(x,c).score-pen(x,c),0); if(s>bsc){bsc=s;bi=idx;} }); table.push(rem[bi]); rem.splice(bi,1); }
+    if(rem.length===1 && table.length<=perTable){ table.push(rem.shift()); }
+    tables.push(table);
+  }
+  return tables;
+}
+function avoidFromTables(tables){ const s=new Set(); tables.forEach(t=>{ for(let i=0;i<t.length;i++)for(let j=i+1;j<t.length;j++) s.add(pairKey(t[i],t[j])); }); return s; }
+const UNIVERSAL_PROMPTS=[
+  'How did you two meet, and who tells it better?',
+  'What does an ideal Sunday in Chicago look like for you?',
+  'A neighborhood spot you would send a good friend to?',
+  'What is one small thing that has made this year good?',
+  'Sitter booked and nowhere to be. Where do you go?',
+  'What is a trip the two of you are dreaming about?',
+  'What is the last thing that had you both laughing at home?'
+];
+function tablePrompts(tableApps){
+  const out=[];
+  for(let i=0;i<tableApps.length;i++)for(let j=i+1;j<tableApps.length;j++) conversationStarters(tableApps[i],tableApps[j]).forEach(s=>out.push(s));
+  const uniq=[...new Set(out)].filter(s=>s && !/what brought each of you to chicago/i.test(s));
+  const picks=uniq.slice(0,2);
+  let k=0; while(picks.length<4 && k<UNIVERSAL_PROMPTS.length){ const p=UNIVERSAL_PROMPTS[k++]; if(!picks.includes(p.toLowerCase())&&!picks.includes(p)) picks.push(p); }
+  return picks.map(p=>p.charAt(0).toUpperCase()+p.slice(1));
+}
+function tableFlags(apps){ const out=[]; for(let i=0;i<apps.length;i++)for(let j=i+1;j<apps.length;j++){ compat(apps[i],apps[j]).flags.forEach(f=>out.push(f)); } return [...new Set(out)]; }
+const ROMAN=['I','II','III','IV','V','VI','VII','VIII'];
+function runOfShow(startISO){
+  const steps=[
+    [0,'Doors and a welcome drink','Couples arrive, coats down, first drink in hand.'],
+    [20,'Welcome and the house code','A short toast to set the tone: warm, platonic, here to make friends.'],
+    [30,'Round one at the table','Seated in small groups chosen for chemistry. Prompt cards are on every table.'],
+    [75,'Rotate','Couples move to their round-two table and meet new faces.'],
+    [110,'Dessert and mingle','Loosen it up and let people find each other.'],
+    [135,'Flag your sparks','Everyone opens their link and quietly notes who they clicked with.'],
+    [150,'Goodnights','Send them home glad they came.']
+  ];
+  const base=startISO?new Date(startISO):null;
+  return steps.map(([m,t,d])=>({ clock: base?new Date(base.getTime()+m*60000):null, mins:m, title:t, desc:d }));
+}
+function fmtClock(dt){ return dt?dt.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):null; }
+function tablesHTML(tables){
+  return `<div class="rs-tables">${tables.map((t,i)=>{
+    const chem=tableChem(t); const tier=compatTier(chem);
+    const hoods=[...new Set(t.map(a=>a.neighborhood).filter(Boolean))].slice(0,3).join(' · ');
+    const why=roomHighlights(t.map(a=>a.id))[0];
+    return `<div class="rs-tcard">
+      <div class="tnum">Table ${ROMAN[i]||i+1} <span class="chem ${tier}">${tierLabel(tier)}</span></div>
+      ${hoods?`<div class="sub2" style="margin-top:2px">${esc(hoods)}</div>`:''}
+      ${t.map(a=>`<div class="cpl">${esc(a.couple_name)} <span>${esc(a.neighborhood)||''}</span></div>`).join('')}
+      ${why?`<div class="why">${esc(why)}</div>`:''}
+      <div class="prompts"><div class="pl">To get them talking</div><ul>${tablePrompts(t).map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+function openRunSheet(ev){
+  const roster=arr(ev.roster);
+  const confirmed=roster.filter(r=>r.rsvp==='yes').map(r=>appById(r.couple_id)).filter(Boolean);
+  const usingConfirmed=confirmed.length>=2;
+  const pool = usingConfirmed ? confirmed : roster.map(r=>appById(r.couple_id)).filter(Boolean);
+  if(pool.length<2){ toast('Add a couple or two to plan the night'); return; }
+  const perTable = pool.length<=4 ? pool.length : 3;
+  const round1=seatTables(pool, perTable);
+  const canRotate = round1.length>=2 && pool.length>=4;
+  const round2 = canRotate ? seatTables(pool, perTable, avoidFromTables(round1)) : null;
+  const ros=runOfShow(ev.scheduled_at);
+  const flags=tableFlags(pool);
+  const poolNote = usingConfirmed ? `${pool.length} confirmed couples` : `${pool.length} on the roster (no RSVPs in yet, so this seats everyone)`;
+  const scrim=el(`<div class="rs-scrim">
+    <div class="rs-bar"><div class="t">Run of show</div><div style="display:flex;gap:8px"><button class="btn sm gold" id="rs-print">Print</button><button class="btn sm ghost" id="rs-close">Close</button></div></div>
+    <div class="rs-page">
+      <div class="rs-head"><div class="mk">${MARK_CREAM}</div><div><h1>${esc(ev.title)}</h1><div class="sub">${esc(ev.venue||VENUE_NAME)} · ${fmtDay(ev.scheduled_at)} · ${esc(poolNote)}</div></div></div>
+      <div class="rs-sect"><h2>Run of show</h2>${ros.map(s=>`<div class="rs-time"><div class="clock">${fmtClock(s.clock)||('+'+s.mins+'m')}</div><div class="body"><b>${esc(s.title)}</b>${s.desc?`<div class="d">${esc(s.desc)}</div>`:''}</div></div>`).join('')}</div>
+      <div class="rs-sect"><h2>Round one${canRotate?' · seating':''}</h2>${tablesHTML(round1)}</div>
+      ${round2?`<div class="rs-sect"><h2>Round two · after the rotation</h2>${tablesHTML(round2)}</div>`:''}
+      ${flags.length?`<div class="rs-sect"><h2>Host notes</h2><div class="rs-note">A couple of things to hold lightly as you work the room:${flags.map(f=>`<div class="rs-flag">• ${esc(f)}</div>`).join('')}</div></div>`:''}
+      <div class="rs-sect"><h2>The close</h2><div class="rs-note">Before anyone leaves, make sure both people in every couple have opened their link and flagged who they clicked with. Mutual sparks become a paired hang, and that follow-through is the whole point.</div></div>
+    </div>
+  </div>`);
+  document.body.appendChild(scrim);
+  scrim.querySelector('#rs-close').onclick=()=>scrim.remove();
+  scrim.querySelector('#rs-print').onclick=()=>window.print();
+  scrim.scrollTop=0;
 }
 function openMixerBuilder(){
   const pool=consoleState.apps.filter(a=>a.status!=='paired'&&a.status!=='passed');
