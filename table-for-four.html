@@ -381,6 +381,20 @@
 
   .fb-note-row{margin-top:8px;font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--rust-d);line-height:1.45;background:#f9f0dd;border:1px solid #e3caa0;border-radius:10px;padding:8px 12px}
 
+  /* ---- Console dashboard ---- */
+  .dash-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin:2px 0 22px}
+  .dash-tile{text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 18px;cursor:pointer;transition:.15s;font-family:inherit}
+  .dash-tile:hover{border-color:var(--gold);box-shadow:0 6px 18px rgba(48,38,24,.08)}
+  .dash-tile .dt-n{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--forest);line-height:1}
+  .dash-tile .dt-l{font-size:13px;font-weight:650;margin-top:7px;color:var(--ink)}
+  .dash-tile .dt-s{font-size:12px;color:var(--muted);margin-top:2px}
+  .dash-actions{display:flex;flex-direction:column;gap:10px}
+  .dash-act{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.15s;font-family:inherit;width:100%}
+  .dash-act:hover{box-shadow:0 6px 18px rgba(48,38,24,.08)}
+  .dash-act .da-t{font-weight:650;font-size:15px;color:var(--ink)}
+  .dash-act .da-s{font-size:13px;color:var(--muted);margin-top:2px}
+  .dash-act .da-arrow{color:var(--rust-d);font-size:18px;flex:none}
+
   /* ---- Invite: how the evening flows ---- */
   .flow{margin-top:18px;padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#fcf6ea,#fffdf8)}
   .flow-l{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px}
@@ -1242,7 +1256,7 @@ function homeIntroLabel(s){ return ({proposed:'Introduction in the works',confir
 
 /* ============================================================ Console ============================================================ */
 const AUTH_KEY='t4_admin_ok';
-const consoleState = { tab:'applications', apps:[], tables:[], events:[] };
+const consoleState = { tab:'dashboard', apps:[], tables:[], events:[] };
 let sbChecked=false, sbSession=null;
 async function refreshSbSession(){ try{ sbSession=await DB.session(); }catch(e){ sbSession=null; } sbChecked=true; }
 function isAuthed(){
@@ -1263,6 +1277,7 @@ function renderConsole(){
     <div class="cbar"><div class="cbar-in">
       <div class="brandc"><div class="monoc">${MARK_CREAM}</div> Fourtop <span style="opacity:.6;font-size:13px">· Chicago concierge</span></div>
       <div class="tabs">
+        <button data-tab="dashboard" class="${T==='dashboard'?'on':''}">Dashboard</button>
         <button data-tab="applications" class="${T==='applications'?'on':''}">Applications</button>
         <button data-tab="matchmaker" class="${T==='matchmaker'?'on':''}">Matchmaker</button>
         <button data-tab="events" class="${T==='events'?'on':''}">Events</button>
@@ -1283,7 +1298,7 @@ async function loadConsoleData(){
   consoleState.tables = await DB.listTables();
   consoleState.events = await DB.listEvents();
   const body=$('#console-body'); if(!body) return;
-  ({applications:drawApplications, matchmaker:drawMatchmaker, events:drawEvents, pairing:drawPairing, board:drawBoard}[consoleState.tab]||drawApplications)();
+  ({dashboard:drawDashboard, applications:drawApplications, matchmaker:drawMatchmaker, events:drawEvents, pairing:drawPairing, board:drawBoard}[consoleState.tab]||drawDashboard)();
 }
 
 /* login */
@@ -1325,17 +1340,54 @@ async function doLogin(){
     const pass=$('#l_pass').value;
     if(!pass){ note.style.color='var(--rust-d)'; note.textContent='Enter your password.'; return; }
     try{ note.style.color='var(--muted)'; note.textContent='Signing in…'; await DB.passwordSignIn(ADMIN_EMAIL, pass); sbChecked=false; await refreshSbSession();
-      if(isAuthed()){ consoleState.tab='applications'; renderConsole(); } else { note.style.color='var(--rust-d)'; note.textContent='Signed in, but not recognized as admin. Check the email.'; } }
+      if(isAuthed()){ consoleState.tab='dashboard'; renderConsole(); } else { note.style.color='var(--rust-d)'; note.textContent='Signed in, but not recognized as admin. Check the email.'; } }
     catch(e){ note.style.color='var(--rust-d)'; note.textContent='Wrong email or password (or the user doesn’t exist yet in Supabase).'; }
     return;
   }
-  sessionStorage.setItem(AUTH_KEY,'1'); consoleState.tab='applications'; renderConsole();
+  sessionStorage.setItem(AUTH_KEY,'1'); consoleState.tab='dashboard'; renderConsole();
 }
 
 function statusBadge(s){ return `<span class="badge b-${esc(s)}">${esc(s)}</span>`; }
 function cap(s){ return (s||'').charAt(0).toUpperCase()+(s||'').slice(1); }
 
 /* ---- Applications ---- */
+function drawDashboard(){
+  const body=$('#console-body'); body.innerHTML='';
+  const apps=consoleState.apps, events=consoleState.events, tables=consoleState.tables;
+  const newApps=apps.filter(a=>a.status==='new');
+  const members=apps.filter(a=>a.status!=='passed');
+  const upcoming=events.filter(e=>e.status==='upcoming').sort((a,b)=>(a.scheduled_at||'').localeCompare(b.scheduled_at||''))[0];
+  const upSeats=upcoming?arr(upcoming.roster).filter(r=>r.rsvp==='yes').length:0;
+  const upCap=upcoming?(upcoming.capacity||12):0;
+  const introKeys=new Set(tables.map(t=>[...arr(t.couple_ids)].sort().join('|')));
+  const sparkSet=new Set();
+  events.filter(e=>e.status==='happened').forEach(ev=>{ const roster=arr(ev.roster);
+    for(let i=0;i<roster.length;i++)for(let j=i+1;j<roster.length;j++){ const A=roster[i],B=roster[j];
+      if(A.attended&&B.attended&&arr(A.likes).includes(B.couple_id)&&arr(B.likes).includes(A.couple_id)){
+        const k=[A.couple_id,B.couple_id].sort().join('|'); if(!introKeys.has(k)) sparkSet.add(k); } } });
+  const sparks=sparkSet.size;
+  const activeIntros=tables.filter(t=>t.status==='proposed'||t.status==='confirmed').length;
+  const paired=apps.filter(a=>a.status==='paired').length;
+  const tile=(n,label,sub,tab)=>`<button class="dash-tile" data-goto="${tab}"><div class="dt-n">${n}</div><div class="dt-l">${label}</div>${sub?`<div class="dt-s">${sub}</div>`:''}</button>`;
+  const actions=[];
+  if(newApps.length) actions.push({go:'applications', t:`${newApps.length} new application${newApps.length>1?'s':''} to read`, s:'Review them and mark who you love.'});
+  if(upcoming) actions.push({go:'events', t:`Next supper: ${esc(upcoming.title)}`, s:`${upcoming.scheduled_at?fmtDay(upcoming.scheduled_at):'set a date'} · ${upSeats}/${upCap} seats reserved. Add couples or plan the night.`});
+  else actions.push({go:'events', t:'No supper on the calendar', s:'Create your next mixer, or build one from the Matchmaker.'});
+  if(sparks) actions.push({go:'pairing', t:`${sparks} mutual spark${sparks>1?'s':''} to introduce`, s:'Two couples felt it both ways. Send the intro.'});
+  if(activeIntros) actions.push({go:'board', t:`${activeIntros} intro${activeIntros>1?'s':''} in motion`, s:'Check the Board and nudge them along.'});
+  body.appendChild(el(`<div>
+    <div class="panel-head"><h2>The pulse</h2><div class="count">${esc(fmtDay(new Date().toISOString()))}</div></div>
+    <div class="dash-tiles">
+      ${tile(newApps.length,'Waiting to review', newApps.length?'new applications':'all caught up','applications')}
+      ${tile(members.length,'Couples in the club', paired?paired+' paired so far':null,'applications')}
+      ${tile(upcoming?upSeats:'–', upcoming?'Reserved, next supper':'No supper yet', upcoming?'of '+upCap+' seats':'create one','events')}
+      ${tile(sparks,'Sparks to introduce', sparks?'mutual matches':'none pending','pairing')}
+    </div>
+    <div class="sect-title">Needs you</div>
+    <div class="dash-actions">${actions.map(a=>`<button class="dash-act" data-goto="${a.go}"><div><div class="da-t">${a.t}</div><div class="da-s">${a.s}</div></div><span class="da-arrow">→</span></button>`).join('')||'<div class="empty"><p>All quiet. Nothing needs you right now.</p></div>'}</div>
+  </div>`));
+  body.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{ consoleState.tab=b.dataset.goto; renderConsole(); });
+}
 function drawApplications(){
   const body=$('#console-body'); const apps=consoleState.apps; body.innerHTML='';
   body.appendChild(el(`<div class="panel-head"><h2>Applications</h2><div class="count">${apps.length} total · newest first</div></div>`));
