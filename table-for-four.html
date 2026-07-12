@@ -558,7 +558,7 @@ const DB = (() => {
       const roster=arr(ev.roster), happened=ev.status==='happened', mine=roster.find(r=>r.couple_id===me.id)||{};
       const others=roster.filter(r=>r.couple_id!==me.id).map(r=>{ const a=apps.find(x=>x.id===r.couple_id); if(!a) return null;
         return { couple_id:a.id, couple_name:happened?a.couple_name:null, neighborhood:a.neighborhood, teaser:coupleTeaser(a), rsvp:r.rsvp||null }; }).filter(Boolean);
-      return { event:{id:ev.id,title:ev.title,venue:ev.venue,scheduled_at:ev.scheduled_at,status:ev.status},
+      return { event:{id:ev.id,title:ev.title,venue:ev.venue,scheduled_at:ev.scheduled_at,status:ev.status,format:ev.format||'supper'},
         me:{couple_id:me.id,partner1:me.partner1_name,partner2:me.partner2_name},
         mine:{rsvp:mine.rsvp||null,likes:arr(mine.likes),rating:mine.rating||null}, others };
     },
@@ -1254,35 +1254,63 @@ async function renderInvite([eventId, token]){
   const past = ev.status==='happened';
   const teasers=(d.others||[]).filter(o=>o.rsvp!=='no').slice(0,4).map(o=>o.teaser);
   const countdown=countdownText(ev.scheduled_at);
-  const cal={ title:'Stoop: '+ev.title, venue:ev.venue||'Three Cities Social', start:ev.scheduled_at, mins:150, desc:'Your Stoop hang. See you there.' };
-  const comingHtml = (!past&&teasers.length) ? `<div class="coming"><div class="lbl">Who's coming</div>${teasers.map(t=>`<div class="coming-row">${esc(t)}</div>`).join('')}<div class="coming-note">Names stay a mystery until you're across the table.</div></div>` : '';
+  const paid = (ev.format||'supper')==='supper';
+  const kindNoun = ev.format==='family'?'family day':ev.format==='casual'?'get-together':ev.format==='active'?'meetup':'evening';
+  const whereSub = paid ? 'A private social club · your seat is the way in, no membership required' : 'Kids welcome. Come as you are.';
+  const cal={ title:'Stoop: '+ev.title, venue:ev.venue||VENUE_NAME, start:ev.scheduled_at, mins: paid?150:120, desc:'Your Stoop '+(paid?'hang':kindNoun)+'. See you there.' };
+  const comingHtml = (!past&&teasers.length) ? `<div class="coming"><div class="lbl">Who's coming</div>${teasers.map(t=>`<div class="coming-row">${esc(t)}</div>`).join('')}<div class="coming-note">Names stay a mystery until you ${paid?'sit down together':'meet'}.</div></div>` : '';
   const doRSVP=async(val)=>{ await DB.setRsvp(eventId, token, val); renderInvite([eventId, token]); };
-  const reserve=async()=>{ await DB.setRsvp(eventId, token, 'yes'); if(PAY_URL){ window.open(PAY_URL,'_blank','noopener'); } renderInvite([eventId, token]); };
+  const reserve=async()=>{ await DB.setRsvp(eventId, token, 'yes'); if(paid&&PAY_URL){ window.open(PAY_URL,'_blank','noopener'); } renderInvite([eventId, token]); };
   const answered = d.mine&&d.mine.rsvp;
-  const body = el(`<div class="card">
-    <span class="kicker">${past?'A past evening':'You’re invited'}</span>
-    <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">${past?'That night has passed.':`A seat for you two, ${esc(me.partner1)} &amp; ${esc(me.partner2)}.`}</h1>
-    <div class="rule"></div>
-    ${(!past&&countdown)?`<div class="countdown">${esc(countdown)}</div>`:''}
-    <div class="kv"><div class="k">The evening</div><div class="v" style="font-family:var(--serif);font-size:20px">${esc(ev.title)}</div></div>
-    <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||VENUE_NAME}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:2px">${ev.format==='family'?'Kids welcome. Come as you are.':'A private social club · your seat is the way in, no membership required'}</span></div></div>
-    <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
-    ${past?'':`<div class="kv"><div class="k">Your seats</div><div class="v">${esc(PRICE_LABEL)}${PRICE_TAG?` <span style="font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8c3f28;background:#f3e7d3;border:1px solid #e3caa0;padding:2px 8px;border-radius:999px;vertical-align:middle">${esc(PRICE_TAG)}</span>`:''}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:4px">includes ${esc(PRICE_INCLUDES)}</span></div></div>`}
-    <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after, and we'll take it from there.</p>
-    ${past?'':`<div class="flow">
+  const heading = past ? 'That gathering has passed.' : (paid?`A seat for you two, ${esc(me.partner1)} &amp; ${esc(me.partner2)}.`:`You're invited, ${esc(me.partner1)} &amp; ${esc(me.partner2)}.`);
+  const priceKv = `<div class="kv"><div class="k">Your seats</div><div class="v">${esc(PRICE_LABEL)}${PRICE_TAG?` <span style="font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8c3f28;background:#f3e7d3;border:1px solid #e3caa0;padding:2px 8px;border-radius:999px;vertical-align:middle">${esc(PRICE_TAG)}</span>`:''}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:4px">includes ${esc(PRICE_INCLUDES)}</span></div></div>`;
+  const freeKv = `<div class="kv"><div class="k">Cost</div><div class="v">Free · just come<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:2px">no charge for family days, snacks on us if there are any</span></div></div>`;
+  const ledeTxt = paid
+    ? "A handful of vetted couples, a lovely room, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after, and we'll take it from there."
+    : "A few families near you, in the same season, kids welcome and no agenda but easy company. If you click with a family, you'll tell us after, and we'll set up the next hang.";
+  const flowHtml = past ? '' : (paid ? `<div class="flow">
       <div class="flow-l">How the evening flows</div>
       <div class="flow-s"><span>1</span><div>Arrive to a welcome drink and a warm room.</div></div>
       <div class="flow-s"><span>2</span><div>A seated dinner in small groups chosen for you, then time to mingle.</div></div>
       <div class="flow-s"><span>3</span><div>Click with a couple? Tell us after and we set up the hang. You just show up.</div></div>
-    </div>`}
+    </div>` : `<div class="flow">
+      <div class="flow-l">How the ${esc(kindNoun)} flows</div>
+      <div class="flow-s"><span>1</span><div>Find us at the spot, look for the Stoop crew. Come as you are, bring the kids.</div></div>
+      <div class="flow-s"><span>2</span><div>Let the kids run around while the grown-ups actually talk. Stay as long as it's good.</div></div>
+      <div class="flow-s"><span>3</span><div>Click with a family? Tell us after and we set up the next hang.</div></div>
+    </div>`);
+  const body = el(`<div class="card">
+    <span class="kicker">${past?'A past hang':'You’re invited'}</span>
+    <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">${heading}</h1>
+    <div class="rule"></div>
+    ${(!past&&countdown)?`<div class="countdown">${esc(countdown)}</div>`:''}
+    <div class="kv"><div class="k">${paid?'The evening':'The hang'}</div><div class="v" style="font-family:var(--serif);font-size:20px">${esc(ev.title)}</div></div>
+    <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||VENUE_NAME}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:2px">${whereSub}</span></div></div>
+    <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
+    ${past?'':(paid?priceKv:freeKv)}
+    <p class="lede" style="font-size:15px;margin-top:14px">${ledeTxt}</p>
+    ${flowHtml}
     ${comingHtml}
     <div id="rsvp-area" style="margin-top:22px"></div>
   </div>`);
   const area = body.querySelector('#rsvp-area');
-  if(past){ area.appendChild(el(`<div class="note" style="font-size:14px">This mixer has already happened. If you were there, you can <a href="#/picks/${eventId}/${token}">tell us who you clicked with →</a></div>`)); }
-  else if(answered==='yes'){ const box=el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:21px;color:var(--good)">Your seats are held.</div><p class="note" style="margin:8px 0 0">See you ${esc((countdown||'soon').toLowerCase())} at ${esc(ev.venue||VENUE_NAME)}. ${PAY_URL?'Complete checkout below to lock them in.':"We'll send payment details and any final notes by email."}</p></div>`); area.appendChild(box); if(PAY_URL){ box.appendChild(el(`<a class="btn block" style="margin-top:14px" href="${PAY_URL}" target="_blank" rel="noopener">Pay ${esc(PRICE_LABEL)} →</a>`)); } if(ev.scheduled_at) box.appendChild(addToCalBtn(cal)); box.appendChild(el(`<p class="note" style="margin-top:12px">Change of plans? <button class="link-btn" id="undo">Let us know</button></p>`)); const a2r=a2hsCard(); if(a2r) area.appendChild(a2r); area.querySelector('#undo').onclick=()=>doRSVP('no'); }
+  if(past){ area.appendChild(el(`<div class="note" style="font-size:14px">This ${esc(kindNoun)} has already happened. If you were there, you can <a href="#/picks/${eventId}/${token}">tell us who you clicked with →</a></div>`)); }
+  else if(answered==='yes'){
+    const heldTitle = paid ? 'Your seats are held.' : "You're on the list.";
+    const heldNote = paid
+      ? `See you ${esc((countdown||'soon').toLowerCase())} at ${esc(ev.venue||VENUE_NAME)}. ${PAY_URL?'Complete checkout below to lock them in.':"We'll send payment details and any final notes by email."}`
+      : `See you ${esc((countdown||'soon').toLowerCase())} at ${esc(ev.venue||VENUE_NAME)}. We'll email the details and any final notes.`;
+    const box=el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:21px;color:var(--good)">${heldTitle}</div><p class="note" style="margin:8px 0 0">${heldNote}</p></div>`);
+    area.appendChild(box);
+    if(paid&&PAY_URL){ box.appendChild(el(`<a class="btn block" style="margin-top:14px" href="${PAY_URL}" target="_blank" rel="noopener">Pay ${esc(PRICE_LABEL)} →</a>`)); }
+    if(ev.scheduled_at) box.appendChild(addToCalBtn(cal));
+    box.appendChild(el(`<p class="note" style="margin-top:12px">Change of plans? <button class="link-btn" id="undo">Let us know</button></p>`));
+    const a2r=a2hsCard(); if(a2r) area.appendChild(a2r);
+    area.querySelector('#undo').onclick=()=>doRSVP('no');
+  }
   else if(answered==='no'){ area.appendChild(el(`<div style="text-align:center"><div style="font-family:var(--serif);font-size:19px;color:var(--muted)">No worries. Maybe the next one.</div><p class="note" style="margin-top:8px">Changed your mind? <button class="link-btn" id="redo">We'd love to have you</button></p></div>`)); area.querySelector('#redo').onclick=()=>doRSVP('yes'); }
-  else { const wrap=el(`<div><button class="btn block" id="rsvp-yes">Reserve our seats · ${esc(PRICE_LABEL)} →</button><div class="nav" style="margin-top:10px"><button class="btn ghost block" id="rsvp-no">Can't make it</button></div><p class="note" style="margin-top:10px;text-align:center">${PAY_URL?'Secure checkout via Stripe. Your seats are held the moment payment clears.':"Reserve now to hold your seats; we'll send payment details by email."}</p></div>`); area.appendChild(wrap); wrap.querySelector('#rsvp-yes').onclick=()=>reserve(); wrap.querySelector('#rsvp-no').onclick=()=>doRSVP('no'); }
+  else if(paid){ const wrap=el(`<div><button class="btn block" id="rsvp-yes">Reserve our seats · ${esc(PRICE_LABEL)} →</button><div class="nav" style="margin-top:10px"><button class="btn ghost block" id="rsvp-no">Can't make it</button></div><p class="note" style="margin-top:10px;text-align:center">${PAY_URL?'Secure checkout via Stripe. Your seats are held the moment payment clears.':"Reserve now to hold your seats; we'll send payment details by email."}</p></div>`); area.appendChild(wrap); wrap.querySelector('#rsvp-yes').onclick=()=>reserve(); wrap.querySelector('#rsvp-no').onclick=()=>doRSVP('no'); }
+  else { const wrap=el(`<div><button class="btn block" id="rsvp-yes">Count us in →</button><div class="nav" style="margin-top:10px"><button class="btn ghost block" id="rsvp-no">Can't make it</button></div><p class="note" style="margin-top:10px;text-align:center">No charge, just RSVP so we know to look for you.</p></div>`); area.appendChild(wrap); wrap.querySelector('#rsvp-yes').onclick=()=>doRSVP('yes'); wrap.querySelector('#rsvp-no').onclick=()=>doRSVP('no'); }
   publicShell(body);
   window.scrollTo({top:0,behavior:'smooth'});
 }
