@@ -637,13 +637,14 @@ const APPETITE_OPTIONS = ["Once a month feels right","Every couple of weeks","Wh
 const LIFE_STAGES = ["Kids at home","Expecting","Newly a couple","Married, no kids","Empty nesters","New to Chicago"];
 /* Specific interest tags (per partner). cat = broad category for reasoning; exact-tag overlap earns a bonus. */
 const TAGS = [
-  {k:'golf',l:'Golf',e:'⛳',c:'sports'},{k:'biking',l:'Biking',e:'🚲',c:'outdoors'},{k:'running',l:'Running',e:'🏃',c:'outdoors'},
-  {k:'hiking',l:'Hiking',e:'🥾',c:'outdoors'},{k:'boating',l:'Boating',e:'⛵',c:'outdoors'},{k:'tennis',l:'Tennis / pickleball',e:'🎾',c:'sports'},
-  {k:'gym',l:'Working out',e:'💪',c:'sports'},{k:'cooking',l:'Cooking',e:'🍳',c:'cooking'},{k:'grilling',l:'Grilling',e:'🔥',c:'cooking'},
-  {k:'dining',l:'Dining out',e:'🍽️',c:'cooking'},{k:'wine',l:'Wine',e:'🍷',c:'drinks'},{k:'beer',l:'Craft beer',e:'🍺',c:'drinks'},
-  {k:'music',l:'Live music',e:'🎶',c:'music'},{k:'art',l:'Art & museums',e:'🎨',c:'arts'},{k:'movies',l:'Movies & TV',e:'🎬',c:'media'},
-  {k:'games',l:'Board games',e:'🎲',c:'games'},{k:'travel',l:'Travel',e:'✈️',c:'travel'},{k:'hosting',l:'Hosting',e:'🥂',c:'hosting'},
-  {k:'garden',l:'Gardening / DIY',e:'🌱',c:'home'},{k:'faith',l:'Faith & community',e:'⛪',c:'community'},{k:'dogs',l:'Dogs / pets',e:'🐶',c:'pets'},
+  {k:'dinners',l:'Splurge dinners',e:'🍽️',c:'dining'},{k:'barnight',l:'Neighborhood bar night',e:'🍸',c:'nightlife'},{k:'karaoke',l:'Karaoke',e:'🎤',c:'nightlife'},
+  {k:'livemusic',l:'Live music & concerts',e:'🎶',c:'music'},{k:'comedy',l:'Comedy & improv',e:'🎭',c:'comedy'},{k:'wine',l:'Wine',e:'🍷',c:'drinks'},
+  {k:'beer',l:'Craft beer & breweries',e:'🍺',c:'drinks'},{k:'mahjong',l:'Mahjong',e:'🀄',c:'games'},{k:'games',l:'Board games & trivia',e:'🎲',c:'games'},
+  {k:'hosting',l:'Hosting dinner parties',e:'🥂',c:'hosting'},{k:'cooking',l:'Cooking & grilling',e:'🍳',c:'cooking'},{k:'golf',l:'Golf',e:'⛳',c:'sports'},
+  {k:'pickleball',l:'Pickleball & tennis',e:'🎾',c:'sports'},{k:'biking',l:'Biking & the lakefront',e:'🚲',c:'outdoors'},{k:'boating',l:'Boating & lake days',e:'⛵',c:'outdoors'},
+  {k:'workouts',l:'Run club & workouts',e:'💪',c:'fitness'},{k:'art',l:'Art & museums',e:'🎨',c:'arts'},{k:'movies',l:'Movies & TV',e:'🎬',c:'media'},
+  {k:'travel',l:'Travel & weekend trips',e:'✈️',c:'travel'},{k:'gameday',l:'Game day / Chicago sports',e:'🏟️',c:'gameday'},{k:'dogs',l:'Dogs & pets',e:'🐶',c:'pets'},
+  {k:'faith',l:'Faith & community',e:'⛪',c:'community'},
 ];
 const TAG_BY = Object.fromEntries(TAGS.map(t=>[t.k,t]));
 function tagLabel(k){ return (TAG_BY[k]||{}).l||k; }
@@ -971,18 +972,25 @@ function milesBetween(a,b){ const p=coordFor(a),q=coordFor(b); if(!p||!q) return
 
 /* Free-text interests → canonical categories, so we can match hobbies */
 const CATS = {
-  outdoors:['hik','trail','run ','running','cycl','bike','biking','garden','camp','climb','ski','kayak','marathon','606','lakefront','outdoor'],
+  dining:['splurge','tasting menu','fine dining','dinner out','restaurant','foodie','long dinner','omakase'],
+  nightlife:['bar','karaoke','cocktail','night out','speakeasy','dive'],
+  outdoors:['hik','trail','cycl','bike','biking','garden','camp','climb','ski','kayak','marathon','606','lakefront','outdoor','boat','sail','lake day'],
   cooking:['cook','grill','bake','bbq','oaxacan','italian food','sunday cook','food'],
-  drinks:['wine','cocktail','ipa','beer','brew','whiskey','half acre','gilt bar'],
-  games:['board game','trivia','chess','cards','poker','video game'],
+  drinks:['wine','ipa','beer','brew','whiskey','half acre','gilt bar','natural wine'],
+  games:['board game','trivia','chess','cards','poker','video game','mahjong'],
   music:['live music','concert','vinyl','record','thalia',' band','music'],
+  comedy:['comedy','improv','standup','stand-up','second city'],
   arts:['pottery','gallery','museum','ceramic','thrift','vintage','design','painting',' art'],
-  sports:['basketball','soccer','pickup','tennis','golf','gym','movement','workout','fitness','yoga','pilates'],
+  sports:['basketball','soccer','pickup','tennis','pickleball','golf'],
+  fitness:['gym','movement','workout','fitness','yoga','pilates','run club','running','run ','lift','crossfit','peloton'],
   media:['podcast','true crime','movie','film',' tv','reading','book'],
   community:['church','volunteer','community','faith'],
   hosting:['host','dinner party','entertain'],
+  travel:['travel','trip','vacation','weekend away','abroad'],
+  gameday:['game day','bears','cubs','white sox',' sox','bulls','blackhawks','sports fan','tailgate'],
+  pets:['dog','puppy','rescue pup',' pet'],
 };
-const CAT_LABEL={outdoors:'the outdoors',cooking:'cooking',drinks:'good drinks',games:'games',music:'live music',arts:'arts & culture',sports:'sports',media:'shows & books',community:'community',hosting:'hosting',travel:'travel',home:'projects at home',pets:'their dogs'};
+const CAT_LABEL={dining:'great dinners',nightlife:'a night out',outdoors:'the outdoors',cooking:'cooking & grilling',drinks:'good drinks',games:'games & mahjong',music:'live music',comedy:'comedy',arts:'arts & culture',sports:'sports',fitness:'staying active',media:'shows & movies',community:'community',hosting:'hosting',travel:'travel',gameday:'game day',home:'projects at home',pets:'their dogs'};
 function cats(text){ const t=(text||'').toLowerCase(); const out=new Set(); for(const c in CATS){ if(CATS[c].some(k=>t.includes(k))) out.add(c); } return out; }
 /* Per-partner interest categories — prefer tapped tags, fall back to free-text (seed data) */
 function tagsOf(app,which){ const t=app['partner'+which+'_tags']; return Array.isArray(t)?t:[]; }
@@ -1814,10 +1822,11 @@ function coupleSegment(a){
   return 'Couple';
 }
 /* Auto first-hang plan: what to do + when, tailored to both couples (removes the where/what/when guesswork) */
-const PLAN_IDEAS = { golf:'a round of golf or a bucket at the range, beers after', boating:'a day on the lake', outdoors:'a walk on the 606 or the lakefront, coffee after',
-  cooking:'a low-key dinner where you all cook together', drinks:'a bottle of wine at a neighborhood spot', games:'a board-game night with takeout',
-  music:'live music at Thalia Hall or a neighborhood room', sports:'pickleball or a class, brunch after', arts:'a gallery night in West Town',
-  media:'a long dinner and good conversation', hosting:'a dinner party at one of your places', travel:'trading trip stories over a long dinner', home:'a project day then a cookout', pets:'a dog-park meetup then coffee' };
+const PLAN_IDEAS = { dining:'a long dinner at a spot worth the splurge', nightlife:'drinks and karaoke on a Friday', comedy:'a comedy show then drinks after',
+  boating:'a day on the lake', outdoors:'a bike along the lakefront, coffee after',
+  cooking:'a low-key dinner where you all cook together', drinks:'a bottle of wine at a neighborhood spot', games:'a board-game or mahjong night with takeout',
+  music:'live music at Thalia Hall or a neighborhood room', sports:'pickleball or a round of golf, brunch after', fitness:'a workout class then brunch', gameday:'a game-day watch party with snacks', arts:'a gallery night in West Town',
+  media:'a long dinner and good conversation', hosting:'a dinner party at one of your places', travel:'trading trip stories over a long dinner', pets:'a dog-park meetup then coffee' };
 const FAMILY_IDEAS = { outdoors:'a family afternoon at the park, pizza after', cooking:'an early family dinner, kids and all', sports:'a morning at the playground then brunch', _default:'a family-friendly afternoon so the kids can meet too' };
 function topSharedCat(a,b){ const h=hobbyScore(a,b); if(h.exact&&h.exact.length) return tagCat(h.exact[0]); if(h.shared&&h.shared.length) return h.shared[0]; return null; }
 function planSuggestion(a,b){
@@ -1829,9 +1838,10 @@ function planSuggestion(a,b){
   const timing = slots.length ? slots[0].toLowerCase() : 'a weekend that works for you all';
   return { activity, timing, family:bothKids };
 }
-const STARTER_BY = { golf:'compare your go-to Chicago courses', boating:'trade favorite lake-day spots', outdoors:'swap your best trails and neighborhood walks',
-  cooking:'each bring a go-to weeknight dinner to talk through', drinks:'everyone brings a bottle and you compare', games:'find out who’s ruthless at trivia',
-  music:'share the shows you’re eyeing this season', sports:'plan a rematch before you’ve even met', arts:'trade the best current shows around town', travel:'compare the trips on your lists' };
+const STARTER_BY = { dining:'compare the dinners in town worth the splurge', nightlife:'trade your go-to bars and karaoke spots', boating:'trade favorite lake-day spots', outdoors:'swap your best lakefront rides and trails',
+  cooking:'each bring a go-to weeknight dinner to talk through', drinks:'everyone brings a bottle and you compare', games:'find out who’s ruthless at trivia or mahjong',
+  music:'share the shows you’re eyeing this season', comedy:'trade the best comedy and improv around town', sports:'plan a rematch before you’ve even met', fitness:'compare workouts and run-club routes',
+  gameday:'find out who you each root for', arts:'trade the best current shows around town', hosting:'swap dinner-party tricks', pets:'introduce the dogs, obviously', travel:'compare the trips on your lists' };
 function conversationStarters(a,b){
   const h=hobbyScore(a,b); const out=[];
   (h.exact||[]).slice(0,2).forEach(k=>{ const c=tagCat(k); if(STARTER_BY[c]) out.push(STARTER_BY[c].replace('go-to Chicago courses','go-to '+tagLabel(k).toLowerCase()+' spots')); });
