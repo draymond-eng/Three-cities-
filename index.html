@@ -1829,14 +1829,17 @@ function renderImport(){
     $("impTitle").textContent="Import statement";
     b.innerHTML=`<div class="impscroll">
       <div class="dropzone">
-        <div class="big">🧾</div>
-        <h3>Drop in this week's spending</h3>
-        <p>Upload a statement or export — your Chase card, bank account, or Venmo/Cash App (PDF or CSV). It's read right here on your device — nothing leaves your phone. Tip: skip transfers and card payments so nothing's double-counted.</p>
-        <div class="srcbtns"><button class="primary money" id="impPick" style="width:auto;margin:0">Choose file</button></div>
+        <div class="big">📋</div>
+        <h3>Easiest on your phone: paste it</h3>
+        <p>Open your bank app, select the transactions, <b>copy</b>, and paste below — one charge per line. It's read right here on your device; nothing leaves your phone. <b>A photo or screenshot won't work</b> — we can't read images yet, just text or a file.</p>
       </div>
-      <p class="mnp" style="text-align:center;margin-top:16px">…or paste the transactions</p>
-      <textarea class="pastebox" id="impPaste" placeholder="Paste rows like:   03/07  KRISERS BUCKTOWN CHICAGO IL  11.44"></textarea>
-      <button class="ghostbtn" id="impParsePaste">Read pasted text</button>
+      <textarea class="pastebox" id="impPaste" placeholder="Paste rows like:
+07/08  WHOLE FOODS MARKET   86.40
+07/07  UBER *TRIP           $23.40
+CHIPOTLE 0421              18.75"></textarea>
+      <button class="primary money" id="impParsePaste" style="width:100%">Read pasted text</button>
+      <div style="text-align:center;margin:16px 0 8px;color:var(--muted);font-size:12px">— or upload a file (PDF / CSV) —</div>
+      <button class="ghostbtn" id="impPick">📄 Choose a file</button>
       <div id="impMsg" class="qcap" style="text-align:center;margin-top:10px"></div>
       <div style="text-align:center;margin:18px 0 6px;color:var(--muted);font-size:12px">— first time? —</div>
       <button class="primary" id="impDemoBtn" style="background:var(--ink)">👀 Show me how it works</button>
@@ -1877,8 +1880,22 @@ async function parsePDF(file){
 function parseText(text){
   const lines=text.split(/\r?\n/);
   if(/,/.test(text)&&lines[0]&&lines[0].split(",").length>=3&&/date|amount|descrip/i.test(lines[0])) return parseCSV(text);
-  const out=[]; const re=/(\d{1,2}\/\d{1,2})(?:\/\d{2,4})?\s*&?\s*(.+?)\s+\$?(-?\d[\d,]*\.\d{2})\s*$/;
-  for(const l of lines){ const m=l.trim().match(re); if(m){ const amt=parseFloat(m[3].replace(/,/g,"")); if(amt>0) out.push({date:normDate(m[1]),merchant:m[2].trim(),amount:amt}); } }
+  const out=[];
+  const dateRe=/(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/;
+  const skip=/^(payment|autopay|balance|total|beginning|previous|new balance|statement|minimum|thank you|interest charge|available|credit line|purchases|payments)\b/i;
+  for(const raw of lines){
+    const l=raw.trim(); if(!l||skip.test(l)) continue;
+    // amount at end of line: "$54", "$54.20", or bare "54.20" (cents required if no $)
+    const am=l.match(/\$\s*(-?\d[\d,]*(?:\.\d{1,2})?)\s*$/) || l.match(/(?:^|\s)(-?\d[\d,]*\.\d{2})\s*$/);
+    if(!am) continue;
+    let amt=parseFloat(am[1].replace(/,/g,"")); if(!isFinite(amt)||amt<=0) continue;
+    let rest=l.slice(0,l.lastIndexOf(am[1])).replace(/\$\s*$/,"").trim();
+    let date=null; const dm=rest.match(dateRe);
+    if(dm){ date=normDate(dm[1]); rest=(rest.slice(0,dm.index)+rest.slice(dm.index+dm[1].length)).trim(); }
+    rest=rest.replace(/^[-–—&\s]+|[-–—&\s]+$/g,"").replace(/\s{2,}/g," ").trim();
+    if(rest.length<2) rest="Charge";
+    out.push({date:date||iso(new Date()),merchant:rest,amount:amt});
+  }
   return out;
 }
 function parseCSV(text){
@@ -2101,13 +2118,18 @@ function renderImportDone(){
     $("impFinish").onclick=()=>{ impDemo=false; closeImport(); render(); };
     return;
   }
+  const dts=(impDeck||[]).map(t=>t.date).filter(Boolean).sort();
+  const f=d=>{ const x=new Date(d); return (x.getMonth()+1)+"/"+x.getDate(); };
+  const span=dts.length?(dts[0]===dts[dts.length-1]?f(dts[0]):f(dts[0])+" – "+f(dts[dts.length-1])):"";
+  const latest=dts[dts.length-1];
+  const pastWeek = latest && weekKey(new Date(latest))!==weekKey(new Date());
   $("impBody").innerHTML=`<div class="impscroll" style="text-align:center">
     <div class="bigemoji">🎉</div>
     <h2 class="mnt">${impAdded} charge${impAdded===1?"":"s"} sorted</h2>
-    <p class="mnp">They dropped into your envelopes and the week's totals updated. Klepcake remembered who's who — next week it pre-sorts even more.</p>
-    <button class="primary money" id="impFinish">Back to Klepcake</button>
+    <p class="mnp">They landed in your envelopes on the dates they happened${span?` (<b>${span}</b>)`:""}. ${pastWeek?"Since a statement covers past weeks, I'll jump you to the week of your latest charge. ":""}You can always see every charge in <b>Trends → All transactions</b>.</p>
+    <button class="primary money" id="impFinish">${pastWeek?"Show me those charges":"Back to Klepcake"}</button>
   </div>`;
-  $("impFinish").onclick=()=>{ closeImport(); S.viewWeek=weekKey(new Date()); render(); if(impAdded>0) burst(); };
+  $("impFinish").onclick=()=>{ closeImport(); S.viewWeek=latest?weekKey(new Date(latest)):weekKey(new Date()); render(); if(impAdded>0) burst(); };
   save();
 }
 
