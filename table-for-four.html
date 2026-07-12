@@ -826,30 +826,44 @@ function progressBar(){ let s=''; for(let i=1;i<=FORM_STEPS;i++) s+=`<i class="$
 function navButtons(nextLabel){ return `<div class="nav">${intake.step>1?'<button class="btn ghost" data-back>Back</button>':''}<button class="btn" data-next>${nextLabel||'Continue'}</button></div>`; }
 function wireNav(validate){ const b=$('#door-body'); const back=b.querySelector('[data-back]'); if(back) back.onclick=goBack; const next=b.querySelector('[data-next]'); if(next) next.onclick=()=>{ if(!validate||validate()) goNext(); }; }
 
-const HERO_ART = `<svg class="hero-art" viewBox="0 0 440 210" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two families meeting at a neighborhood park">
+const HERO_ART = `<svg class="hero-art" viewBox="0 0 440 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two families gathered on a Chicago greystone stoop">
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6e7c6"/><stop offset="1" stop-color="#f3ead9" stop-opacity="0"/></linearGradient>
-    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#f4d493" stop-opacity=".95"/><stop offset="1" stop-color="#f4d493" stop-opacity="0"/></radialGradient>
+    <radialGradient id="doorGlow" cx="0.5" cy="0.4" r="0.6"><stop offset="0" stop-color="#f4d493" stop-opacity=".9"/><stop offset="1" stop-color="#f4d493" stop-opacity="0"/></radialGradient>
   </defs>
-  <!-- sky wash -->
-  <path d="M20 210 V70 a200 120 0 0 1 400 0 V210 Z" fill="url(#sky)" opacity=".6"/>
-  <!-- sun -->
-  <circle cx="338" cy="58" r="58" fill="url(#sun)"/>
-  <circle cx="338" cy="58" r="15" fill="#efbe63" opacity=".85"/>
-  <!-- tree, left -->
-  <g><rect x="66" y="118" width="9" height="52" rx="3.5" fill="#8a5a3a"/><circle cx="70" cy="104" r="29" fill="#5c7048"/><circle cx="92" cy="116" r="21" fill="#69794e"/><circle cx="49" cy="118" r="19" fill="#69794e"/></g>
-  <!-- grass -->
-  <path d="M0 170 q220 -16 440 0 V210 H0 Z" fill="#7d8c5a"/>
-  <path d="M0 184 q220 -14 440 0 V210 H0 Z" fill="#6a7c49"/>
-  <!-- family one: two grown-ups + a kid -->
-  <g><circle cx="150" cy="110" r="15" fill="#33402f"/><path d="M126 169 v-17 a24 24 0 0 1 48 0 v17 Z" fill="#33402f"/></g>
-  <g><circle cx="187" cy="114" r="15" fill="#b3543a"/><path d="M164 169 v-15 a23 23 0 0 1 46 0 v15 Z" fill="#b3543a"/></g>
-  <!-- family two: two grown-ups + a kid -->
-  <g><circle cx="288" cy="114" r="15" fill="#b3543a"/><path d="M265 169 v-15 a23 23 0 0 1 46 0 v15 Z" fill="#b3543a"/></g>
-  <g><circle cx="325" cy="110" r="15" fill="#33402f"/><path d="M301 169 v-17 a24 24 0 0 1 48 0 v17 Z" fill="#33402f"/></g>
-  <!-- the two kids, meeting in the middle -->
-  <g><circle cx="218" cy="141" r="9" fill="#c9744f"/><path d="M205 169 v-10 a13 13 0 0 1 26 0 v10 Z" fill="#c9744f"/></g>
-  <g><circle cx="244" cy="141" r="9" fill="#4a5a41"/><path d="M231 169 v-10 a13 13 0 0 1 26 0 v10 Z" fill="#4a5a41"/></g>
+  <rect width="440" height="220" fill="#efe6d6"/>
+  <!-- greystone facade + cornice -->
+  <rect x="40" y="16" width="360" height="150" rx="4" fill="#d8cdb6"/>
+  <rect x="40" y="16" width="360" height="11" rx="4" fill="#c9bd9f"/>
+  <!-- windows -->
+  <g><rect x="72" y="52" width="52" height="66" rx="3" fill="#33402f"/><rect x="78" y="58" width="40" height="54" rx="2" fill="#e6c987"/><line x1="98" y1="58" x2="98" y2="112" stroke="#33402f" stroke-width="2"/><rect x="68" y="118" width="60" height="6" rx="2" fill="#c3b79a"/></g>
+  <g><rect x="316" y="52" width="52" height="66" rx="3" fill="#33402f"/><rect x="322" y="58" width="40" height="54" rx="2" fill="#e6c987"/><line x1="342" y1="58" x2="342" y2="112" stroke="#33402f" stroke-width="2"/><rect x="312" y="118" width="60" height="6" rx="2" fill="#c3b79a"/></g>
+  <!-- doorway -->
+  <circle cx="220" cy="96" r="60" fill="url(#doorGlow)"/>
+  <rect x="192" y="44" width="56" height="104" rx="3" fill="#b3543a"/>
+  <rect x="198" y="50" width="44" height="92" rx="2" fill="#8c3f28"/>
+  <path d="M198 66 h44" stroke="#b3543a" stroke-width="2"/>
+  <circle cx="234" cy="98" r="2.6" fill="#e6c987"/>
+  <!-- stoop steps -->
+  <rect x="176" y="150" width="88" height="12" rx="2" fill="#cfc4ac"/>
+  <rect x="166" y="162" width="108" height="13" rx="2" fill="#c6b9a0"/>
+  <rect x="154" y="175" width="132" height="14" rx="2" fill="#bdb096"/>
+  <rect x="140" y="189" width="160" height="15" rx="2" fill="#b4a78d"/>
+  <path d="M176 150 L150 190" stroke="#9a8f76" stroke-width="3" fill="none"/>
+  <path d="M264 150 L290 190" stroke="#9a8f76" stroke-width="3" fill="none"/>
+  <!-- planters -->
+  <g><rect x="150" y="140" width="14" height="12" rx="2" fill="#b3543a"/><path d="M157 140 c-6 -8 -10 -6 -10 -15 c7 0 10 6 10 15 Z M157 140 c6 -8 10 -5 11 -15 c-7 0 -11 6 -11 15 Z" fill="#5c7048"/></g>
+  <g><rect x="276" y="140" width="14" height="12" rx="2" fill="#b3543a"/><path d="M283 140 c-6 -8 -10 -6 -10 -15 c7 0 10 6 10 15 Z M283 140 c6 -8 10 -5 11 -15 c-7 0 -11 6 -11 15 Z" fill="#5c7048"/></g>
+  <!-- sidewalk -->
+  <rect x="0" y="204" width="440" height="16" fill="#d7ccb4"/>
+  <!-- family one, left -->
+  <g><circle cx="96" cy="150" r="15" fill="#33402f"/><path d="M72 204 v-16 a24 24 0 0 1 48 0 v16 Z" fill="#33402f"/></g>
+  <g><circle cx="128" cy="154" r="14" fill="#b3543a"/><path d="M106 204 v-14 a22 22 0 0 1 44 0 v14 Z" fill="#b3543a"/></g>
+  <!-- family two, right -->
+  <g><circle cx="344" cy="150" r="15" fill="#b3543a"/><path d="M320 204 v-16 a24 24 0 0 1 48 0 v16 Z" fill="#b3543a"/></g>
+  <g><circle cx="312" cy="154" r="14" fill="#33402f"/><path d="M290 204 v-14 a22 22 0 0 1 44 0 v14 Z" fill="#33402f"/></g>
+  <!-- kids on the steps -->
+  <g><circle cx="205" cy="170" r="9" fill="#c9744f"/><path d="M194 192 v-8 a11 11 0 0 1 22 0 v8 Z" fill="#c9744f"/></g>
+  <g><circle cx="236" cy="170" r="9" fill="#4a5a41"/><path d="M225 192 v-8 a11 11 0 0 1 22 0 v8 Z" fill="#4a5a41"/></g>
 </svg>`;
 function drawIntro(){
   $('#door-body').appendChild(el(`
