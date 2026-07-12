@@ -402,6 +402,8 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   .fb-note-row{margin-top:8px;font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--rust-d);line-height:1.45;background:#f9f0dd;border:1px solid #e3caa0;border-radius:10px;padding:8px 12px}
+  .tpl-chip{background:#f3ece0;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer}
+  .tpl-chip.on{background:var(--forest);color:#f2eadc;border-color:var(--forest)}
 
   /* ---- Add to home screen nudge ---- */
   .a2hs{display:flex;align-items:flex-start;gap:12px;position:relative;margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#fcf6ea,#fffdf8)}
@@ -1518,11 +1520,13 @@ function openApplication(id){
     <div class="savebar">
       <label style="font-size:13px;font-weight:650">Status</label>
       <select id="d_status">${APP_STATUSES.map(s=>`<option value="${s}" ${a.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      <button class="btn sm ghost" id="d_email">✉ Email draft</button>
       <button class="btn sm" id="d_save">Save</button><span class="saved-note" id="d_saved">Saved ✓</span>
     </div></div></div>`);
   document.body.appendChild(scrim);
   const close=()=>scrim.remove();
   scrim.querySelector('[data-close]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('#d_email').onclick=()=>openEmailDrafts(a);
   scrim.querySelector('#d_save').onclick=async()=>{
     const patch={ notes:$('#d_notes').value, status:$('#d_status').value };
     await DB.updateApplication(id, patch); Object.assign(a, patch);
@@ -2047,6 +2051,32 @@ function draftIntro(t){
   const close=()=>scrim.remove();
   scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   scrim.querySelector('[data-copy]').onclick=()=>{ const v=$('#intro_text').value; navigator.clipboard?navigator.clipboard.writeText(v).then(()=>toast('Copied. Go send it.'),()=>toast('Select & copy')):toast('Select & copy'); };
+}
+/* ---- Copy-ready email drafts for the manual, personal touch ---- */
+function homeLinkFor(a){ return location.origin+location.pathname+'#/home/'+((a&&a.token)||a.id); }
+function emailReceived(a){
+  return `Subject: Thanks for applying to Fourtop\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nThank you for applying to Fourtop. We read every application by hand, so give us a few days.\n\nIf there's a seat with your names on it at an upcoming supper, we'll be in touch with an invitation. Suppers gather the first Thursday of the month at ${VENUE_NAME}.\n\nYou can check your status anytime here:\n${homeLinkFor(a)}\n\nWarmly,\nFourtop`;
+}
+function emailWaitlist(a){
+  return `Subject: About your Fourtop application\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nThank you for applying to Fourtop. This month's supper filled up before we could seat you, but you're on our list and we'd love to have you at an upcoming one. We'll reach out the moment there's a seat with your names on it.\n\nWarmly,\nFourtop`;
+}
+function emailWelcome(a){
+  return `Subject: Welcome to Fourtop\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nWe'd love to have you in the club. You'll get an invitation to our next supper soon, with everything you need to reserve your seats.\n\nIn the meantime, your home base is here:\n${homeLinkFor(a)}\n\nGlad you're joining us,\nFourtop`;
+}
+function openEmailDrafts(a){
+  const tpls=[['Application received', emailReceived(a)],['Welcome / accepted', emailWelcome(a)],['Not this round', emailWaitlist(a)]];
+  const scrim=el(`<div class="modal-scrim"><div class="modal">
+    <div class="modal-head"><h2>Email draft</h2><p>Pick a note for ${esc(a.couple_name)}, edit it, and copy it into your email.</p></div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" id="tpl-row">${tpls.map((t,i)=>`<button class="tpl-chip ${i===0?'on':''}" data-tpl="${i}">${esc(t[0])}</button>`).join('')}</div>
+      <textarea id="email_text" style="min-height:250px;line-height:1.55">${esc(tpls[0][1])}</textarea>
+      <div class="nav" style="margin-top:14px"><button class="btn ghost" data-cancel>Close</button><button class="btn gold" data-copy>Copy</button></div>
+    </div></div></div>`);
+  document.body.appendChild(scrim);
+  const ta=scrim.querySelector('#email_text');
+  scrim.querySelectorAll('[data-tpl]').forEach(btn=>btn.onclick=()=>{ scrim.querySelectorAll('[data-tpl]').forEach(x=>x.classList.remove('on')); btn.classList.add('on'); ta.value=tpls[+btn.dataset.tpl][1]; });
+  const close=()=>scrim.remove(); scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('[data-copy]').onclick=()=>{ navigator.clipboard?navigator.clipboard.writeText(ta.value).then(()=>toast('Copied. Go send it.'),()=>toast('Select & copy')):toast('Select & copy'); };
 }
 function inviteMessage(ev, a){
   const link=location.origin+location.pathname+'#/invite/'+ev.id+'/'+((a&&a.token)||a.id);
