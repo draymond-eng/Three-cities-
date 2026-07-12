@@ -151,6 +151,12 @@
   .tl-step.on .lbl{color:var(--ink)}
   .tl-step.now .dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 0 4px rgba(195,154,78,.22)}
   .tl-bar{flex:1;height:2px;background:var(--line2);margin:0 6px;position:relative;top:-11px}
+  .memcard{display:flex;align-items:center;gap:14px;background:linear-gradient(150deg,#3c4a35,#26301f);border-radius:16px;padding:16px 18px;box-shadow:0 10px 24px rgba(38,38,24,.18)}
+  .memcard .mc-key{width:44px;height:44px;flex:none;background:rgba(255,255,255,.08);border-radius:11px;display:grid;place-items:center}
+  .memcard .mc-key svg{width:60%;height:60%}
+  .memcard .mc-tier{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-l);font-weight:700}
+  .memcard .mc-name{font-family:var(--serif);font-size:19px;color:#fffdf8;margin-top:2px;line-height:1.1}
+  .memcard .mc-club{font-size:12px;color:#aeb6a2;margin-top:2px;letter-spacing:.02em}
   .home-next,.home-idle,.home-refer{padding:2px 0}
   .home-intro{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;margin:0 0 10px}
   .home-intro .pn{font-weight:650;font-size:15.5px}
@@ -178,6 +184,7 @@
   .splash .sub{color:#cdd2c1;font-size:16px;line-height:1.62;margin:22px auto 0;max-width:430px}
   .splash .sub b{color:#f0e7d3;font-weight:600}
   .splash .btn{margin-top:30px;padding:15px 40px}
+  .splash .how-line{color:var(--gold-l);font-size:13px;letter-spacing:.02em;margin:16px auto 0;font-family:var(--serif)}
   .splash .venue{color:#cdd2c1;font-size:13px;line-height:1.5;margin:20px auto 0;max-width:410px;padding:12px 16px;border:1px solid rgba(198,163,90,.4);border-radius:12px}
   .splash .venue b{color:var(--gold-l);font-weight:600}
   .splash .fine{color:#939c86;font-size:12px;margin-top:18px;letter-spacing:.02em}
@@ -452,6 +459,7 @@ const PRICE_LABEL = "$75 / couple";        // founding rate for the first two su
 const PRICE_TAG   = "Founding rate";        // small badge by the price; set to "" once the founding suppers are done
 const PRICE_INCLUDES = "dinner and a welcome drink for the two of you";
 const PAY_URL = "https://buy.stripe.com/8x23cvcOk7LtahD7fq8Zq0H"; // Stripe Payment Link
+const MEMBER_TIER = "Founding Member"; // shown on each couple's home card; change to "Member" after the founding season
 
 /* helpers */
 const $ = (sel, root=document) => root.querySelector(sel);
@@ -667,6 +675,7 @@ function showSplash(onDone){
       <div class="deck">Keep your keys. Bring your appetite.</div>
       <div class="thin"></div>
       <p class="sub">The quietly excellent way for Chicago couples to find the <b>couple and family friends you both actually like</b>. Over a long dinner, never a swipe.</p>
+      <div class="how-line">Apply &nbsp;·&nbsp; come to a monthly supper &nbsp;·&nbsp; we pair the couples who click</div>
       <div class="venue">Hosted inside <b>${VENUE_NAME}</b>, ${VENUE_LINE}. Your seat is the way in, no membership required.</div>
       <button class="btn gold" data-enter>Come in →</button>
       <div class="fine">Strictly platonic. Wonderfully so.</div>
@@ -754,7 +763,7 @@ function drawIntro(){
         <div class="s"><div class="n">II</div><div class="t"><b>Come to a supper.</b> Fourtop gathers on the <b>first Thursday of the month</b> inside <b>Three Cities Social</b>, a private members club. A handful of vetted couples, a lovely room, a reserved seat. No membership needed, just your ticket.</div></div>
         <div class="s"><div class="n">III</div><div class="t"><b>Tell us who you clicked with.</b> We privately pair the couples who felt it both ways into a proper hang. You just show up.</div></div>
       </div>
-      <div class="housecode"><div class="hc-k">The house code</div><div class="hc-t">Come as two. Leave as four. Keys stay in your pocket.</div></div>
+      <div class="housecode"><div class="hc-k">The house code</div><div class="hc-t">Come as two. Leave as four.</div></div>
       <div class="ritual-band"><span class="rb-dot"></span> Next supper: the first Thursday of the month · Chicago · by application</div>
       <div style="margin-top:20px"><button class="btn block" data-next>Apply to join</button></div>
     </div>`));
@@ -1188,9 +1197,9 @@ async function renderHome(token){
         <div class="sub2" style="margin-top:4px">${esc(cap(t.format||'dinner'))}${t.place?' · '+esc(t.place):''}${t.scheduled_at?' · '+esc(fmtDate(t.scheduled_at)):''}</div>
         <span class="badge b-${esc(t.status)}" style="margin-top:8px;display:inline-block">${esc(homeIntroLabel(t.status))}</span></div>`).join('') : '';
   const body=el(`<div class="card">
-    <span class="kicker">Your Fourtop</span>
-    <h1 style="font-size:30px;line-height:1.14;margin:12px 0 0">You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.</h1>
-    <p class="lede" style="font-size:15px;margin-top:12px">Here's where you stand. The club that turns strangers into your Sunday table.</p>
+    <div class="memcard"><div class="mc-key">${MARK_CREAM}</div><div><div class="mc-tier">${esc(MEMBER_TIER)}</div><div class="mc-name">${esc(h.couple_name||(h.partner1+' & '+h.partner2))}</div><div class="mc-club">Fourtop · Chicago</div></div></div>
+    <h1 style="font-size:27px;line-height:1.16;margin:18px 0 0">You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.</h1>
+    <p class="lede" style="font-size:15px;margin-top:12px">You're one of Fourtop's founding couples, the ones shaping how this feels. Here's where you stand.</p>
     <div class="timeline">${timeline}</div>
     <div class="rule"></div>
     ${nextHtml}
