@@ -12,8 +12,12 @@
 <meta property="og:description" content="A curated Chicago supper club for couples. First Thursday of the month, by application." />
 <meta property="og:url" content="https://fourtopchicago.com/" />
 <meta property="og:image" content="https://fourtopchicago.com/og-image.png" />
+<meta property="og:image:secure_url" content="https://fourtopchicago.com/og-image.png" />
+<meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Fourtop — couple friends you both actually like" />
+<link rel="image_src" href="https://fourtopchicago.com/og-image.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Fourtop — couple friends you both actually like" />
 <meta name="twitter:description" content="A curated Chicago supper club for couples. By application." />
@@ -742,13 +746,12 @@ function showSplash(onDone){
     <div class="splash"><div class="splash-card">
       <div class="mono">${MARK_CREAM}</div>
       <div class="kicker">Fourtop · Chicago</div>
-      <h1>Not that kind of couples club.</h1>
-      <div class="deck">Keep your keys. Bring your appetite.</div>
+      <h1>Couple friends, found over dinner.</h1>
       <div class="thin"></div>
-      <p class="sub">The quietly excellent way for Chicago couples to find the <b>couple and family friends you both actually like</b>.</p>
+      <p class="sub">A curated Chicago supper club for couples to meet the <b>couple and family friends you both actually like</b>.</p>
       <div class="venue">Hosted inside <b>${VENUE_NAME}</b>, ${VENUE_LINE}.</div>
       <button class="btn gold" data-enter>Come in →</button>
-      <div class="fine">Strictly platonic. Wonderfully so.</div>
+      <div class="fine">Not that kind of couples club. Strictly platonic, wonderfully so.</div>
     </div></div>`);
   app.appendChild(s);
   s.querySelector('[data-enter]').onclick=()=>{ sessionStorage.setItem(SPLASH_KEY,'1'); onDone(); };
