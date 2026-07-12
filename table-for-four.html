@@ -105,6 +105,12 @@
   .housecode{margin:20px 0 0;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#fcf6ea,#fffdf8);text-align:center}
   .housecode .hc-k{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700}
   .housecode .hc-t{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--rust-d);margin-top:5px}
+  .card.faq{margin-top:18px}
+  .qa{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+  .qacard{border:1px solid var(--line);border-radius:13px;padding:14px 16px;background:linear-gradient(180deg,#fcf6ea,#fffdf8)}
+  .qacard .q{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink)}
+  .qacard .a{font-size:14.5px;line-height:1.55;color:var(--ink2);margin-top:6px}
+  .qacard .a b{color:var(--rust-d);font-weight:650}
   .steps3{margin:26px 0 0;counter-reset:s}
   .steps3 .s{display:flex;gap:15px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
   .steps3 .s:first-child{border-top:none}
@@ -248,6 +254,15 @@
   .wl-hoods{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
   .wl-chip{font-size:13px;background:#f4e7d6;color:#7a5a2f;border:1px solid #e6cfa8;border-radius:999px;padding:6px 13px}
   .wl-chip b{color:#5a4322}
+  .den-list{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+  .den-row{display:flex;align-items:center;gap:12px}
+  .den-name{flex:none;width:210px;font-size:14px;font-weight:600;color:var(--ink2)}
+  .den-tag{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--good);background:#e7efdf;border-radius:999px;padding:2px 7px;margin-left:6px;white-space:nowrap}
+  .den-track{flex:1;height:14px;background:#efe6d5;border-radius:999px;overflow:hidden}
+  .den-fill{height:100%;background:linear-gradient(90deg,#c8824e,#b3543a);border-radius:999px}
+  .den-fill.ready{background:linear-gradient(90deg,#6a7c49,#4a7a4f)}
+  .den-n{flex:none;width:26px;text-align:right;font-weight:700;color:var(--ink)}
+  @media(max-width:620px){.den-name{width:130px;font-size:13px}.den-tag{display:none}}
   .b-confirmed{background:#e0ecf3;color:#2f6a8a}
   .b-happened{background:#f3e9d0;color:#8a6a24}
   .b-fizzled{background:#eee1de;color:#9a5040}
@@ -882,7 +897,22 @@ function drawIntro(){
       <div class="ritual-band"><span class="rb-dot"></span> Family days most weekends · Chicago · by application</div>
       <div style="margin-top:20px"><button class="btn block" data-next>Apply to join</button></div>
     </div>`));
-  $('#door-body [data-next]').onclick=goNext;
+  $('#door-body').appendChild(el(`
+    <div class="card faq">
+      <div class="kicker rustk">Good to know</div>
+      <h2 style="margin:6px 0 4px">Questions parents ask</h2>
+      <div class="qa">
+        <div class="qacard"><div class="q">Wait, is this a dating thing?</div><div class="a"><b>No, the opposite.</b> Stoop is strictly platonic. It's for couples and families looking for <b>other families to be friends with</b>, parent friends in the same life phase. Not that kind of couples club, wonderfully so.</div></div>
+        <div class="qacard"><div class="q">What does it cost?</div><div class="a"><b>Family days and park hangs are free.</b> Just show up. Every so often there's a grown-ups supper that's paid, and that's always optional. No membership, no dues.</div></div>
+        <div class="qacard"><div class="q">Is it safe? We've got kids.</div><div class="a">Every family applies and is read by hand, no open sign-ups. Real names, real families, in your own neighborhood. Family days happen at public parks with the kids right there. You only ever meet a small, chosen group.</div></div>
+        <div class="qacard"><div class="q">What actually happens at a hang?</div><div class="a">A few families who live near you and are in the same season meet at a neighborhood park or family day. Kids run around, grown-ups actually talk. No name-game icebreakers, no agenda, no pressure.</div></div>
+        <div class="qacard"><div class="q">What if we don't click with anyone?</div><div class="a">Totally fine. You're only ever paired with a family when <b>you both</b> say you clicked. It's private, there's no feed, no swiping, and nobody sees who you did or didn't pick.</div></div>
+        <div class="qacard"><div class="q">Who sees our information?</div><div class="a">Just us, until there's a mutual match. Your details stay private, and we never share them with anyone you haven't clicked with.</div></div>
+      </div>
+      <div style="margin-top:22px"><button class="btn block" data-next>Apply to join</button></div>
+      <div class="fine" style="text-align:center;margin-top:12px;color:var(--muted)">Strictly platonic. Families and families-to-be only.</div>
+    </div>`));
+  document.querySelectorAll('#door-body [data-next]').forEach(b=>b.onclick=goNext);
 }
 
 function drawWhoYouAre(){
@@ -1605,6 +1635,21 @@ function drawDashboard(){
     <div class="sect-title">Needs you</div>
     <div class="dash-actions">${actions.map(a=>`<button class="dash-act" data-goto="${a.go}"><div><div class="da-t">${a.t}</div><div class="da-s">${a.s}</div></div><span class="da-arrow">→</span></button>`).join('')||'<div class="empty"><p>All quiet. Nothing needs you right now.</p></div>'}</div>
   </div>`));
+
+  // ---- Neighborhood density: where to run the first hang, and where to open next ----
+  const READY=4;
+  const tally=(list)=>{ const m={}; list.forEach(a=>{ const h=(a.neighborhood||'').trim()||'—'; m[h]=(m[h]||0)+1; }); return Object.entries(m).sort((x,y)=>y[1]-x[1]); };
+  const inArea=apps.filter(a=>a.status!=='passed'&&a.status!=='waitlist');
+  const areaRows=tally(inArea), wlRows=tally(waiting);
+  const maxN=Math.max(1,...areaRows.map(r=>r[1]),...wlRows.map(r=>r[1]));
+  const bar=(name,n,ready)=>`<div class="den-row"><div class="den-name">${esc(name)}${ready?` <span class="den-tag">enough to run a hang</span>`:''}</div><div class="den-track"><div class="den-fill${ready?' ready':''}" style="width:${Math.max(6,Math.round(n/maxN*100))}%"></div></div><div class="den-n">${n}</div></div>`;
+  const readyCount=areaRows.filter(r=>r[1]>=READY).length;
+  body.appendChild(el(`<div style="margin-top:28px">
+    <div class="panel-head"><h2>Where your families are</h2><div class="count">${readyCount?`${readyCount} neighborhood${readyCount>1?'s':''} ready`:'by neighborhood'}</div></div>
+    ${areaRows.length?`<div class="den-list">${areaRows.map(([h,n])=>bar(h,n,n>=READY)).join('')}</div>`:'<div class="empty"><p>No in-area families yet. Share your link to start filling the North Side.</p></div>'}
+    ${wlRows.length?`<div class="sect-title" style="margin-top:24px">Waitlist demand · where to open next</div><div class="den-list">${wlRows.map(([h,n])=>bar(h,n,false)).join('')}</div>`:''}
+  </div>`));
+
   body.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{ consoleState.tab=b.dataset.goto; renderConsole(); });
 }
 function drawApplications(){
