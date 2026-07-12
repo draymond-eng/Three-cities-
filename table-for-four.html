@@ -579,8 +579,11 @@ const DB = (() => {
       const upcoming=events.filter(e=>e.status==='upcoming'&&arr(e.roster).some(r=>r.couple_id===me.id)).sort((a,b)=>(a.scheduled_at||'').localeCompare(b.scheduled_at||''))[0]||null;
       const intros=tables.filter(t=>arr(t.couple_ids).includes(me.id)).map(t=>({ status:t.status, place:t.place, scheduled_at:t.scheduled_at, format:t.format,
         others:arr(t.couple_ids).filter(id=>id!==me.id).map(id=>{const a=apps.find(x=>x.id===id);return a?a.couple_name:'a couple';}) }));
+      const attended=events.filter(e=>arr(e.roster).some(r=>r.couple_id===me.id&&r.attended)).length;
+      const given=apps.filter(a=>a.referred_by&&a.referred_by===me.token).map(a=>a.couple_name);
       return { couple_name:me.couple_name, partner1:me.partner1_name, partner2:me.partner2_name, status:me.status,
-        upcoming: upcoming?{title:upcoming.title, venue:upcoming.venue, scheduled_at:upcoming.scheduled_at, event_id:upcoming.id}:null, intros, token:me.token };
+        upcoming: upcoming?{title:upcoming.title, venue:upcoming.venue, scheduled_at:upcoming.scheduled_at, event_id:upcoming.id}:null, intros, token:me.token,
+        attended, given };
     },
     seedIfEmpty(){
       if(localStorage.getItem(SEEDED)) return;
@@ -1286,6 +1289,22 @@ async function renderHome(token){
       <div class="home-intro"><div class="pn">You &amp; ${esc((t.others||[]).join(' & '))}</div>
         <div class="sub2" style="margin-top:4px">${esc(cap(t.format||'dinner'))}${t.place?' · '+esc(t.place):''}${t.scheduled_at?' · '+esc(fmtDate(t.scheduled_at)):''}</div>
         <span class="badge b-${esc(t.status)}" style="margin-top:8px;display:inline-block">${esc(homeIntroLabel(t.status))}</span></div>`).join('') : '';
+  const attended=h.attended||0, given=arr(h.given);
+  const invitesLeft=Math.max(0, attended - given.length);
+  const broughtLine = given.length ? `<div class="sub2" style="margin-top:10px">You've brought <b>${esc(given.join(', '))}</b> into the club.</div>` : '';
+  let invHtml;
+  if(invitesLeft>0){
+    invHtml=`<div class="sect-title">Your invitation${invitesLeft>1?'s':''}</div>
+      <div class="home-refer"><div class="pn">You have ${invitesLeft} invitation${invitesLeft>1?'s':''} to give.</div>
+        <div class="sub2" style="margin:4px 0 12px;line-height:1.5">Give it to one couple you'd vouch for. Your name goes with it, so choose well.</div>
+        <button class="btn block" id="home-ref">Share your invitation →</button>${broughtLine}</div>`;
+  } else if(attended===0){
+    invHtml=`<div class="sect-title">Your invitation</div>
+      <div class="home-refer"><div class="sub2" style="line-height:1.5">Come to your first supper and you'll earn an invitation to give, one couple you'd love beside you at the table. Membership grows by who you bring.</div></div>`;
+  } else {
+    invHtml=`<div class="sect-title">Your invitations</div>
+      <div class="home-refer"><div class="pn">You've used your invitations.</div><div class="sub2" style="margin-top:4px;line-height:1.5">Come to another supper to earn one more.</div>${broughtLine}</div>`;
+  }
   const body=el(`<div class="card">
     <div class="memcard"><div class="mc-key">${MARK_CREAM}</div><div><div class="mc-tier">${esc(MEMBER_TIER)}</div><div class="mc-name">${esc(h.couple_name||(h.partner1+' & '+h.partner2))}</div><div class="mc-club">Fourtop · Chicago</div></div></div>
     <h1 style="font-size:27px;line-height:1.16;margin:18px 0 0">You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.</h1>
@@ -1295,13 +1314,12 @@ async function renderHome(token){
     ${nextHtml}
     ${introsHtml}
     <div class="rule"></div>
-    <div class="home-refer"><div class="pn">Know another couple who'd fit right in?</div>
-      <div class="sub2" style="margin:4px 0 12px">The best rooms come from couples who already get it.</div>
-      <button class="btn ghost block" id="home-ref">Refer another couple</button></div>
+    ${invHtml}
   </div>`);
   const a2=a2hsCard(); if(a2) body.appendChild(a2);
   publicShell(body);
-  body.querySelector('#home-ref').onclick=()=>{ if(navigator.share){ navigator.share({title:'Fourtop',text:'You two should apply to Fourtop.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else toast(refUrl); };
+  const hr=body.querySelector('#home-ref');
+  if(hr) hr.onclick=()=>{ if(navigator.share){ navigator.share({title:'An invitation to Fourtop',text:`${h.partner1} & ${h.partner2} are inviting you two to Fourtop, a curated Chicago supper club for couples. Here's their invitation:`,url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Invitation link copied')); } else toast(refUrl); };
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function homeIntroLabel(s){ return ({proposed:'Introduction in the works',confirmed:'Table confirmed',happened:'You met!',matched:'Matched',fizzled:'Didn’t quite click'})[s]||s; }
