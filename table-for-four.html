@@ -69,10 +69,10 @@
 
   /* front door */
   .door{padding:20px 0 64px}
-  .door-top{display:flex;align-items:center;justify-content:space-between;padding:22px 0 6px}
-  .brand{display:flex;align-items:center;gap:13px}
-  .wordmark{font-family:var(--serif);font-size:20px;font-weight:600;line-height:1}
-  .wordmark small{display:block;font-family:var(--sans);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:4px}
+  .door-top{display:flex;align-items:center;justify-content:space-between;padding:38px 0 20px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .wordmark{font-family:var(--serif);font-size:21px;font-weight:600;line-height:1}
+  .wordmark small{display:block;font-family:var(--sans);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:5px}
   .door-top .city{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700}
 
   .card{background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:34px 30px;margin-top:20px}
@@ -379,6 +379,8 @@
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:120;box-shadow:var(--shadow)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  .fb-note-row{margin-top:8px;font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--rust-d);line-height:1.45;background:#f9f0dd;border:1px solid #e3caa0;border-radius:10px;padding:8px 12px}
+
   /* ---- Invite: how the evening flows ---- */
   .flow{margin-top:18px;padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#fcf6ea,#fffdf8)}
   .flow-l{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px}
@@ -524,6 +526,12 @@ const DB = (() => {
       r.likes=arr(likes); r.attended=true; r.rsvp=r.rsvp||'yes'; r.rating=rating||''; events[ei].roster=roster; this._write(EKEY,events);
       const ai=apps.findIndex(a=>a.id===me.id); if(ai>=0&&apps[ai].status!=='paired'){ apps[ai].status='attended'; this._write(AKEY,apps); }
     },
+    async submitFeedback(eventId, token, note){
+      const apps=this._read(AKEY), events=this._read(EKEY);
+      const me=apps.find(a=>a.token===token), ei=events.findIndex(e=>e.id===eventId); if(!me||ei<0) return;
+      const roster=arr(events[ei].roster); let r=roster.find(x=>x.couple_id===me.id); if(!r){ r={couple_id:me.id,attended:true,likes:[]}; roster.push(r); }
+      r.feedback=note; events[ei].roster=roster; this._write(EKEY,events);
+    },
     async coupleHome(token){
       const apps=this._read(AKEY); const me=apps.find(a=>a.token===token); if(!me) return null;
       const events=this._read(EKEY), tables=this._read(TKEY);
@@ -581,6 +589,7 @@ const DB = (() => {
     async invitePublic(eventId, token){ const c=await this._client(); const {data,error}=await c.rpc('event_invite',{p_event_id:eventId,p_token:token}); if(error)throw error; return data; },
     async setRsvp(eventId, token, val){ const c=await this._client(); const {error}=await c.rpc('set_rsvp',{p_event_id:eventId,p_token:token,p_rsvp:val}); if(error)throw error; },
     async submitPicks(eventId, token, likes, rating){ const c=await this._client(); const {error}=await c.rpc('submit_picks',{p_event_id:eventId,p_token:token,p_likes:likes,p_rating:rating||''}); if(error)throw error; },
+    async submitFeedback(eventId, token, note){ const c=await this._client(); const {error}=await c.rpc('submit_feedback',{p_event_id:eventId,p_token:token,p_note:note||''}); if(error)throw error; },
   };
   return USE_SUPABASE ? remote : ls;
 })();
@@ -675,9 +684,9 @@ function showSplash(onDone){
       <h1>Not that kind of couples club.</h1>
       <div class="deck">Keep your keys. Bring your appetite.</div>
       <div class="thin"></div>
-      <p class="sub">The quietly excellent way for Chicago couples to find the <b>couple and family friends you both actually like</b>. Over a long dinner, never a swipe.</p>
+      <p class="sub">The quietly excellent way for Chicago couples to find the <b>couple and family friends you both actually like</b>.</p>
       <div class="how-line">Apply &nbsp;·&nbsp; come to a monthly supper &nbsp;·&nbsp; we pair the couples who click</div>
-      <div class="venue">Hosted inside <b>${VENUE_NAME}</b>, ${VENUE_LINE}. Your seat is the way in, no membership required.</div>
+      <div class="venue">Hosted inside <b>${VENUE_NAME}</b>, ${VENUE_LINE}.</div>
       <button class="btn gold" data-enter>Come in →</button>
       <div class="fine">Strictly platonic. Wonderfully so.</div>
     </div></div>`);
@@ -1148,6 +1157,8 @@ async function renderPicks([eventId, token]){
     <h1 style="font-size:29px;line-height:1.15;margin:12px 0 0">How was the night?</h1>
     <p class="lede" style="font-size:15px;margin-top:14px">A quick word for us, then the fun part: who you'd want to see again.</p>
     <div class="field" style="margin-top:16px"><div class="rate-row" id="rate-row">${RATES.map(([v,t])=>`<div class="chip ${rating===v?'on':''}" data-rate="${v}">${t}</div>`).join('')}</div></div>
+    <div class="field" style="margin-top:6px"><label>Anything we should know? <span class="hint">a highlight, a suggestion, anything</span></label>
+      <textarea id="fb-note" placeholder="Optional. The room felt great, the pasta was unreal, we'd love a later start next time..." style="min-height:64px">${esc((d.mine&&d.mine.feedback)||'')}</textarea></div>
     <div class="rule"></div>
     <h3 style="font-size:19px;margin:0 0 4px">Who did you two click with?</h3>
     <p class="sub2" style="margin:0 0 14px">Tap any couple you'd want to see again. It's private. They only hear if it's mutual.</p>
@@ -1164,6 +1175,8 @@ async function renderPicks([eventId, token]){
     list.appendChild(p); });
   body.querySelector('#submit-picks').onclick=async()=>{
     await DB.submitPicks(eventId, token, [...picked], rating);
+    const note=(body.querySelector('#fb-note').value||'').trim();
+    if(note && DB.submitFeedback){ try{ await DB.submitFeedback(eventId, token, note); }catch(e){ console.warn('feedback note not saved to backend', e); } }
     publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Got it. Thank you.</h2><p>We'll look for mutual sparks from the night. If a couple felt it both ways, we'll set the two of you a table and be in touch. ${picked.size?'':'And if nobody quite clicked this time, no worries, there’s always the next mixer.'}</p></div>`));
     window.scrollTo({top:0,behavior:'smooth'});
   };
@@ -1197,8 +1210,13 @@ async function renderHome(token){
       <a class="btn block" style="margin-top:14px" href="#/invite/${esc(h.upcoming.event_id)}/${esc(token)}">RSVP →</a>
     </div>`;
   } else {
-    nextHtml=`<div class="home-idle"><div class="kicker rustk">Your next supper</div>
-      <p class="lede" style="font-size:15px;margin-top:8px">No supper on your calendar yet. Fourtop suppers gather on the <b>first Thursday of the month</b>. The moment there's a seat with your name on it, we'll email you.</p></div>`;
+    nextHtml=`<div class="home-idle"><div class="kicker rustk">What happens next</div>
+      <div class="flow" style="margin-top:10px">
+        <div class="flow-s"><span>1</span><div><b>You're in the book.</b> We read every application by hand, and yours is in.</div></div>
+        <div class="flow-s"><span>2</span><div>We seat you at an upcoming supper with a few couples chosen for the two of you.</div></div>
+        <div class="flow-s"><span>3</span><div>Your invitation arrives by email. Reserve your seats and come hungry.</div></div>
+      </div>
+      <p class="sub2" style="margin-top:12px;line-height:1.5">Suppers gather the <b>first Thursday of the month</b> at ${esc(VENUE_NAME)}. The moment there's a seat with your name on it, we'll be in touch.</p></div>`;
   }
   const introsHtml = (h.intros&&h.intros.length) ? `<div class="sect-title">Your matches</div>` + h.intros.map(t=>`
       <div class="home-intro"><div class="pn">You &amp; ${esc((t.others||[]).join(' & '))}</div>
@@ -1438,6 +1456,7 @@ function openEvent(id){
       <div class="rlinks">${rsvpTag}${rateTag}
         <button class="linkbtn" data-copy="invite" data-cid="${r.couple_id}">⧉ Invite link</button>
         ${ev.status==='happened'?`<button class="linkbtn" data-copy="picks" data-cid="${r.couple_id}">⧉ Picks link</button>`:''}</div>
+      ${r.feedback?`<div class="fb-note-row">“${esc(r.feedback)}”</div>`:''}
       ${likeChips}</div>`;
   }).join('');
   const scrim=el(`<div class="scrim"><div class="drawer">
