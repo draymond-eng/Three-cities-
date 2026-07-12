@@ -1047,15 +1047,15 @@ function drawDone(token){
   $('#door-body').appendChild(el(`
     <div class="card done">
       <div class="seal">${MARK_RUST}</div>
-      <h2>Welcome to the table.</h2>
+      <h2>Welcome to the stoop.</h2>
       <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. We read every application by hand. When there's a hang near you with families in your season, you'll get a personal note. No feed to check, no swiping. Just the kind of friends who become family.</p>
       <div class="done-actions">
         <a class="btn block" href="${esc(homeUrl)}">See your status →</a>
-        <button class="btn ghost block" id="refbtn">Know another couple? Refer them</button>
+        <button class="btn ghost block" id="refbtn">Know another family? Refer them</button>
       </div>
       <div class="note" style="margin-top:14px">Bookmark your status page. It's how you'll follow your invitations.</div>
     </div>`));
-  $('#refbtn').onclick=()=>{ if(navigator.share){ navigator.share({title:'Stoop',text:'You two should apply to Stoop with us.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else { toast(refUrl); } };
+  $('#refbtn').onclick=()=>{ if(navigator.share){ navigator.share({title:'Stoop',text:'Your family should apply to Stoop with us.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Referral link copied')); } else { toast(refUrl); } };
   const a2=a2hsCard(); if(a2) $('#door-body').appendChild(a2);
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -1332,7 +1332,7 @@ async function loadHome(token){
   try{ const d=await DB.coupleHome(token); return d||{missing:true}; }
   catch(e){ console.error(e); return {error:true}; }
 }
-const STATUS_STEPS=[['new','Applied'],['invited','Invited'],['attended','At the table'],['paired','Paired']];
+const STATUS_STEPS=[['new','Applied'],['invited','Invited'],['attended','At a hang'],['paired','Paired']];
 async function renderHome(token){
   const h=await loadHome(token);
   if(!h||h.missing){ return publicError("We couldn't find your status page. Double-check the link, or apply if you haven't yet."); }
