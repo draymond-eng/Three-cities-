@@ -773,7 +773,7 @@ function showSplash(onDone){
       <h1>Couple friends, found over dinner.</h1>
       <div class="thin"></div>
       <p class="sub">A curated Chicago supper club for couples to meet the <b>couple and family friends you both actually like</b>.</p>
-      <div class="venue">Hosted inside <b>${VENUE_NAME}</b>, ${VENUE_LINE}.</div>
+      <div class="venue">Intimate suppers at a private social club, and easy family days around Chicago.</div>
       <button class="btn gold" data-enter>Come in →</button>
       <div class="fine">Not that kind of couples club. Strictly platonic, wonderfully so.</div>
     </div></div>`);
@@ -859,7 +859,7 @@ function drawIntro(){
       <div class="rule"></div>
       <div class="steps3">
         <div class="s"><div class="n">I</div><div class="t"><b>Apply.</b> Tell us about the two of you and the friends you're hoping to find. About three minutes.</div></div>
-        <div class="s"><div class="n">II</div><div class="t"><b>Come to a hang.</b> An evening <b>supper</b> at <b>Three Cities Social</b>, or a daytime <b>family day</b> with the kids, whichever fits your life. A handful of vetted couples chosen to be near you and in your season.</div></div>
+        <div class="s"><div class="n">II</div><div class="t"><b>Come to a hang.</b> An evening <b>supper</b> at a private social club, or a daytime <b>family day</b> with the kids, whichever fits your life. A handful of vetted couples chosen to be near you and in your season.</div></div>
         <div class="s"><div class="n">III</div><div class="t"><b>Tell us who you clicked with.</b> We privately pair the couples who felt it both ways into a proper hang. You just show up.</div></div>
       </div>
       <div class="housecode"><div class="hc-k">The house code</div><div class="hc-t">Be real. Be kind. Come hungry.</div></div>
@@ -1217,7 +1217,7 @@ async function renderInvite([eventId, token]){
     <div class="rule"></div>
     ${(!past&&countdown)?`<div class="countdown">${esc(countdown)}</div>`:''}
     <div class="kv"><div class="k">The evening</div><div class="v" style="font-family:var(--serif);font-size:20px">${esc(ev.title)}</div></div>
-    <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||VENUE_NAME}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:2px">${esc(VENUE_LINE)} · your seat is the way in, no membership required</span></div></div>
+    <div class="kv"><div class="k">Where</div><div class="v">${esc(ev.venue)||VENUE_NAME}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:2px">${ev.format==='family'?'Kids welcome. Come as you are.':'A private social club · your seat is the way in, no membership required'}</span></div></div>
     <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
     ${past?'':`<div class="kv"><div class="k">Your seats</div><div class="v">${esc(PRICE_LABEL)}${PRICE_TAG?` <span style="font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8c3f28;background:#f3e7d3;border:1px solid #e3caa0;padding:2px 8px;border-radius:999px;vertical-align:middle">${esc(PRICE_TAG)}</span>`:''}<span style="display:block;font-size:12.5px;color:var(--muted);margin-top:4px">includes ${esc(PRICE_INCLUDES)}</span></div></div>`}
     <p class="lede" style="font-size:15px;margin-top:14px">A handful of vetted couples, a lovely room, and no agenda but good conversation. If you feel a spark with anyone, you'll tell us after, and we'll take it from there.</p>
@@ -1310,7 +1310,7 @@ async function renderHome(token){
         <div class="flow-s"><span>2</span><div>We seat you at an upcoming supper with a few couples chosen for the two of you.</div></div>
         <div class="flow-s"><span>3</span><div>Your invitation arrives by email. Reserve your seats and come hungry.</div></div>
       </div>
-      <p class="sub2" style="margin-top:12px;line-height:1.5">Suppers gather the <b>first Thursday of the month</b> at ${esc(VENUE_NAME)}. The moment there's a seat with your name on it, we'll be in touch.</p></div>`;
+      <p class="sub2" style="margin-top:12px;line-height:1.5">Suppers gather the <b>first Thursday of the month</b> at a private social club, with easy family days in between. The moment there's a seat with your name on it, we'll be in touch.</p></div>`;
   }
   const introsHtml = (h.intros&&h.intros.length) ? `<div class="sect-title">Your matches</div>` + h.intros.map(t=>`
       <div class="home-intro"><div class="pn">You &amp; ${esc((t.others||[]).join(' & '))}</div>
@@ -2081,7 +2081,7 @@ function draftIntro(t){
 /* ---- Copy-ready email drafts for the manual, personal touch ---- */
 function homeLinkFor(a){ return location.origin+location.pathname+'#/home/'+((a&&a.token)||a.id); }
 function emailReceived(a){
-  return `Subject: Thanks for applying to Fourtop\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nThank you for applying to Fourtop. We read every application by hand, so give us a few days.\n\nIf there's a seat with your names on it at an upcoming supper, we'll be in touch with an invitation. Suppers gather the first Thursday of the month at ${VENUE_NAME}.\n\nYou can check your status anytime here:\n${homeLinkFor(a)}\n\nWarmly,\nFourtop`;
+  return `Subject: Thanks for applying to Fourtop\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nThank you for applying to Fourtop. We read every application by hand, so give us a few days.\n\nIf there's a seat with your names on it at an upcoming hang, we'll be in touch with an invitation. We gather the first Thursday of the month, with easy family days in between.\n\nYou can check your status anytime here:\n${homeLinkFor(a)}\n\nWarmly,\nFourtop`;
 }
 function emailWaitlist(a){
   return `Subject: About your Fourtop application\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nThank you for applying to Fourtop. This month's supper filled up before we could seat you, but you're on our list and we'd love to have you at an upcoming one. We'll reach out the moment there's a seat with your names on it.\n\nWarmly,\nFourtop`;
