@@ -243,7 +243,11 @@
   .b-attended{background:#f3e9d0;color:#8a6a24}
   .b-paired{background:#e6ddef;color:#6b4a8a}
   .b-passed{background:#eee3df;color:#8a5a4a}
+  .b-waitlist{background:#f4e7d6;color:#9c6b2f}
   .b-proposed{background:#eef1e9;color:var(--forest-d)}
+  .wl-hoods{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .wl-chip{font-size:13px;background:#f4e7d6;color:#7a5a2f;border:1px solid #e6cfa8;border-radius:999px;padding:6px 13px}
+  .wl-chip b{color:#5a4322}
   .b-confirmed{background:#e0ecf3;color:#2f6a8a}
   .b-happened{background:#f3e9d0;color:#8a6a24}
   .b-fizzled{background:#eee1de;color:#9a5040}
@@ -711,6 +715,8 @@ const FORMAT_LABEL = {family:'Family Day', casual:'Casual hang', active:'Active'
 const KID_INTERESTS = ["Sports","Arts & crafts","Music","Animals","Outdoorsy","Building & LEGO","Books","Screens & gaming","Dance","Swimming","Pretend play","Still little (0-2)"];
 /* A family's vibe — the values/style that quietly decide whether two families click */
 const FAMILY_VIBES = ["Kids-first","Date-night people too","Go-with-the-flow","Planners","Outdoorsy","Homebodies","Big & loud","Low-key"];
+/* Launch area: North Side first. Everyone else joins a waitlist (West & South Side coming soon). */
+const NORTH_SIDE_HOODS = ["Andersonville","Avondale","Bucktown","Edgewater","Gold Coast","Irving Park","Jefferson Park","Lakeview","Lincoln Park","Lincoln Square","Logan Square","North Center","Old Town","Portage Park","Ravenswood","River North","Rogers Park","Roscoe Village","Uptown","Ukrainian Village","West Town","Wicker Park","Wrigleyville","Albany Park","Evanston"];
 /* Specific interest tags (per partner). cat = broad category for reasoning; exact-tag overlap earns a bonus. */
 const TAGS = [
   {k:'dinners',l:'Splurge dinners',e:'🍽️',c:'dining'},{k:'barnight',l:'Neighborhood bar night',e:'🍸',c:'nightlife'},{k:'karaoke',l:'Karaoke',e:'🎤',c:'nightlife'},
@@ -793,7 +799,7 @@ const intake = { data:{}, step:0 };
 function renderDoor(){
   if(!sessionStorage.getItem(SPLASH_KEY)){ showSplash(renderDoor); return; }
   intake.step = 0;
-  intake.data = { energy:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'', partner1_tags:[], partner2_tags:[], hang_formats:[], kids_into:[], family_vibe:[] };
+  intake.data = { energy:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'', partner1_tags:[], partner2_tags:[], hang_formats:[], kids_into:[], family_vibe:[], waitlist:false };
   const app = $('#app'); app.innerHTML = '';
   app.appendChild(el(`
     <div class="wrap door">
@@ -820,38 +826,30 @@ function progressBar(){ let s=''; for(let i=1;i<=FORM_STEPS;i++) s+=`<i class="$
 function navButtons(nextLabel){ return `<div class="nav">${intake.step>1?'<button class="btn ghost" data-back>Back</button>':''}<button class="btn" data-next>${nextLabel||'Continue'}</button></div>`; }
 function wireNav(validate){ const b=$('#door-body'); const back=b.querySelector('[data-back]'); if(back) back.onclick=goBack; const next=b.querySelector('[data-next]'); if(next) next.onclick=()=>{ if(!validate||validate()) goNext(); }; }
 
-const HERO_ART = `<svg class="hero-art" viewBox="0 0 440 210" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two couples sharing a candlelit table">
+const HERO_ART = `<svg class="hero-art" viewBox="0 0 440 210" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two families meeting at a neighborhood park">
   <defs>
-    <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0c98a"/><stop offset="1" stop-color="#e7a071"/></linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#f4d493" stop-opacity=".9"/><stop offset="1" stop-color="#f4d493" stop-opacity="0"/></radialGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6e7c6"/><stop offset="1" stop-color="#f3ead9" stop-opacity="0"/></linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#f4d493" stop-opacity=".95"/><stop offset="1" stop-color="#f4d493" stop-opacity="0"/></radialGradient>
   </defs>
-  <path d="M20 210 V120 a200 130 0 0 1 400 0 V210 Z" fill="url(#warm)" opacity=".22"/>
-  <circle cx="220" cy="70" r="70" fill="url(#glow)" opacity=".7"/>
-  <line x1="220" y1="0" x2="220" y2="34" stroke="#33402f" stroke-width="2.5"/>
-  <path d="M206 34 h28 l-5 15 h-18 Z" fill="#33402f"/>
-  <circle cx="220" cy="52" r="4.5" fill="#f4d493"/>
-  <!-- couple left -->
-  <g><circle cx="138" cy="96" r="16" fill="#33402f"/><path d="M112 150 v-14 a26 26 0 0 1 52 0 v14 Z" fill="#33402f"/></g>
-  <g><circle cx="180" cy="100" r="16" fill="#b3543a"/><path d="M155 150 v-12 a25 25 0 0 1 50 0 v12 Z" fill="#b3543a"/></g>
-  <!-- couple right -->
-  <g><circle cx="262" cy="100" r="16" fill="#b3543a"/><path d="M237 150 v-12 a25 25 0 0 1 50 0 v12 Z" fill="#b3543a"/></g>
-  <g><circle cx="304" cy="96" r="16" fill="#33402f"/><path d="M278 150 v-14 a26 26 0 0 1 52 0 v14 Z" fill="#33402f"/></g>
-  <!-- table -->
-  <rect x="54" y="150" width="332" height="15" rx="7.5" fill="#fffdf8" stroke="#e4d8c4"/>
-  <path d="M64 165 h312 l-14 34 a6 6 0 0 1 -6 4 H84 a6 6 0 0 1 -6 -4 Z" fill="#f6efe4" stroke="#e4d8c4"/>
-  <!-- place settings -->
-  <g fill="#f6efe4" stroke="#c39a4e" stroke-width="1.4">
-    <ellipse cx="130" cy="149" rx="15" ry="4.5"/><ellipse cx="185" cy="149" rx="15" ry="4.5"/>
-    <ellipse cx="257" cy="149" rx="15" ry="4.5"/><ellipse cx="312" cy="149" rx="15" ry="4.5"/>
-  </g>
-  <!-- candle center -->
-  <rect x="217" y="136" width="6" height="14" rx="2" fill="#e7d8b6"/>
-  <path d="M220 126 c4 4 4 8 0 10 c-4 -2 -4 -6 0 -10 Z" fill="#e8952f"/>
-  <circle cx="220" cy="130" r="9" fill="url(#glow)"/>
-  <!-- glasses -->
-  <g stroke="#4a5a41" stroke-width="1.6" fill="none"><path d="M158 138 v8 M154 132 h8 l-1 6 h-6 Z"/><path d="M285 138 v8 M281 132 h8 l-1 6 h-6 Z"/></g>
-  <!-- little plant -->
-  <g><rect x="352" y="140" width="12" height="9" rx="2" fill="#b3543a"/><path d="M358 140 c-6 -6 -10 -4 -10 -12 c6 0 10 4 10 12 Z M358 140 c6 -6 10 -3 11 -12 c-6 0 -11 4 -11 12 Z" fill="#4a5a41"/></g>
+  <!-- sky wash -->
+  <path d="M20 210 V70 a200 120 0 0 1 400 0 V210 Z" fill="url(#sky)" opacity=".6"/>
+  <!-- sun -->
+  <circle cx="338" cy="58" r="58" fill="url(#sun)"/>
+  <circle cx="338" cy="58" r="15" fill="#efbe63" opacity=".85"/>
+  <!-- tree, left -->
+  <g><rect x="66" y="118" width="9" height="52" rx="3.5" fill="#8a5a3a"/><circle cx="70" cy="104" r="29" fill="#5c7048"/><circle cx="92" cy="116" r="21" fill="#69794e"/><circle cx="49" cy="118" r="19" fill="#69794e"/></g>
+  <!-- grass -->
+  <path d="M0 170 q220 -16 440 0 V210 H0 Z" fill="#7d8c5a"/>
+  <path d="M0 184 q220 -14 440 0 V210 H0 Z" fill="#6a7c49"/>
+  <!-- family one: two grown-ups + a kid -->
+  <g><circle cx="150" cy="110" r="15" fill="#33402f"/><path d="M126 169 v-17 a24 24 0 0 1 48 0 v17 Z" fill="#33402f"/></g>
+  <g><circle cx="187" cy="114" r="15" fill="#b3543a"/><path d="M164 169 v-15 a23 23 0 0 1 46 0 v15 Z" fill="#b3543a"/></g>
+  <!-- family two: two grown-ups + a kid -->
+  <g><circle cx="288" cy="114" r="15" fill="#b3543a"/><path d="M265 169 v-15 a23 23 0 0 1 46 0 v15 Z" fill="#b3543a"/></g>
+  <g><circle cx="325" cy="110" r="15" fill="#33402f"/><path d="M301 169 v-17 a24 24 0 0 1 48 0 v17 Z" fill="#33402f"/></g>
+  <!-- the two kids, meeting in the middle -->
+  <g><circle cx="218" cy="141" r="9" fill="#c9744f"/><path d="M205 169 v-10 a13 13 0 0 1 26 0 v10 Z" fill="#c9744f"/></g>
+  <g><circle cx="244" cy="141" r="9" fill="#4a5a41"/><path d="M231 169 v-10 a13 13 0 0 1 26 0 v10 Z" fill="#4a5a41"/></g>
 </svg>`;
 function drawIntro(){
   $('#door-body').appendChild(el(`
@@ -887,13 +885,26 @@ function drawWhoYouAre(){
         <div class="field"><label>First partner</label><input type="text" id="f_p1" value="${esc(d.partner1_name||'')}" placeholder="Name" /></div>
         <div class="field"><label>Second partner</label><input type="text" id="f_p2" value="${esc(d.partner2_name||'')}" placeholder="Name" /></div>
       </div>
-      <div class="field"><label>Which Chicago neighborhood? <span class="hint">helps us seat you near your people</span></label>
-        <input type="text" id="f_hood" value="${esc(d.neighborhood||'')}" placeholder="e.g. Logan Square, Hyde Park, Oak Park" /></div>
+      <div class="field"><label>Which neighborhood? <span class="hint">we're on the North Side first</span></label>
+        <select id="f_hood">
+          <option value="">Choose your neighborhood…</option>
+          ${NORTH_SIDE_HOODS.map(h=>`<option value="${esc(h)}" ${d.neighborhood===h?'selected':''}>${esc(h)}</option>`).join('')}
+          <option value="__other__" ${(d.neighborhood&&!NORTH_SIDE_HOODS.includes(d.neighborhood))?'selected':''}>My neighborhood isn't listed →</option>
+        </select>
+        <div id="hood-wl" class="${(d.neighborhood&&!NORTH_SIDE_HOODS.includes(d.neighborhood))?'':'hidden'}" style="margin-top:10px">
+          <input type="text" id="f_hood_other" value="${esc((d.neighborhood&&!NORTH_SIDE_HOODS.includes(d.neighborhood))?d.neighborhood:'')}" placeholder="Your neighborhood, e.g. Hyde Park" />
+          <div class="note" style="margin-top:7px;line-height:1.5">We're on the North Side to start. <b>West &amp; South Side are coming soon</b>, leave your info and you're first in line the moment we open your area.</div>
+        </div></div>
       <div class="field"><label>Best email for the two of you <span class="hint">where we'll send your invitation</span></label>
         <input type="email" id="f_email" value="${esc(d.email||'')}" placeholder="you@example.com" /></div>
       ${navButtons('Continue')}
     </div>`));
-  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.neighborhood=$('#f_hood').value.trim(); d.email=$('#f_email').value.trim();
+  const hoodSel=$('#f_hood'), wl=$('#hood-wl');
+  hoodSel.onchange=()=>{ wl.classList.toggle('hidden', hoodSel.value!=='__other__'); };
+  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.email=$('#f_email').value.trim();
+    const sel=$('#f_hood').value;
+    if(sel==='__other__'){ d.neighborhood=$('#f_hood_other').value.trim(); d.waitlist=true; if(!d.neighborhood){ toast('Which neighborhood are you in?'); return false; } }
+    else { d.neighborhood=sel; d.waitlist=false; if(!sel){ toast('Pick your neighborhood'); return false; } }
     if(!d.couple_name||!d.partner1_name||!d.partner2_name){ toast('Tell us your names first'); return false; }
     if(!/.+@.+\..+/.test(d.email)){ toast('We need a good email to send your invite'); return false; } return true; });
 }
@@ -1035,7 +1046,7 @@ async function submitApplication(){
     life_stage:d.life_stage, kids:d.kids||'', kid_ages:d.kid_ages, kids_into:d.kids_into||[], family_vibe:d.family_vibe||[], hang_appetite:d.hang_appetite||'', free_slots:d.free_slots, bonds_by:d.bonds_by||'', hang_formats:d.hang_formats||[],
     partner1_posture:d.energy||50, partner2_posture:d.energy||50,
     partner1_tags:p1t, partner2_tags:p2t, partner1_likes:p1t.map(tagLabel).join(', '), partner2_likes:p2t.map(tagLabel).join(', '),
-    past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:'new' };
+    past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:d.waitlist?'waitlist':'new' };
   try{ await DB.insertApplication(row); drawDone(token); }
   catch(e){ console.error(e); toast('Something went wrong. Try again.'); btn.disabled=false; btn.textContent='Send our application'; }
 }
@@ -1044,6 +1055,20 @@ function drawDone(token){
   const homeUrl=location.origin+location.pathname+'#/home/'+token;
   const refUrl=location.origin+location.pathname+'#/?ref='+token;
   $('#door-body').innerHTML='';
+  if(intake.data.waitlist){
+    $('#door-body').appendChild(el(`
+      <div class="card done">
+        <div class="seal">${MARK_RUST}</div>
+        <h2>You're first in line.</h2>
+        <p>Thank you, ${esc(intake.data.partner1_name)} &amp; ${esc(intake.data.partner2_name)}. Stoop is starting on the North Side, and <b>${esc(intake.data.neighborhood)}</b> is on our list. The moment we open your area, you'll be among the first we reach out to. The more families near you who join, the sooner we get there.</p>
+        <div class="done-actions">
+          <button class="btn block" id="refbtn">Know a family near you? Bring them →</button>
+        </div>
+        <div class="note" style="margin-top:14px">We'll email you the day Stoop comes to your neighborhood.</div>
+      </div>`));
+    $('#refbtn').onclick=()=>{ if(navigator.share){ navigator.share({title:'Stoop',text:'Stoop is coming to more of Chicago, add your family so it reaches us sooner.',url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Link copied')); } else { toast(refUrl); } };
+    return;
+  }
   $('#door-body').appendChild(el(`
     <div class="card done">
       <div class="seal">${MARK_RUST}</div>
@@ -1534,7 +1559,8 @@ function drawDashboard(){
   const body=$('#console-body'); body.innerHTML='';
   const apps=consoleState.apps, events=consoleState.events, tables=consoleState.tables;
   const newApps=apps.filter(a=>a.status==='new');
-  const members=apps.filter(a=>a.status!=='passed');
+  const members=apps.filter(a=>a.status!=='passed'&&a.status!=='waitlist');
+  const waiting=apps.filter(a=>a.status==='waitlist');
   const upcoming=events.filter(e=>e.status==='upcoming').sort((a,b)=>(a.scheduled_at||'').localeCompare(b.scheduled_at||''))[0];
   const upSeats=upcoming?arr(upcoming.roster).filter(r=>r.rsvp==='yes').length:0;
   const upCap=upcoming?(upcoming.capacity||12):0;
@@ -1560,7 +1586,7 @@ function drawDashboard(){
       ${tile(newApps.length,'Waiting to review', newApps.length?'new applications':'all caught up','applications')}
       ${tile(members.length,'Families in the club', paired?paired+' paired so far':null,'applications')}
       ${tile(upcoming?upSeats:'–', upcoming?'Reserved, next hang':'No hang yet', upcoming?'of '+upCap+' spots':'create one','events')}
-      ${tile(sparks,'Sparks to introduce', sparks?'mutual matches':'none pending','pairing')}
+      ${waiting.length?tile(waiting.length,'On the waitlist','off-area demand','applications'):tile(sparks,'Sparks to introduce', sparks?'mutual matches':'none pending','pairing')}
     </div>
     <div class="sect-title">Needs you</div>
     <div class="dash-actions">${actions.map(a=>`<button class="dash-act" data-goto="${a.go}"><div><div class="da-t">${a.t}</div><div class="da-s">${a.s}</div></div><span class="da-arrow">→</span></button>`).join('')||'<div class="empty"><p>All quiet. Nothing needs you right now.</p></div>'}</div>
@@ -1568,16 +1594,29 @@ function drawDashboard(){
   body.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{ consoleState.tab=b.dataset.goto; renderConsole(); });
 }
 function drawApplications(){
-  const body=$('#console-body'); const apps=consoleState.apps; body.innerHTML='';
-  body.appendChild(el(`<div class="panel-head"><h2>Applications</h2><div class="count">${apps.length} total · newest first</div></div>`));
-  if(!apps.length){ body.appendChild(el(`<div class="empty"><h3>No applications yet</h3><p>When a couple applies from the front door, it lands here.</p></div>`)); return; }
-  const t=el(`<table class="list"><thead><tr><th>Couple</th><th>Neighborhood</th><th>Applied</th><th>Status</th></tr></thead><tbody></tbody></table>`);
-  const tb=t.querySelector('tbody');
-  apps.forEach(a=>{ const tr=el(`<tr data-id="${a.id}">
-      <td><div class="cn">${esc(a.couple_name)} <span class="seg">${esc(coupleSegment(a))}</span></div><div class="sub2">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></td>
-      <td>${esc(a.neighborhood)||'–'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
-    tr.onclick=()=>openApplication(a.id); tb.appendChild(tr); });
-  body.appendChild(t);
+  const body=$('#console-body'); const all=consoleState.apps; body.innerHTML='';
+  const active=all.filter(a=>a.status!=='waitlist'), waiting=all.filter(a=>a.status==='waitlist');
+  body.appendChild(el(`<div class="panel-head"><h2>Applications</h2><div class="count">${active.length} in your area · newest first</div></div>`));
+  if(!all.length){ body.appendChild(el(`<div class="empty"><h3>No applications yet</h3><p>When a family applies from the front door, it lands here.</p></div>`)); return; }
+  const mkTable=(rows)=>{ const t=el(`<table class="list"><thead><tr><th>Family</th><th>Neighborhood</th><th>Applied</th><th>Status</th></tr></thead><tbody></tbody></table>`);
+    const tb=t.querySelector('tbody');
+    rows.forEach(a=>{ const tr=el(`<tr data-id="${a.id}">
+        <td><div class="cn">${esc(a.couple_name)} <span class="seg">${esc(coupleSegment(a))}</span></div><div class="sub2">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></td>
+        <td>${esc(a.neighborhood)||'–'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
+      tr.onclick=()=>openApplication(a.id); tb.appendChild(tr); });
+    return t; };
+  if(active.length) body.appendChild(mkTable(active));
+  else body.appendChild(el(`<div class="empty"><p>No applications in your launch area yet.</p></div>`));
+  if(waiting.length){
+    body.appendChild(el(`<div class="sect-title" style="margin-top:26px">Waitlist · ${waiting.length} off-area famil${waiting.length>1?'ies':'y'}</div>`));
+    body.appendChild(el(`<p class="sub2" style="margin:-6px 0 12px">Families outside the North Side. Grouped by neighborhood, this is your map of where to open next.</p>`));
+    const byHood={}; waiting.forEach(a=>{ const h=(a.neighborhood||'—').trim(); (byHood[h]=byHood[h]||[]).push(a); });
+    const order=Object.keys(byHood).sort((x,y)=>byHood[y].length-byHood[x].length);
+    const wrap=el(`<div class="wl-hoods"></div>`);
+    order.forEach(h=>{ wrap.appendChild(el(`<div class="wl-chip"><b>${esc(h)}</b> · ${byHood[h].length}</div>`)); });
+    body.appendChild(wrap);
+    body.appendChild(mkTable(waiting));
+  }
 }
 function arr(v){ return Array.isArray(v)?v:(v?[v]:[]); }
 function openApplication(id){
@@ -1804,7 +1843,7 @@ async function createIntro(ev,x,y){
 const mmState = { focus:'all', showFar:false };
 function drawMatchmaker(){
   const body=$('#console-body'); body.innerHTML='';
-  const pool=consoleState.apps.filter(a=>a.status!=='passed');
+  const pool=consoleState.apps.filter(a=>a.status!=='passed'&&a.status!=='waitlist');
   body.appendChild(el(`<div class="panel-head"><h2>Matchmaker</h2><div class="count">Ranked from what couples told you · you decide</div></div>`));
   if(pool.length<2){ body.appendChild(el(`<div class="empty"><h3>Not enough couples yet</h3><p>Once a couple more apply, the best pairings show up here, closest first, weighted by kids and hobbies, with the reasoning.</p></div>`)); return; }
 
@@ -1975,8 +2014,8 @@ function openRunSheet(ev){
 }
 function openMixerBuilder(){
   const wants=(a,f)=> !arr(a.hang_formats).length || arr(a.hang_formats).includes(f);
-  const poolFor=(f)=>consoleState.apps.filter(a=>a.status!=='paired'&&a.status!=='passed'&&wants(a,f));
-  if(consoleState.apps.filter(a=>a.status!=='paired'&&a.status!=='passed').length<3){ toast('Need at least 3 available couples to build a room'); return; }
+  const poolFor=(f)=>consoleState.apps.filter(a=>a.status!=='paired'&&a.status!=='passed'&&a.status!=='waitlist'&&wants(a,f));
+  if(consoleState.apps.filter(a=>a.status!=='paired'&&a.status!=='passed'&&a.status!=='waitlist').length<3){ toast('Need at least 3 available families to build a room'); return; }
   let fmt='family', pool=poolFor(fmt), K=Math.min(4,Math.max(3,pool.length)), idx=0;
   const scrim=el(`<div class="modal-scrim"><div class="modal"><div id="mb"></div></div></div>`);
   document.body.appendChild(scrim);
