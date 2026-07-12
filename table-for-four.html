@@ -685,7 +685,6 @@ function showSplash(onDone){
       <div class="deck">Keep your keys. Bring your appetite.</div>
       <div class="thin"></div>
       <p class="sub">The quietly excellent way for Chicago couples to find the <b>couple and family friends you both actually like</b>.</p>
-      <div class="how-line">Apply &nbsp;·&nbsp; come to a monthly supper &nbsp;·&nbsp; we pair the couples who click</div>
       <div class="venue">Hosted inside <b>${VENUE_NAME}</b>, ${VENUE_LINE}.</div>
       <button class="btn gold" data-enter>Come in →</button>
       <div class="fine">Strictly platonic. Wonderfully so.</div>
@@ -1252,6 +1251,7 @@ function isAuthed(){
 }
 function appById(id){ return consoleState.apps.find(x=>x.id===id); }
 function nameFor(id){ const a=appById(id); return a?a.couple_name:'(removed)'; }
+function referrerOf(a){ if(!a||!a.referred_by) return null; const r=consoleState.apps.find(x=>x.token&&x.token===a.referred_by); return r?r.couple_name:null; }
 
 function renderConsole(){
   if(USE_SUPABASE && !sbChecked){ $('#app').innerHTML='<div class="login-wrap"><div class="login-card"><div class="mono">'+MARK_CREAM+'</div><p style="margin-top:14px">Checking your session…</p></div></div>'; refreshSbSession().then(renderConsole); return; }
@@ -1357,6 +1357,7 @@ function openApplication(id){
     <div class="drawer-body">
       <div class="kv"><div class="k">Partners</div><div class="v">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></div>
       <div class="kv"><div class="k">Neighborhood</div><div class="v">${esc(a.neighborhood)||'–'}</div></div>
+      ${a.referred_by?`<div class="kv"><div class="k">Referred by</div><div class="v">${esc(referrerOf(a)||'a member')}</div></div>`:''}
       <div class="kv"><div class="k">Life stage</div><div class="v">${esc(arr(a.life_stage).join(', '))||'–'}</div></div>
       <div class="kv"><div class="k">At home</div><div class="v">${esc(a.kids)||'–'}${arr(a.kid_ages).length?`  ·  ${esc(arr(a.kid_ages).join(', '))}`:''}</div></div>
       <div class="sect-title">What they're hoping for</div>
@@ -1455,6 +1456,7 @@ function openEvent(id){
         <div class="toggle ${r.attended?'on':''}" data-attend="${r.couple_id}"><span class="sw"></span><span>${r.attended?'Attended':'Mark attended'}</span></div></div>
       <div class="rlinks">${rsvpTag}${rateTag}
         <button class="linkbtn" data-copy="invite" data-cid="${r.couple_id}">⧉ Invite link</button>
+        <button class="linkbtn" data-invitemsg="${r.couple_id}">✉ Invite message</button>
         ${ev.status==='happened'?`<button class="linkbtn" data-copy="picks" data-cid="${r.couple_id}">⧉ Picks link</button>`:''}</div>
       ${r.feedback?`<div class="fb-note-row">“${esc(r.feedback)}”</div>`:''}
       ${likeChips}</div>`;
@@ -1489,6 +1491,7 @@ function openEvent(id){
     await DB.updateEvent(id,{roster}); await loadConsoleData(); close(); openEvent(id);
   });
   scrim.querySelectorAll('[data-copy]').forEach(btn=>btn.onclick=()=>copyLink(btn.dataset.copy, id, btn.dataset.cid));
+  scrim.querySelectorAll('[data-invitemsg]').forEach(btn=>btn.onclick=()=>draftInvite(ev, btn.dataset.invitemsg));
 }
 function suggestBlock(roster){
   const apps=roster.map(r=>appById(r.couple_id)).filter(Boolean);
@@ -1905,6 +1908,26 @@ function draftIntro(t){
   const close=()=>scrim.remove();
   scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   scrim.querySelector('[data-copy]').onclick=()=>{ const v=$('#intro_text').value; navigator.clipboard?navigator.clipboard.writeText(v).then(()=>toast('Copied. Go send it.'),()=>toast('Select & copy')):toast('Select & copy'); };
+}
+function inviteMessage(ev, a){
+  const link=location.origin+location.pathname+'#/invite/'+ev.id+'/'+((a&&a.token)||a.id);
+  const when = ev.scheduled_at ? fmtDate(ev.scheduled_at) : 'a date we\'ll confirm soon';
+  const venue = ev.venue||VENUE_NAME;
+  return `Hi ${a.partner1_name} and ${a.partner2_name},\n\nWe'd love to have the two of you at ${ev.title}, our next Fourtop supper: ${when} at ${venue}. A handful of vetted couples, a lovely room, and no agenda but good conversation.\n\nReserve your seats here:\n${link}\n\n${PRICE_LABEL}, includes ${PRICE_INCLUDES}. If you feel a spark with a couple, you tell us after and we take it from there.\n\nHope to see you across the table,\nFourtop`;
+}
+function draftInvite(ev, cid){
+  const a=appById(cid); if(!a){ toast('Couple not found'); return; }
+  const text=inviteMessage(ev, a);
+  const scrim=el(`<div class="modal-scrim"><div class="modal">
+    <div class="modal-head"><h2>Invite message</h2><p>A warm note with their reservation link, ready to email or text. Edit anything, then copy.</p></div>
+    <div class="modal-body">
+      <textarea id="invite_text" style="min-height:250px;line-height:1.55">${esc(text)}</textarea>
+      <div class="nav" style="margin-top:14px"><button class="btn ghost" data-cancel>Close</button><button class="btn gold" data-copy>Copy message</button></div>
+    </div></div></div>`);
+  document.body.appendChild(scrim);
+  const close=()=>scrim.remove();
+  scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  scrim.querySelector('[data-copy]').onclick=()=>{ const v=$('#invite_text').value; navigator.clipboard?navigator.clipboard.writeText(v).then(()=>toast('Copied. Go send it.'),()=>toast('Select & copy')):toast('Select & copy'); };
 }
 async function advanceTable(id,status){
   const t=consoleState.tables.find(x=>x.id===id);
