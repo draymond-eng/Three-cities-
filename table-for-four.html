@@ -1760,8 +1760,8 @@ function openEvent(id){
       <div class="kv"><div class="k">Status</div><div class="v" style="display:flex;align-items:center;gap:10px">${statusBadge(ev.status)}
         ${ev.status==='upcoming'?'<button class="btn sm forest" id="mark_happened">Mark as happened</button>':''}</div></div>
       ${ev.notes?`<div class="kv"><div class="k">Notes</div><div class="v">${esc(ev.notes)}</div></div>`:''}
-      <div class="sect-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px">Roster (${roster.length}) <div style="display:flex;gap:8px">${roster.length>=2?`<button class="btn sm gold" id="plan_night">Plan the night →</button>`:''}<button class="btn sm ghost" id="add_couples">+ Add couples</button></div></div>
-      <div id="roster_list">${rosterRows||'<div class="sub2" style="padding:6px 0">No couples on the roster yet. Add a few to fill this mixer.</div>'}</div>
+      <div class="sect-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px">Roster (${roster.length}) <div style="display:flex;gap:8px">${roster.length>=2?`<button class="btn sm gold" id="plan_night">Plan ${ev.format==='supper'?'the night':(ev.format==='active'?'the meetup':'the day')} →</button>`:''}<button class="btn sm ghost" id="add_couples">+ Add families</button></div></div>
+      <div id="roster_list">${rosterRows||'<div class="sub2" style="padding:6px 0">No families on the roster yet. Add a few to fill this hang.</div>'}</div>
       ${ev.status==='happened'?`<div class="sub2" style="margin-top:14px;line-height:1.5">Tip: mark who attended, or send each couple their <b>Picks link</b> to note who they clicked with themselves. Mutual picks (⇄) turn green and show up under <b>Pairing</b>.</div>`:`<div class="sub2" style="margin-top:14px;line-height:1.5">Send each couple their <b>Invite link</b> to RSVP. Then read the room below.</div>`}
       ${suggestBlock(roster)}
     </div></div></div>`);
@@ -1969,27 +1969,64 @@ function tablePrompts(tableApps){
 }
 function tableFlags(apps){ const out=[]; for(let i=0;i<apps.length;i++)for(let j=i+1;j<apps.length;j++){ compat(apps[i],apps[j]).flags.forEach(f=>out.push(f)); } return [...new Set(out)]; }
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII'];
-function runOfShow(startISO){
-  const steps=[
-    [0,'Doors and a welcome drink','Couples arrive, coats down, first drink in hand.'],
-    [20,'Welcome and the house code','A short toast to set the tone: warm, platonic, here to make friends.'],
-    [30,'Round one at the table','Seated in small groups chosen for chemistry. Prompt cards are on every table.'],
-    [75,'Rotate','Couples move to their round-two table and meet new faces.'],
-    [110,'Dessert and mingle','Loosen it up and let people find each other.'],
-    [135,'Flag your sparks','Everyone opens their link and quietly notes who they clicked with.'],
-    [150,'Goodnights','Send them home glad they came.']
-  ];
+function runOfShow(startISO, fmt){
+  const f=fmt||'supper';
+  let steps;
+  if(f==='active'){
+    steps=[
+      [0,'Meet at the spot','Families arrive over ~10 minutes. Be visible at the courts or trailhead and wave people in, so no one is standing around unsure they’re in the right place.'],
+      [10,'Quick hellos and teams','Name tags: first names for the grown-ups, first names and ages for the kids. Mix the families into pairs or teams so nobody sticks to who they came with.'],
+      [20,'Play','The game does the talking, no forced small talk. Keep it light and un-competitive; the point is easy company, not a tournament.'],
+      [70,'Cool down together','Water and snacks. The real conversation usually happens here, once everyone’s loose and a little tired.'],
+      [85,'Flag your people','Remind everyone to open their link and flag who they clicked with. Mutual becomes a standing hang.']
+    ];
+  } else if(f==='family'||f==='casual'){
+    steps=[
+      [0,'Arrival window','Families trickle in over 15–20 minutes. Have a clear marker so no one wanders, a Stoop sign, a bright blanket, or just you at the entrance waving people in.'],
+      [15,'Name tags and hellos','First names for the grown-ups, first names and ages for the kids. Parents remember a kid’s name faster than yours, it’s the quickest way to feel known.'],
+      [25,'Bring everyone together','Two minutes, gather the group. Introduce each family by name with one true thing about them (script below). This is the moment a park stops feeling random and starts feeling intentional.'],
+      [35,'Let the kids loose','Turn the kids onto the playground or something simple you brought, bubbles, a ball, sidewalk chalk. Kids clicking is half the point.'],
+      [45,'Coffee and the good part','Grown-ups settle in with coffee or snacks. Float a conversation starter if a lull hits.'],
+      [80,'Soft landing','As families start to peel off, catch each one: “so glad you came, want to do this again?”'],
+      [90,'Flag your people','Remind everyone to open their link and flag the families they clicked with. Mutual is a standing hang.']
+    ];
+  } else {
+    steps=[
+      [0,'Doors and a welcome drink','Couples arrive, coats down, first drink in hand.'],
+      [20,'Welcome and the house code','A short toast to set the tone: warm, platonic, here to make friends.'],
+      [30,'Round one at the table','Seated in small groups chosen for chemistry. Prompt cards are on every table.'],
+      [75,'Rotate','Couples move to their round-two table and meet new faces.'],
+      [110,'Dessert and mingle','Loosen it up and let people find each other.'],
+      [135,'Flag your sparks','Everyone opens their link and quietly notes who they clicked with.'],
+      [150,'Goodnights','Send them home glad they came.']
+    ];
+  }
   const base=startISO?new Date(startISO):null;
   return steps.map(([m,t,d])=>({ clock: base?new Date(base.getTime()+m*60000):null, mins:m, title:t, desc:d }));
 }
+/* A warm one-liner the host can say out loud to introduce each family */
+function familyBlurb(a){
+  let lead=a.couple_name||'This family';
+  if(a.neighborhood) lead+=`, ${a.neighborhood.trim()}`;
+  const bits=[];
+  const kids=(a.kids||'').trim();
+  if(kids) bits.push(kids.charAt(0).toLowerCase()+kids.slice(1));
+  else if(arr(a.kid_ages).includes('Expecting')) bits.push('a baby on the way');
+  else { const ka=arr(a.kid_ages).filter(x=>x!=='No kids'&&x!=='Expecting'); if(ka.length) bits.push('kids '+ka.slice(0,2).join(' & ')); }
+  const ki=arr(a.kids_into).slice(0,2);
+  if(ki.length) bits.push('kids into '+ki.join(' & ').toLowerCase());
+  else { const tag=[...arr(a.partner1_tags),...arr(a.partner2_tags)][0]; if(tag) bits.push('into '+tagLabel(tag).toLowerCase()); }
+  return lead + (bits.length? ' — '+bits.join(', ') : '');
+}
 function fmtClock(dt){ return (dt && !isNaN(dt.getTime()))?dt.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):null; }
-function tablesHTML(tables){
+function tablesHTML(tables, unit){
+  const u=unit||'Table'; const single=tables.length===1;
   return `<div class="rs-tables">${tables.map((t,i)=>{
     const chem=tableChem(t); const tier=compatTier(chem);
     const hoods=[...new Set(t.map(a=>a.neighborhood).filter(Boolean))].slice(0,3).join(' · ');
     const why=roomHighlights(t.map(a=>a.id))[0];
     return `<div class="rs-tcard">
-      <div class="tnum">Table ${ROMAN[i]||i+1} <span class="chem ${tier}">${tierLabel(tier)}</span></div>
+      <div class="tnum">${single?u:`${u} ${ROMAN[i]||i+1}`} <span class="chem ${tier}">${tierLabel(tier)}</span></div>
       ${hoods?`<div class="sub2" style="margin-top:2px">${esc(hoods)}</div>`:''}
       ${t.map(a=>`<div class="cpl">${esc(a.couple_name)} <span>${esc(a.neighborhood)||''}</span></div>`).join('')}
       ${why?`<div class="why">${esc(why)}</div>`:''}
@@ -1998,27 +2035,36 @@ function tablesHTML(tables){
   }).join('')}</div>`;
 }
 function openRunSheet(ev){
+  const fmt=ev.format||'supper'; const paid=fmt==='supper';
+  const kindPlan=paid?'the night':(fmt==='active'?'the meetup':'the day');
   const roster=arr(ev.roster);
   const confirmed=roster.filter(r=>r.rsvp==='yes').map(r=>appById(r.couple_id)).filter(Boolean);
   const usingConfirmed=confirmed.length>=2;
   const pool = usingConfirmed ? confirmed : roster.map(r=>appById(r.couple_id)).filter(Boolean);
-  if(pool.length<2){ toast('Add a couple or two to plan the night'); return; }
-  const perTable = pool.length<=4 ? pool.length : 3;
+  if(pool.length<2){ toast('Add a family or two to plan '+kindPlan); return; }
+  // Suppers seat small tables and rotate; park hangs are one group.
+  const perTable = paid ? (pool.length<=4?pool.length:3) : Math.min(pool.length,6);
   const round1=seatTables(pool, perTable);
-  const canRotate = round1.length>=2 && pool.length>=4;
+  const canRotate = paid && round1.length>=2 && pool.length>=4;
   const round2 = canRotate ? seatTables(pool, perTable, avoidFromTables(round1)) : null;
-  const ros=runOfShow(ev.scheduled_at);
+  const ros=runOfShow(ev.scheduled_at, fmt);
   const flags=tableFlags(pool);
-  const poolNote = usingConfirmed ? `${pool.length} confirmed couples` : `${pool.length} on the roster (no RSVPs in yet, so this seats everyone)`;
+  const unit = paid?'Table':'Group';
+  const groupHeading = paid ? ('Round one'+(canRotate?' · seating':'')) : 'Who’s here, and why they’re together';
+  const poolNote = usingConfirmed ? `${pool.length} confirmed families` : `${pool.length} on the roster (no RSVPs in yet, so this shows everyone)`;
+  const closeCopy = paid
+    ? 'Before anyone leaves, make sure both people in every couple have opened their link and flagged who they clicked with. Mutual sparks become a paired hang, and that follow-through is the whole point.'
+    : 'As families head out, remind each one to open their link and flag who they clicked with. Two families who pick each other become a standing hang, that follow-through is the whole point.';
   const scrim=el(`<div class="rs-scrim">
-    <div class="rs-bar"><div class="t">Run of show</div><div style="display:flex;gap:8px"><button class="btn sm gold" id="rs-print">Print</button><button class="btn sm ghost" id="rs-close">Close</button></div></div>
+    <div class="rs-bar"><div class="t">Plan ${esc(kindPlan)}</div><div style="display:flex;gap:8px"><button class="btn sm gold" id="rs-print">Print</button><button class="btn sm ghost" id="rs-close">Close</button></div></div>
     <div class="rs-page">
       <div class="rs-head"><div class="mk">${MARK_CREAM}</div><div><h1>${esc(ev.title)}</h1><div class="sub">${esc(ev.venue||VENUE_NAME)} · ${fmtDay(ev.scheduled_at)} · ${esc(poolNote)}</div></div></div>
       <div class="rs-sect"><h2>Run of show</h2>${ros.map(s=>`<div class="rs-time"><div class="clock">${fmtClock(s.clock)||('+'+s.mins+'m')}</div><div class="body"><b>${esc(s.title)}</b>${s.desc?`<div class="d">${esc(s.desc)}</div>`:''}</div></div>`).join('')}</div>
-      <div class="rs-sect"><h2>Round one${canRotate?' · seating':''}</h2>${tablesHTML(round1)}</div>
-      ${round2?`<div class="rs-sect"><h2>Round two · after the rotation</h2>${tablesHTML(round2)}</div>`:''}
+      <div class="rs-sect"><h2>Introduce each family, out loud</h2><div class="rs-note" style="background:#f4efe4;border-color:#e3d8c0;color:#5a4f3c">Say a warm line about each family when you bring the group together. It’s the difference between “some parents at a park” and “people chosen to meet you.”${pool.map(a=>`<div class="rs-flag" style="color:#3b342b;margin-top:7px">• ${esc(familyBlurb(a))}</div>`).join('')}</div></div>
+      <div class="rs-sect"><h2>${esc(groupHeading)}</h2>${tablesHTML(round1, unit)}</div>
+      ${round2?`<div class="rs-sect"><h2>Round two · after the rotation</h2>${tablesHTML(round2, unit)}</div>`:''}
       ${flags.length?`<div class="rs-sect"><h2>Host notes</h2><div class="rs-note">A couple of things to hold lightly as you work the room:${flags.map(f=>`<div class="rs-flag">• ${esc(f)}</div>`).join('')}</div></div>`:''}
-      <div class="rs-sect"><h2>The close</h2><div class="rs-note">Before anyone leaves, make sure both people in every couple have opened their link and flagged who they clicked with. Mutual sparks become a paired hang, and that follow-through is the whole point.</div></div>
+      <div class="rs-sect"><h2>The close</h2><div class="rs-note">${closeCopy}</div></div>
     </div>
   </div>`);
   document.body.appendChild(scrim);
