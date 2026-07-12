@@ -487,7 +487,7 @@
     <div class="title" id="impTitle">Import statement</div>
   </div>
   <div class="impbody" id="impBody"></div>
-  <input type="file" id="impFile" accept=".pdf,.csv,.txt" hidden>
+  <input type="file" id="impFile" accept="image/*,.pdf,.csv,.txt,.heic" hidden>
 </div>
 
 <!-- ONBOARDING — set the budget together -->
@@ -1829,17 +1829,18 @@ function renderImport(){
     $("impTitle").textContent="Import statement";
     b.innerHTML=`<div class="impscroll">
       <div class="dropzone">
-        <div class="big">📋</div>
-        <h3>Easiest on your phone: paste it</h3>
-        <p>Open your bank app, select the transactions, <b>copy</b>, and paste below — one charge per line. It's read right here on your device; nothing leaves your phone. <b>A photo or screenshot won't work</b> — we can't read images yet, just text or a file.</p>
+        <div class="big">🧾</div>
+        <h3>Add your spending</h3>
+        <p>Snap or upload a <b>screenshot/photo</b> of your statement, a <b>PDF</b>, or a <b>CSV</b> — or paste the rows below. It's all read right here on your device; nothing leaves your phone.</p>
+        <div class="srcbtns"><button class="primary money" id="impPick" style="width:auto;margin:0">📸 Photo or file</button></div>
+        <p class="qcap" style="margin-top:10px">Tip: a PDF or pasted text is the most accurate. For a photo, use a crisp, straight-on shot.</p>
       </div>
+      <p class="mnp" style="text-align:center;margin-top:16px">…or paste the transactions</p>
       <textarea class="pastebox" id="impPaste" placeholder="Paste rows like:
 07/08  WHOLE FOODS MARKET   86.40
 07/07  UBER *TRIP           $23.40
 CHIPOTLE 0421              18.75"></textarea>
-      <button class="primary money" id="impParsePaste" style="width:100%">Read pasted text</button>
-      <div style="text-align:center;margin:16px 0 8px;color:var(--muted);font-size:12px">— or upload a file (PDF / CSV) —</div>
-      <button class="ghostbtn" id="impPick">📄 Choose a file</button>
+      <button class="ghostbtn" id="impParsePaste">Read pasted text</button>
       <div id="impMsg" class="qcap" style="text-align:center;margin-top:10px"></div>
       <div style="text-align:center;margin:18px 0 6px;color:var(--muted);font-size:12px">— first time? —</div>
       <button class="primary" id="impDemoBtn" style="background:var(--ink)">👀 Show me how it works</button>
@@ -1854,15 +1855,44 @@ CHIPOTLE 0421              18.75"></textarea>
 
 $("impFile").addEventListener("change",async e=>{
   const f=e.target.files[0]; if(!f) return;
-  const msg=$("impMsg"); if(msg) msg.textContent="Reading "+f.name+"…";
+  const msg=$("impMsg");
+  const isImg=/^image\//.test(f.type)||/\.(jpe?g|png|heic|heif|webp|gif)$/i.test(f.name);
+  if(msg) msg.textContent=isImg?"":"Reading "+f.name+"…";
   try{
     let txns;
     if(/\.pdf$/i.test(f.name)) txns=await parsePDF(f);
+    else if(isImg){
+      if(msg) msg.innerHTML=`📸 Reading your photo… <b id="ocrPct">0%</b><br><span class="qcap">on your device · first time downloads a small reader</span>`;
+      const text=await ocrImage(f,p=>{ const el=$("ocrPct"); if(el) el.textContent=Math.round(p*100)+"%"; });
+      txns=parseText(text);
+      if(!txns.length && msg) msg.innerHTML=`Read the photo but couldn't spot clear rows. A crisp, straight-on shot works best — or paste the text / use the PDF.`;
+    }
     else txns=parseText(await f.text());
-    handleParsed(txns);
-  }catch(err){ if($("impMsg")) $("impMsg").innerHTML="Couldn't read that file — try pasting the rows instead."; }
+    if(txns&&txns.length) handleParsed(txns);
+    else if(!isImg && msg) msg.innerHTML="Couldn't find charges in that file — try pasting the rows instead.";
+  }catch(err){ if(msg) msg.innerHTML="Couldn't read that one. Try a PDF or paste the text instead."; }
   e.target.value="";
 });
+// lazy on-device OCR (image → text). The photo is processed locally; nothing is uploaded.
+let _tessLoading=null;
+function loadTesseract(){
+  if(window.Tesseract) return Promise.resolve();
+  if(_tessLoading) return _tessLoading;
+  _tessLoading=new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="./vendor/tess/tesseract.min.js"; s.onload=()=>res(); s.onerror=()=>rej(new Error("reader unavailable")); document.head.appendChild(s); });
+  return _tessLoading;
+}
+async function ocrImage(file,onProgress){
+  await loadTesseract();
+  const url=URL.createObjectURL(file);
+  const worker=await Tesseract.createWorker("eng",1,{
+    workerPath:"./vendor/tess/worker.min.js",
+    corePath:"./vendor/tess/tesseract-core-simd-lstm.wasm.js",
+    langPath:"./vendor/tess/",
+    logger:m=>{ if(m.status==="recognizing text"&&onProgress) onProgress(m.progress); }
+  });
+  try{ const {data}=await worker.recognize(url); return data.text||""; }
+  finally{ try{await worker.terminate();}catch(_){} URL.revokeObjectURL(url); }
+}
 
 async function parsePDF(file){
   const buf=new Uint8Array(await file.arrayBuffer());
