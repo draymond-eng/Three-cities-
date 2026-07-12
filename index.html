@@ -217,6 +217,19 @@
   .recapcard .rchange{font-size:14px;font-weight:700;margin:8px 0 4px;line-height:1.4}
   .recapcard .rmeta{font-size:12px;color:var(--muted);line-height:1.55}
   .routcome{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .mnwknav{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:6px 0 12px}
+  .mnwknav>div{flex:1;text-align:center;font-size:14px}
+  .mnwknav button{flex:none;width:34px;height:34px;border-radius:9px;background:var(--paper);border:1px solid var(--line);font-size:18px;color:var(--ink)}
+  .mncharge{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .mncharge .mnc-top{display:flex;align-items:center;gap:10px}
+  .mncharge .mnc-emoji{font-size:17px;flex:none}
+  .mncharge .mnc-name{flex:1;min-width:0;font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis}
+  .mncharge .mnc-sub{display:block;font-size:11px;color:var(--muted);font-weight:600}
+  .mncharge .mnc-amt{font-weight:800;font-size:14px;flex:none}
+  .mncharge .mnc-del{flex:none;color:var(--faint);font-size:14px;padding:2px 6px;background:none}
+  .mncharge .mnc-who{display:flex;gap:6px;margin-top:8px}
+  .mncharge .mnc-who button{flex:1;min-width:0;height:32px;border-radius:8px;border:1.5px solid var(--line);font-size:12px;font-weight:800;color:#fff}
+  .mncharge .mnc-who button.off{opacity:.32}
 
   .flagcard{background:var(--warn-soft);border:1px solid #e6b7ac;border-radius:14px;padding:13px 15px;margin-bottom:10px}
   .flagcard .fn{font-weight:800;font-size:14px;display:flex;justify-content:space-between}
@@ -1304,6 +1317,7 @@ $("deletePull").onclick=()=>{ if(editingPull){ S.pulls=S.pulls.filter(p=>p!==edi
    ============================================================ */
 let mnStep=0; const MN_STEPS=5;
 let mnChange="";
+let mnWeek=weekKey(new Date());
 let _mniT=null;
 function topCategoryName(wk){
   const by={}; S.pulls.filter(p=>weekKey(p.date)===wk).forEach(p=>by[p.bucketId]=(by[p.bucketId]||0)+(+p.amount||0));
@@ -1344,11 +1358,18 @@ function renderRecaps(){
   }).join("");
 }
 function openMoneyNight(){
-  mnStep=0; S.viewWeek=weekKey(new Date()); render();
+  mnStep=0;
+  // review this week — but if it's empty and a recent week has charges (e.g. you just
+  // imported a statement), open on the most recent week that actually has spending.
+  mnWeek=weekKey(new Date());
+  if(!S.pulls.some(p=>weekKey(p.date)===mnWeek)){
+    const weeks=[...new Set(S.pulls.map(p=>weekKey(p.date)))].filter(w=>w<=mnWeek).sort();
+    if(weeks.length) mnWeek=weeks[weeks.length-1];
+  }
+  S.viewWeek=mnWeek; render();
   renderMN(); $("mn").classList.add("show");
   // cinematic title-card intro
-  const wk=weekKey(new Date());
-  $("mniSub").textContent=(S.house||"Your household")+" · Week of "+fmtRange(new Date(wk));
+  $("mniSub").textContent=(S.house||"Your household")+" · Week of "+fmtRange(new Date(mnWeek));
   const intro=$("mnIntro"); intro.classList.add("show");
   let done=false; const go=()=>{ if(done)return; done=true; intro.classList.remove("show"); stopRain(); };
   intro.onclick=go; clearTimeout(_mniT); _mniT=setTimeout(go,3800);
@@ -1361,7 +1382,7 @@ $("mnClose").onclick=closeMoneyNight;
 
 function renderMN(){
   $("mnProg").style.width=((mnStep+1)/MN_STEPS*100)+"%";
-  const wk=weekKey(new Date()), mk=monthKey(wk);
+  const wk=mnWeek, mk=monthKey(wk);
   const body=$("mnBody"), foot=$("mnFoot");
   const pace=wantsWeeklyPace(), spent=wantsSpentWeek(wk), diff=pace-spent, under=diff>=0, st=starsFor(wk);
 
@@ -1395,32 +1416,52 @@ function renderMN(){
     foot.innerHTML=`<button class="primary money" id="mnNext">Let's go →</button>`;
   }
   else if(mnStep===1){
-    // log this week's pulls
-    const rows=S.buckets.map(b=>{
-      const wkSpent=spentBucketWeek(b.id,wk);
-      return `<div class="qlog" data-b="${b.id}">
+    const thisWk=weekKey(new Date());
+    const wkPulls=S.pulls.filter(p=>weekKey(p.date)===wk).sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.id>a.id?1:-1));
+    const wkTotal=wkPulls.reduce((t,p)=>t+(+p.amount||0),0);
+    const chargeList = wkPulls.length ? wkPulls.map(p=>{
+      const bk=bktById(p.bucketId);
+      return `<div class="mncharge">
+        <div class="mnc-top">
+          <span class="mnc-emoji">${bk?bk.emoji:"🧾"}</span>
+          <span class="mnc-name">${p.note?escapeMerch(p.note):(bk?bk.name:"Charge")}<span class="mnc-sub">${bk?bk.name:""}${p.date?" · "+p.date.slice(5):""}</span></span>
+          <span class="mnc-amt">${money(p.amount)}</span>
+          <button class="mnc-del" data-delp="${p.id}">✕</button>
+        </div>
+        <div class="mnc-who">${S.people.map(pe=>`<button data-setwho="${p.id}|${pe.id}" class="${p.who===pe.id?"":"off"}" style="background:${pe.color}">${pe.short}</button>`).join("")}</div>
+      </div>`;
+    }).join("") : `<div class="okcard">Nothing logged for this week yet. Import your statement (📄 above the envelopes), or add charges below.</div>`;
+    const rows=S.buckets.map(b=>`<div class="qlog" data-b="${b.id}">
         <div class="qtop2"><span class="qemoji">${b.emoji}</span><span class="qn">${b.name}</span>
-          <span class="qspent">this week: <b>${money(wkSpent)}</b></span></div>
-        <div class="qadd">
-          <div class="qaddtop">
+          <span class="qspent">this week: <b>${money(spentBucketWeek(b.id,wk))}</b></span></div>
+        <div class="qadd"><div class="qaddtop">
             <input type="number" inputmode="decimal" placeholder="add $" data-amt>
-            <button class="go" data-go>＋</button>
-          </div>
+            <button class="go" data-go>＋</button></div>
           <div class="who2">${S.people.map(p=>`<button data-who="${p.id}" class="${p.id==="family"?"":"off"}" style="background:${p.color}">${p.short}</button>`).join("")}</div>
-        </div></div>`;
-    }).join("");
+        </div></div>`).join("");
     body.innerHTML=`<div class="step">
       <div class="kicker">Step 1 · Catch up</div>
-      <h2 class="mnt">Log this week's spending</h2>
-      <p class="mnp">Add anything you haven't logged yet. It goes to the whole family unless you tap a name — tagging who spent it is totally optional.</p>
-      ${rows}</div>`;
-    body.querySelectorAll(".qlog").forEach(q=>{
+      <div class="mnwknav">
+        <button data-mnwk="-1">‹</button>
+        <div><b>${wk===thisWk?"This week":"Week of "+fmtRange(new Date(wk))}</b><div class="qcap">${wkPulls.length} charge${wkPulls.length===1?"":"s"} · ${money(wkTotal)}</div></div>
+        <button data-mnwk="1" ${wk>=thisWk?'style="visibility:hidden"':''}>›</button>
+      </div>
+      <p class="mnp">Here's this week's spending. Tap a name to tag who spent it, ✕ to remove a charge, or add anything missing.</p>
+      ${chargeList}
+      <button class="linkbtn" id="mnAddToggle" style="margin-top:8px">＋ Add something we missed</button>
+      <div id="mnAddRows" class="hidden">${rows}</div>
+    </div>`;
+    body.querySelectorAll("[data-mnwk]").forEach(btn=>btn.onclick=()=>{ mnWeek=weekKey(addDays(new Date(mnWeek),7*(+btn.dataset.mnwk))); S.viewWeek=mnWeek; renderMN(); });
+    body.querySelectorAll("[data-setwho]").forEach(btn=>btn.onclick=()=>{ const parts=btn.dataset.setwho.split("|"); const p=S.pulls.find(x=>x.id===parts[0]); if(p){ p.who=parts[1]; save(); renderMN(); } });
+    body.querySelectorAll("[data-delp]").forEach(btn=>btn.onclick=()=>{ S.pulls=S.pulls.filter(x=>x.id!==btn.dataset.delp); save(); renderMN(); });
+    body.querySelector("#mnAddToggle").onclick=e=>{ body.querySelector("#mnAddRows").classList.toggle("hidden"); e.target.textContent = body.querySelector("#mnAddRows").classList.contains("hidden")?"＋ Add something we missed":"– Hide add"; };
+    body.querySelectorAll("#mnAddRows .qlog").forEach(q=>{
       const who2=q.querySelectorAll("[data-who]");
       who2.forEach(w=>w.onclick=()=>{ who2.forEach(x=>x.classList.add("off")); w.classList.remove("off"); });
       q.querySelector("[data-go]").onclick=()=>{
         const amt=parseFloat(q.querySelector("[data-amt]").value)||0; if(amt<=0){toast("Enter an amount");return;}
         const who=(q.querySelector("[data-who]:not(.off)")||q.querySelector('[data-who="family"]')||who2[0]).dataset.who;
-        S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),bucketId:q.dataset.b,amount:amt,who,note:"",date:iso(new Date())});
+        S.pulls.push({id:"p"+Date.now()+Math.random().toString(36).slice(2,5),bucketId:q.dataset.b,amount:amt,who,note:"",date:iso(new Date(mnWeek))});
         save(); renderMN(); toast("Added "+money(amt));
       };
     });
@@ -1501,10 +1542,11 @@ function finishMoneyNight(){
     if(gapDays<=0){/* same week, keep */} else if(gapDays<=7){S.ritual.streak++;} else {S.ritual.streak=1;}
   } else { S.ritual.streak=1; }
   S.ritual.lastCheckIn=iso(new Date());
-  const st=starsFor(wk);
+  const rw=mnWeek;   // record the week we actually reviewed
+  const st=starsFor(rw);
   snapshotNetWorth();  // auto-capture net worth each Money Night so the trend fills itself
-  S.ritual.history.push({week:wk,stars:st,change:mnChange,savings:S.settings.savings,
-    spent:wantsSpentWeek(wk),pace:wantsWeeklyPace(),topCat:topCategoryName(wk),netWorth:netWorth(),streak:S.ritual.streak});
+  S.ritual.history.push({week:rw,stars:st,change:mnChange,savings:S.settings.savings,
+    spent:wantsSpentWeek(rw),pace:wantsWeeklyPace(),topCat:topCategoryName(rw),netWorth:netWorth(),streak:S.ritual.streak});
   // badges
   const earned=awardBadges();
   save();
