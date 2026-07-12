@@ -1316,10 +1316,16 @@ async function renderHome(token){
     invHtml=`<div class="sect-title">Your invitations</div>
       <div class="home-refer"><div class="pn">You've used your invitations.</div><div class="sub2" style="margin-top:4px;line-height:1.5">Come to another supper to earn one more.</div>${broughtLine}</div>`;
   }
+  const accepted = h.status && h.status!=='new';
+  const mcTier = accepted ? MEMBER_TIER : 'Application received';
+  const headline = accepted ? `You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.` : `Thank you, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.`;
+  const ledeText = accepted
+    ? "You're one of Fourtop's founding couples, the ones shaping how this feels. Here's where you stand."
+    : "Your application is in. We read every one by hand, and we'll be in touch the moment there's a seat with your name on it.";
   const body=el(`<div class="card">
-    <div class="memcard"><div class="mc-key">${MARK_CREAM}</div><div><div class="mc-tier">${esc(MEMBER_TIER)}</div><div class="mc-name">${esc(h.couple_name||(h.partner1+' & '+h.partner2))}</div><div class="mc-club">Fourtop · Chicago</div></div></div>
-    <h1 style="font-size:27px;line-height:1.16;margin:18px 0 0">You're in, ${esc(h.partner1)} &amp; ${esc(h.partner2)}.</h1>
-    <p class="lede" style="font-size:15px;margin-top:12px">You're one of Fourtop's founding couples, the ones shaping how this feels. Here's where you stand.</p>
+    <div class="memcard"><div class="mc-key">${MARK_CREAM}</div><div><div class="mc-tier">${esc(mcTier)}</div><div class="mc-name">${esc(h.couple_name||(h.partner1+' & '+h.partner2))}</div><div class="mc-club">Fourtop · Chicago</div></div></div>
+    <h1 style="font-size:27px;line-height:1.16;margin:18px 0 0">${headline}</h1>
+    <p class="lede" style="font-size:15px;margin-top:12px">${ledeText}</p>
     <div class="timeline">${timeline}</div>
     <div class="rule"></div>
     ${nextHtml}
