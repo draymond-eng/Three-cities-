@@ -105,6 +105,13 @@
   .housecode{margin:20px 0 0;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#fcf6ea,#fffdf8);text-align:center}
   .housecode .hc-k{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700}
   .housecode .hc-t{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--rust-d);margin-top:5px}
+  .houserules{margin-top:22px;border:1px solid var(--line2);border-radius:14px;padding:16px 18px;background:linear-gradient(180deg,#fcf6ea,#fffdf8);transition:box-shadow .2s}
+  .houserules.nudge{box-shadow:0 0 0 3px rgba(179,84,58,.28)}
+  .houserules .hr-k{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--rust-d);font-weight:700}
+  .houserules ul{margin:10px 0 0;padding-left:18px}
+  .houserules li{font-size:13.5px;line-height:1.5;color:var(--ink2);margin-bottom:5px}
+  .hr-check{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14.5px;font-weight:600;color:var(--ink);cursor:pointer}
+  .hr-check input{width:20px;height:20px;accent-color:var(--rust);flex:none}
   .card.faq{margin-top:18px}
   .qa{margin-top:16px;display:flex;flex-direction:column;gap:10px}
   .qacard{border:1px solid var(--line);border-radius:13px;padding:14px 16px;background:linear-gradient(180deg,#fcf6ea,#fffdf8)}
@@ -814,7 +821,7 @@ const intake = { data:{}, step:0 };
 function renderDoor(){
   if(!sessionStorage.getItem(SPLASH_KEY)){ showSplash(renderDoor); return; }
   intake.step = 0;
-  intake.data = { energy:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'', partner1_tags:[], partner2_tags:[], hang_formats:[], kids_into:[], family_vibe:[], waitlist:false };
+  intake.data = { energy:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'', partner1_tags:[], partner2_tags:[], hang_formats:[], kids_into:[], family_vibe:[], waitlist:false, phone:'', social:'', agreed:false };
   const app = $('#app'); app.innerHTML = '';
   app.appendChild(el(`
     <div class="wrap door">
@@ -904,7 +911,7 @@ function drawIntro(){
       <div class="qa">
         <div class="qacard"><div class="q">Wait, is this a dating thing?</div><div class="a"><b>No, the opposite.</b> Stoop is strictly platonic. It's for couples and families looking for <b>other families to be friends with</b>, parent friends in the same life phase. Not that kind of couples club, wonderfully so.</div></div>
         <div class="qacard"><div class="q">What does it cost?</div><div class="a"><b>Family days and park hangs are free.</b> Just show up. Every so often there's a grown-ups supper that's paid, and that's always optional. No membership, no dues.</div></div>
-        <div class="qacard"><div class="q">Is it safe? We've got kids.</div><div class="a">Every family applies and is read by hand, no open sign-ups. Real names, real families, in your own neighborhood. Family days happen at public parks with the kids right there. You only ever meet a small, chosen group.</div></div>
+        <div class="qacard"><div class="q">Is it safe? We've got kids.</div><div class="a">Every family applies with <b>real names and a phone number</b> and is read by hand, no anonymous sign-ups. Everyone agrees to a short set of house rules (kids stay with their own parents, be kind, public places only). Hangs happen at public parks with the kids right there, and you only ever meet a small, chosen group. We don't run background checks and won't pretend to, we vet for real, local families and keep every first meeting in the open.</div></div>
         <div class="qacard"><div class="q">What actually happens at a hang?</div><div class="a">A few families who live near you and are in the same season meet at a neighborhood park or family day. Kids run around, grown-ups actually talk. No name-game icebreakers, no agenda, no pressure.</div></div>
         <div class="qacard"><div class="q">What if we don't click with anyone?</div><div class="a">Totally fine. You're only ever paired with a family when <b>you both</b> say you clicked. It's private, there's no feed, no swiping, and nobody sees who you did or didn't pick.</div></div>
         <div class="qacard"><div class="q">Who sees our information?</div><div class="a">Just us, until there's a mutual match. Your details stay private, and we never share them with anyone you haven't clicked with.</div></div>
@@ -941,16 +948,24 @@ function drawWhoYouAre(){
         </div></div>
       <div class="field"><label>Best email for the two of you <span class="hint">where we'll send your invitation</span></label>
         <input type="email" id="f_email" value="${esc(d.email||'')}" placeholder="you@example.com" /></div>
+      <div class="two">
+        <div class="field"><label>Phone <span class="hint">so we know you're a real local family</span></label>
+          <input type="tel" id="f_phone" value="${esc(d.phone||'')}" placeholder="(773) 555-0123" /></div>
+        <div class="field"><label>A social link <span class="hint">optional, Instagram/Facebook/LinkedIn</span></label>
+          <input type="text" id="f_social" value="${esc(d.social||'')}" placeholder="@yourhandle or a URL" /></div>
+      </div>
+      <div class="note" style="margin-top:-4px;line-height:1.5;color:var(--muted)">Since kids are part of this, we verify that every family is a real, local one. Your contact details stay private and are never shared until you've clicked with another family.</div>
       ${navButtons('Continue')}
     </div>`));
   const hoodSel=$('#f_hood'), wl=$('#hood-wl');
   hoodSel.onchange=()=>{ wl.classList.toggle('hidden', hoodSel.value!=='__other__'); };
-  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.email=$('#f_email').value.trim();
+  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.email=$('#f_email').value.trim(); d.phone=$('#f_phone').value.trim(); d.social=$('#f_social').value.trim();
     const sel=$('#f_hood').value;
     if(sel==='__other__'){ d.neighborhood=$('#f_hood_other').value.trim(); d.waitlist=true; if(!d.neighborhood){ toast('Which neighborhood are you in?'); return false; } }
     else { d.neighborhood=sel; d.waitlist=false; if(!sel){ toast('Pick your neighborhood'); return false; } }
     if(!d.couple_name||!d.partner1_name||!d.partner2_name){ toast('Tell us your names first'); return false; }
-    if(!/.+@.+\..+/.test(d.email)){ toast('We need a good email to send your invite'); return false; } return true; });
+    if(!/.+@.+\..+/.test(d.email)){ toast('We need a good email to send your invite'); return false; }
+    if(d.phone.replace(/[^0-9]/g,'').length<10){ toast('A phone number helps us confirm you’re a real local family'); return false; } return true; });
 }
 
 function drawYourLife(){
@@ -1069,24 +1084,37 @@ function drawReview(){
         ${row('Hoping to find', d.hoping_for)}
         ${row("Hard no's", d.hard_no)}
       </dl>
-      <div class="nav" style="margin-top:24px">
+      <div class="houserules">
+        <div class="hr-k">The house rules</div>
+        <ul>
+          <li>Our kids stay with us. Every parent supervises their own children at all times.</li>
+          <li>Be kind and respectful, always. Stoop is strictly platonic.</li>
+          <li>No photos of other people's kids without asking first.</li>
+          <li>We meet in public places, parks and family-friendly spots.</li>
+          <li>Stoop can remove any family that doesn't keep to this.</li>
+        </ul>
+        <label class="hr-check"><input type="checkbox" id="f_agree" ${d.agreed?'checked':''} /> <span>We've read the house rules and we're in.</span></label>
+      </div>
+      <div class="nav" style="margin-top:22px">
         <button class="btn ghost" data-back>Back</button>
         <button class="btn" data-send>Send our application</button>
       </div>
     </div>`));
+  $('#f_agree').onchange=e=>{ intake.data.agreed=e.target.checked; };
   $('#door-body [data-back]').onclick=goBack;
   $('#door-body [data-send]').onclick=submitApplication;
 }
 
 function makeToken(){ return (uid()+uid()).replace(/[^a-z0-9]/gi,'').slice(0,24); }
 async function submitApplication(){
-  const btn=$('#door-body [data-send]'); btn.disabled=true; btn.textContent='Sending…';
   const d=intake.data;
+  if(!d.agreed){ toast('Please read and agree to the house rules'); const c=$('#f_agree'); if(c){ c.focus(); c.closest('.houserules').classList.add('nudge'); setTimeout(()=>c.closest('.houserules').classList.remove('nudge'),1200); } return; }
+  const btn=$('#door-body [data-send]'); btn.disabled=true; btn.textContent='Sending…';
   const p1t=d.partner1_tags||[], p2t=d.partner2_tags||[];
   const token=makeToken();
   const params=new URLSearchParams((location.hash.split('?')[1]||''));
   const row={ couple_name:d.couple_name, partner1_name:d.partner1_name, partner2_name:d.partner2_name, neighborhood:d.neighborhood,
-    email:d.email||'', token, referred_by:params.get('ref')||'',
+    email:d.email||'', phone:d.phone||'', social:d.social||'', agreed:!!d.agreed, token, referred_by:params.get('ref')||'',
     life_stage:d.life_stage, kids:d.kids||'', kid_ages:d.kid_ages, kids_into:d.kids_into||[], family_vibe:d.family_vibe||[], hang_appetite:d.hang_appetite||'', free_slots:d.free_slots, bonds_by:d.bonds_by||'', hang_formats:d.hang_formats||[],
     partner1_posture:d.energy||50, partner2_posture:d.energy||50,
     partner1_tags:p1t, partner2_tags:p2t, partner1_likes:p1t.map(tagLabel).join(', '), partner2_likes:p2t.map(tagLabel).join(', '),
@@ -1686,6 +1714,11 @@ function openApplication(id){
     <div class="drawer-body">
       <div class="kv"><div class="k">Partners</div><div class="v">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></div>
       <div class="kv"><div class="k">Neighborhood</div><div class="v">${esc(a.neighborhood)||'–'}</div></div>
+      <div class="sect-title">Contact &amp; verify</div>
+      <div class="kv"><div class="k">Email</div><div class="v">${a.email?`<a href="mailto:${esc(a.email)}">${esc(a.email)}</a>`:'–'}</div></div>
+      <div class="kv"><div class="k">Phone</div><div class="v">${a.phone?`<a href="tel:${esc((a.phone||'').replace(/[^0-9+]/g,''))}">${esc(a.phone)}</a>`:'<span style="color:#9a5040">none given</span>'}</div></div>
+      <div class="kv"><div class="k">Social</div><div class="v">${a.social?(/^https?:/i.test(a.social)?`<a href="${esc(a.social)}" target="_blank" rel="noopener">${esc(a.social)}</a>`:esc(a.social)):'<span class="sub2">optional, not given</span>'}</div></div>
+      <div class="kv"><div class="k">House rules</div><div class="v">${a.agreed?'<span style="color:var(--good);font-weight:600">✓ agreed</span>':'<span style="color:#9a5040;font-weight:600">not agreed</span>'}</div></div>
       ${a.referred_by?`<div class="kv"><div class="k">Referred by</div><div class="v">${esc(referrerOf(a)||'a member')}</div></div>`:''}
       <div class="kv"><div class="k">Life stage</div><div class="v">${esc(arr(a.life_stage).join(', '))||'–'}</div></div>
       <div class="kv"><div class="k">At home</div><div class="v">${esc(a.kids)||'–'}${arr(a.kid_ages).length?`  ·  ${esc(arr(a.kid_ages).join(', '))}`:''}</div></div>
