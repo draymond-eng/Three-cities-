@@ -216,7 +216,7 @@
   .splash-card{max-width:500px;width:100%;text-align:center;color:#f2eadc}
   .splash .mono{margin:0 auto 24px;width:54px;height:54px}
   .splash .kicker{color:var(--gold-l)}
-  .splash h1{font-family:var(--serif);font-size:40px;line-height:1.1;margin:16px 0 0;color:#fffdf8;font-weight:600;text-wrap:balance}
+  .splash h1{font-family:var(--serif);font-size:clamp(27px,8.4vw,40px);line-height:1.1;margin:16px 0 0;color:#fffdf8;font-weight:600}
   .splash .defline{font-family:var(--serif);font-size:15px;color:var(--gold-l);margin:16px auto 0;letter-spacing:.02em}
   .splash .defline i{font-style:italic;opacity:.85}
   .splash .deck{font-family:var(--serif);font-style:italic;font-size:19px;color:var(--gold-l);margin:14px auto 0;letter-spacing:.01em}
@@ -233,7 +233,6 @@
   .splash .venue{color:#d4d6c4;font-size:13px;line-height:1.5;margin:20px auto 0;max-width:410px;padding:12px 16px;border:1px solid rgba(210,150,110,.4);border-radius:12px}
   .splash .venue b{color:var(--gold-l);font-weight:600}
   .splash .fine{color:#939c86;font-size:12px;margin-top:18px;letter-spacing:.02em}
-  @media(max-width:470px){.splash h1{font-size:31px}}
 
   /* console */
   .cbar{background:var(--forest);color:#f2eadc;border-bottom:2px solid var(--gold)}
@@ -814,7 +813,7 @@ function showSplash(onDone){
       <div class="mono">${MARK_CREAM}</div>
       <div class="invited"></div>
       <div class="kicker">Stoop</div>
-      <h1>Family friends, right in your neighborhood.</h1>
+      <h1>Family friends, right in&nbsp;your&nbsp;neighborhood.</h1>
       <div class="thin"></div>
       <p class="sub">A curated Chicago club for parents, parents-to-be, and couples hoping to get there, to find the <b>families near you, in the same season of life</b>. Park days, family hangs, and the occasional grown-ups dinner.</p>
       <div class="venue">Neighborhood family days, plus easy dinners once you've clicked.</div>
