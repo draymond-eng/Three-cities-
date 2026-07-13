@@ -139,7 +139,7 @@
   .field{margin:0 0 19px}
   .field > label{display:block;font-weight:650;font-size:14.5px;margin:0 0 8px}
   .field .hint{color:var(--muted);font-weight:400;font-size:13px;margin-left:2px}
-  input[type=text],input[type=email],input[type=datetime-local],input[type=number],textarea,select{
+  input[type=text],input[type=email],input[type=tel],input[type=datetime-local],input[type=number],textarea,select{
     width:100%;border:1.5px solid var(--line2);background:#fffefb;border-radius:11px;padding:13px 14px;font-size:16px;font-family:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s}
   input:focus,textarea:focus,select:focus{outline:none;border-color:var(--rust);box-shadow:0 0 0 3px rgba(179,84,58,.14)}
   textarea{min-height:106px;resize:vertical;line-height:1.55}
@@ -959,11 +959,9 @@ function drawWhoYouAre(){
         </div></div>
       <div class="field"><label>Best email for the two of you <span class="hint">where we'll send your invitation</span></label>
         <input type="email" id="f_email" value="${esc(d.email||'')}" placeholder="you@example.com" /></div>
-      <div class="field" style="margin-bottom:6px"><label>One way to reach you <span class="hint">a phone or a social link, either is fine</span></label></div>
-      <div class="two" style="margin-top:0">
-        <div class="field"><input type="tel" id="f_phone" value="${esc(d.phone||'')}" placeholder="Phone, e.g. (773) 555-0123" /></div>
-        <div class="field"><input type="text" id="f_social" value="${esc(d.social||'')}" placeholder="or @handle / a profile URL" /></div>
-      </div>
+      <div class="field"><label>One way to reach you <span class="hint">a phone or a social link, either is fine</span></label>
+        <input type="tel" id="f_phone" value="${esc(d.phone||'')}" placeholder="Phone number" />
+        <input type="text" id="f_social" value="${esc(d.social||'')}" placeholder="or @handle / profile link" style="margin-top:8px" /></div>
       <div class="note" style="margin-top:-4px;line-height:1.5;color:var(--muted)">Since kids are part of this, we verify every family is a real, local one, so we ask for a phone or a social link. It stays private, and if you give a number we'll <b>only ever text you about your own hangs, no spam, never sold</b>.</div>
       ${navButtons('Continue')}
     </div>`));
