@@ -922,7 +922,7 @@ function drawIntro(){
       <div class="qa">
         <div class="qacard"><div class="q">Wait, is this a dating thing?</div><div class="a"><b>No, the opposite.</b> Stoop is strictly platonic. It's for couples and families looking for <b>other families to be friends with</b>, parent friends in the same life phase. Not that kind of couples club, wonderfully so.</div></div>
         <div class="qacard"><div class="q">What does it cost?</div><div class="a"><b>Family days and park hangs are free.</b> Just show up. Every so often there's a grown-ups supper that's paid, and that's always optional. No membership, no dues.</div></div>
-        <div class="qacard"><div class="q">Is it safe? We've got kids.</div><div class="a">Every family applies with <b>real names and a way to reach them</b> (a phone or a social profile) and is read by hand, no anonymous sign-ups. Everyone agrees to a short set of house rules (kids stay with their own parents, be kind, public places only). Hangs happen at public parks with the kids right there, and you only ever meet a small, chosen group. We don't run background checks and won't pretend to, we vet for real, local families and keep every first meeting in the open.</div></div>
+        <div class="qacard"><div class="q">Is it safe? We've got kids.</div><div class="a">Every family applies with <b>real names and a real phone number</b> and is read by hand, no anonymous sign-ups. Everyone agrees to a short set of house rules (kids stay with their own parents, be kind, public places only). Hangs happen at public parks with the kids right there, and you only ever meet a small, chosen group. We don't run background checks and won't pretend to, we vet for real, local families and keep every first meeting in the open.</div></div>
         <div class="qacard"><div class="q">What actually happens at a hang?</div><div class="a">A few families who live near you and are in the same season meet at a neighborhood park or family day. Kids run around, grown-ups actually talk. No name-game icebreakers, no agenda, no pressure.</div></div>
         <div class="qacard"><div class="q">What if we don't click with anyone?</div><div class="a">Totally fine. You're only ever paired with a family when <b>you both</b> say you clicked. It's private, there's no feed, no swiping, and nobody sees who you did or didn't pick.</div></div>
         <div class="qacard"><div class="q">Who sees our information?</div><div class="a">Just us, until there's a mutual match. Your details stay private, and we never share them with anyone you haven't clicked with.</div></div>
@@ -959,22 +959,20 @@ function drawWhoYouAre(){
         </div></div>
       <div class="field"><label>Best email for the two of you <span class="hint">where we'll send your invitation</span></label>
         <input type="email" id="f_email" value="${esc(d.email||'')}" placeholder="you@example.com" /></div>
-      <div class="field"><label>One way to reach you <span class="hint">a phone or a social link, either is fine</span></label>
-        <input type="tel" id="f_phone" value="${esc(d.phone||'')}" placeholder="Phone number" />
-        <input type="text" id="f_social" value="${esc(d.social||'')}" placeholder="or @handle / profile link" style="margin-top:8px" /></div>
-      <div class="note" style="margin-top:-4px;line-height:1.5;color:var(--muted)">Since kids are part of this, we verify every family is a real, local one, so we ask for a phone or a social link. It stays private, and if you give a number we'll <b>only ever text you about your own hangs, no spam, never sold</b>.</div>
+      <div class="field"><label>Your phone number <span class="hint">so we know you're a real, local family</span></label>
+        <input type="tel" id="f_phone" value="${esc(d.phone||'')}" placeholder="(773) 555-0123" /></div>
+      <div class="note" style="margin-top:-4px;line-height:1.5;color:var(--muted)">Since kids are part of this, we verify every family is real and local. Your number stays private, and we'll <b>only ever text you about your own hangs. No spam, never sold.</b></div>
       ${navButtons('Continue')}
     </div>`));
   const hoodSel=$('#f_hood'), wl=$('#hood-wl');
   hoodSel.onchange=()=>{ wl.classList.toggle('hidden', hoodSel.value!=='__other__'); };
-  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.email=$('#f_email').value.trim(); d.phone=$('#f_phone').value.trim(); d.social=$('#f_social').value.trim();
+  wireNav(()=>{ const d=intake.data; d.couple_name=$('#f_couple').value.trim(); d.partner1_name=$('#f_p1').value.trim(); d.partner2_name=$('#f_p2').value.trim(); d.email=$('#f_email').value.trim(); d.phone=$('#f_phone').value.trim();
     const sel=$('#f_hood').value;
     if(sel==='__other__'){ d.neighborhood=$('#f_hood_other').value.trim(); d.waitlist=true; if(!d.neighborhood){ toast('Which neighborhood are you in?'); return false; } }
     else { d.neighborhood=sel; d.waitlist=false; if(!sel){ toast('Pick your neighborhood'); return false; } }
     if(!d.couple_name||!d.partner1_name||!d.partner2_name){ toast('Tell us your names first'); return false; }
     if(!/.+@.+\..+/.test(d.email)){ toast('We need a good email to send your invite'); return false; }
-    if(!d.phone && !d.social){ toast('Add a phone or a social link so we know you’re a real family'); return false; }
-    if(d.phone && d.phone.replace(/[^0-9]/g,'').length<10){ toast('That phone number looks a little short'); return false; } return true; });
+    if(d.phone.replace(/[^0-9]/g,'').length<10){ toast('We need a phone number to confirm you’re a real local family'); return false; } return true; });
 }
 
 function drawYourLife(){
@@ -1744,7 +1742,6 @@ function openApplication(id){
       <div class="sect-title">Contact &amp; verify</div>
       <div class="kv"><div class="k">Email</div><div class="v">${a.email?`<a href="mailto:${esc(a.email)}">${esc(a.email)}</a>`:'–'}</div></div>
       <div class="kv"><div class="k">Phone</div><div class="v">${a.phone?`<a href="tel:${esc((a.phone||'').replace(/[^0-9+]/g,''))}">${esc(a.phone)}</a>`:'<span style="color:#9a5040">none given</span>'}</div></div>
-      <div class="kv"><div class="k">Social</div><div class="v">${a.social?(/^https?:/i.test(a.social)?`<a href="${esc(a.social)}" target="_blank" rel="noopener">${esc(a.social)}</a>`:esc(a.social)):'<span class="sub2">optional, not given</span>'}</div></div>
       <div class="kv"><div class="k">House rules</div><div class="v">${a.agreed?'<span style="color:var(--good);font-weight:600">✓ agreed</span>':'<span style="color:#9a5040;font-weight:600">not agreed</span>'}</div></div>
       ${a.referred_by?`<div class="kv"><div class="k">Referred by</div><div class="v">${esc(referrerOf(a)||'a member')}</div></div>`:''}
       <div class="kv"><div class="k">Life stage</div><div class="v">${esc(arr(a.life_stage).join(', '))||'–'}</div></div>
