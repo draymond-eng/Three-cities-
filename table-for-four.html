@@ -79,6 +79,9 @@
   .btn[disabled]{opacity:.4;cursor:not-allowed;filter:none}
   .btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:1.5px solid var(--line2)}
   .btn.ghost:hover{background:#fbf5ea}
+  .btn.danger{color:#9a5040;border-color:#e0c2b6}
+  .btn.danger:hover{background:#fbeee9}
+  .btn.danger.armed{background:#b3543a;color:#fff7f0;border-color:#b3543a}
   .btn.forest{background:var(--forest)}
   .btn.gold{background:linear-gradient(155deg,#c15f3f,var(--rust-d));color:#fff7f0}
   .btn.sm{padding:9px 15px;font-size:14px;border-radius:10px}
@@ -578,6 +581,7 @@ const DB = (() => {
     async listApplications(){ return this._read(AKEY).sort((a,b)=> b.created_at.localeCompare(a.created_at)); },
     async insertApplication(row){ const r={...row,id:uid(),created_at:nowISO(),status:row.status||'new'}; const all=this._read(AKEY); all.push(r); this._write(AKEY,all); return r; },
     async updateApplication(id,patch){ const all=this._read(AKEY); const i=all.findIndex(x=>x.id===id); if(i>=0){ all[i]={...all[i],...patch}; this._write(AKEY,all); return all[i]; } },
+    async deleteApplication(id){ this._write(AKEY, this._read(AKEY).filter(a=>a.id!==id)); },
     async listTables(){ return this._read(TKEY).sort((a,b)=> b.created_at.localeCompare(a.created_at)); },
     async insertTable(row){ const r={...row,id:uid(),created_at:nowISO()}; const all=this._read(TKEY); all.push(r); this._write(TKEY,all); return r; },
     async updateTable(id,patch){ const all=this._read(TKEY); const i=all.findIndex(x=>x.id===id); if(i>=0){ all[i]={...all[i],...patch}; this._write(TKEY,all); return all[i]; } },
@@ -661,6 +665,7 @@ const DB = (() => {
     async listApplications(){ return this._q(c=>c.from('applications').select('*').order('created_at',{ascending:false})); },
     async insertApplication(row){ return this._q(c=>c.from('applications').insert([row])); }, // no .select(): public front door has insert-only, cannot read back
     async updateApplication(id,patch){ return this._q(c=>c.from('applications').update(patch).eq('id',id).select().single()); },
+    async deleteApplication(id){ return this._q(c=>c.from('applications').delete().eq('id',id)); },
     async listTables(){ return this._q(c=>c.from('tables').select('*').order('created_at',{ascending:false})); },
     async insertTable(row){ return this._q(c=>c.from('tables').insert([row]).select().single()); },
     async updateTable(id,patch){ return this._q(c=>c.from('tables').update(patch).eq('id',id).select().single()); },
@@ -1768,12 +1773,19 @@ function openApplication(id){
       <label style="font-size:13px;font-weight:650">Status</label>
       <select id="d_status">${APP_STATUSES.map(s=>`<option value="${s}" ${a.status===s?'selected':''}>${s}</option>`).join('')}</select>
       <button class="btn sm ghost" id="d_email">✉ Email draft</button>
+      <button class="btn sm danger ghost" id="d_delete">Delete</button>
       <button class="btn sm" id="d_save">Save</button><span class="saved-note" id="d_saved">Saved ✓</span>
     </div></div></div>`);
   document.body.appendChild(scrim);
   const close=()=>scrim.remove();
   scrim.querySelector('[data-close]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   scrim.querySelector('#d_email').onclick=()=>openEmailDrafts(a);
+  scrim.querySelector('#d_delete').onclick=()=>{
+    const btn=scrim.querySelector('#d_delete');
+    if(btn.dataset.armed!=='1'){ btn.dataset.armed='1'; btn.textContent='Delete for good?'; btn.classList.add('armed'); setTimeout(()=>{ if(btn.dataset.armed==='1'){ btn.dataset.armed=''; btn.textContent='Delete'; btn.classList.remove('armed'); } },3000); return; }
+    (async()=>{ try{ await DB.deleteApplication(id); toast(`${a.couple_name||'Application'} deleted`); close(); consoleState.apps = await DB.listApplications(); renderConsole(); }
+      catch(e){ console.error(e); toast('Could not delete, try again'); } })();
+  };
   scrim.querySelector('#d_save').onclick=async()=>{
     const patch={ notes:$('#d_notes').value, status:$('#d_status').value };
     await DB.updateApplication(id, patch); Object.assign(a, patch);
