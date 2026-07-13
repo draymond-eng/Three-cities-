@@ -190,6 +190,13 @@
   .home-next,.home-idle,.home-refer{padding:2px 0}
   .home-intro{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px 16px;margin:0 0 10px}
   .home-intro .pn{font-weight:650;font-size:15.5px}
+  .home-match{background:linear-gradient(180deg,#fcf6ea,#fffdf8);border:1px solid #e3d8c0;border-left:3px solid var(--rust);border-radius:14px;padding:16px 18px;margin:0 0 12px}
+  .home-match .hm-top{font-size:16px;color:var(--ink)}
+  .home-match .hm-top b{font-weight:700}
+  .home-match .hm-spark{color:var(--rust);font-weight:700;margin-right:2px}
+  .home-match .hm-plan{font-size:14px;line-height:1.5;color:var(--ink2);margin-top:8px}
+  .home-match .hm-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .home-match .hm-fine{font-size:12.5px;color:var(--muted);margin-top:10px;font-style:italic}
   .countdown{display:inline-block;background:var(--forest);color:#f2eadc;font-family:var(--serif);font-size:15px;font-weight:600;padding:6px 16px;border-radius:999px;margin:2px 0 6px;letter-spacing:.02em}
   .coming{margin-top:20px;background:#faf3e6;border:1px solid var(--line);border-radius:14px;padding:15px 16px}
   .coming .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
@@ -613,7 +620,7 @@ const DB = (() => {
       const events=this._read(EKEY), tables=this._read(TKEY);
       const upcoming=events.filter(e=>e.status==='upcoming'&&arr(e.roster).some(r=>r.couple_id===me.id)).sort((a,b)=>(a.scheduled_at||'').localeCompare(b.scheduled_at||''))[0]||null;
       const intros=tables.filter(t=>arr(t.couple_ids).includes(me.id)).map(t=>({ status:t.status, place:t.place, scheduled_at:t.scheduled_at, format:t.format,
-        others:arr(t.couple_ids).filter(id=>id!==me.id).map(id=>{const a=apps.find(x=>x.id===id);return a?a.couple_name:'a couple';}) }));
+        others:arr(t.couple_ids).filter(id=>id!==me.id).map(id=>{const a=apps.find(x=>x.id===id);return a?{name:a.couple_name, neighborhood:a.neighborhood||'', phone:a.phone||'', social:a.social||''}:null;}).filter(Boolean) }));
       const attended=events.filter(e=>arr(e.roster).some(r=>r.couple_id===me.id&&r.attended)).length;
       const given=apps.filter(a=>a.referred_by&&a.referred_by===me.token).map(a=>a.couple_name);
       return { couple_name:me.couple_name, partner1:me.partner1_name, partner2:me.partner2_name, status:me.status,
@@ -1421,21 +1428,21 @@ async function renderPicks([eventId, token]){
   const RATES=[['loved','Loved it'],['good','Good night'],['meh','Not for us']];
   const body=el(`<div class="card">
     <span class="kicker">${esc(ev.title)}</span>
-    <h1 style="font-size:29px;line-height:1.15;margin:12px 0 0">How was the night?</h1>
-    <p class="lede" style="font-size:15px;margin-top:14px">A quick word for us, then the fun part: who you'd want to see again.</p>
+    <h1 style="font-size:29px;line-height:1.15;margin:12px 0 0">How was the hang?</h1>
+    <p class="lede" style="font-size:15px;margin-top:14px">A quick word for us, then the fun part: which families you'd want to see again.</p>
     <div class="field" style="margin-top:16px"><div class="rate-row" id="rate-row">${RATES.map(([v,t])=>`<div class="chip ${rating===v?'on':''}" data-rate="${v}">${t}</div>`).join('')}</div></div>
     <div class="field" style="margin-top:6px"><label>Anything we should know? <span class="hint">a highlight, a suggestion, anything</span></label>
-      <textarea id="fb-note" placeholder="Optional. The room felt great, the pasta was unreal, we'd love a later start next time..." style="min-height:64px">${esc((d.mine&&d.mine.feedback)||'')}</textarea></div>
+      <textarea id="fb-note" placeholder="Optional. The kids hit it off, the park was perfect, we'd love a later start next time..." style="min-height:64px">${esc((d.mine&&d.mine.feedback)||'')}</textarea></div>
     <div class="rule"></div>
-    <h3 style="font-size:19px;margin:0 0 4px">Who did you two click with?</h3>
-    <p class="sub2" style="margin:0 0 14px">Tap any couple you'd want to see again. It's private. They only hear if it's mutual.</p>
+    <h3 style="font-size:19px;margin:0 0 4px">Which families did you click with?</h3>
+    <p class="sub2" style="margin:0 0 14px">Tap any family you'd want to see again. It's private, they only hear if it's mutual.</p>
     <div id="pick-list"></div>
     <button class="btn block" id="submit-picks" style="margin-top:18px">Send our picks</button>
     <div class="note" style="text-align:center">Only mutual matches ever get introduced.</div>
   </div>`);
   body.querySelectorAll('#rate-row .chip').forEach(c=>c.onclick=()=>{ body.querySelectorAll('#rate-row .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); rating=c.dataset.rate; });
   const list=body.querySelector('#pick-list');
-  if(!others.length){ list.appendChild(el(`<div class="note">You were the only couple on this roster. Nothing to pick yet.</div>`)); }
+  if(!others.length){ list.appendChild(el(`<div class="note">You were the only family on this roster. Nothing to pick yet.</div>`)); }
   others.forEach(o=>{
     const p=el(`<div class="pick ${picked.has(o.couple_id)?'on':''}" data-id="${o.couple_id}"><div class="box">✓</div><div><div class="pn">${esc(o.couple_name||o.teaser)}</div><div class="sub2">${esc(o.neighborhood)||''}</div></div></div>`);
     p.onclick=()=>{ picked.has(o.couple_id)?(picked.delete(o.couple_id),p.classList.remove('on')):(picked.add(o.couple_id),p.classList.add('on')); };
@@ -1444,7 +1451,7 @@ async function renderPicks([eventId, token]){
     await DB.submitPicks(eventId, token, [...picked], rating);
     const note=(body.querySelector('#fb-note').value||'').trim();
     if(note && DB.submitFeedback){ try{ await DB.submitFeedback(eventId, token, note); }catch(e){ console.warn('feedback note not saved to backend', e); } }
-    publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Got it. Thank you.</h2><p>We'll look for mutual sparks from the night. If a couple felt it both ways, we'll set the two of you a table and be in touch. ${picked.size?'':'And if nobody quite clicked this time, no worries, there’s always the next mixer.'}</p></div>`));
+    publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Got it. Thank you.</h2><p>We'll look for mutual sparks from the hang. If a family felt it both ways, we'll connect you two, share contacts, and nudge you toward an easy next hang. It shows up right on your status page. ${picked.size?'':'And if nobody quite clicked this time, no worries, there’s always the next one.'}</p></div>`));
     window.scrollTo({top:0,behavior:'smooth'});
   };
   publicShell(body);
@@ -1485,10 +1492,25 @@ async function renderHome(token){
       </div>
       <p class="sub2" style="margin-top:12px;line-height:1.5"><b>Family days happen most weekends</b> around the neighborhoods, with grown-ups dinners in between. The moment there's a hang near you, we'll be in touch.</p></div>`;
   }
-  const introsHtml = (h.intros&&h.intros.length) ? `<div class="sect-title">Your matches</div>` + h.intros.map(t=>`
-      <div class="home-intro"><div class="pn">You &amp; ${esc((t.others||[]).join(' & '))}</div>
-        <div class="sub2" style="margin-top:4px">${esc(cap(t.format||'dinner'))}${t.place?' · '+esc(t.place):''}${t.scheduled_at?' · '+esc(fmtDate(t.scheduled_at)):''}</div>
-        <span class="badge b-${esc(t.status)}" style="margin-top:8px;display:inline-block">${esc(homeIntroLabel(t.status))}</span></div>`).join('') : '';
+  const introsHtml = (h.intros&&h.intros.length) ? `<div class="sect-title">Families you clicked with</div>` + h.intros.map(t=>{
+      const fams=(t.others||[]); const names=fams.map(x=>x.name).join(' & ');
+      const hood=(fams[0]&&fams[0].neighborhood)||'';
+      const acts=fams.map(x=>{
+        const digits=(x.phone||'').replace(/[^0-9+]/g,''); const b=[];
+        if(digits) b.push(`<a class="btn sm" href="sms:${esc(digits)}">Text ${esc(firstWord(x.name))} →</a>`);
+        const sh=socialHref(x.social); if(sh) b.push(`<a class="btn sm ghost" href="${esc(sh)}" target="_blank" rel="noopener">Their ${esc(socialLabel(x.social))}</a>`);
+        return b.join('');
+      }).join('');
+      const planLine = t.scheduled_at
+        ? `<b>Your hang:</b> ${esc(t.place||'a spot you pick')} · ${esc(fmtDate(t.scheduled_at))}`
+        : (t.place ? `<b>An idea to start:</b> ${esc(t.place)}` : `You’re both nearby, no need to overthink it, pick a park morning or a coffee and just go.`);
+      return `<div class="home-match">
+        <div class="hm-top"><span class="hm-spark">✦</span> You clicked with <b>${esc(names)}</b>${hood?` <span class="sub2">· ${esc(hood)}</span>`:''}</div>
+        <div class="hm-plan">${planLine}</div>
+        <div class="hm-acts">${acts||'<span class="sub2">We’ll connect you by email.</span>'}</div>
+        <div class="hm-fine">Say hi first, the good ones always do.</div>
+      </div>`;
+    }).join('') : '';
   const attended=h.attended||0, given=arr(h.given);
   const invitesLeft=Math.max(0, attended - given.length);
   const broughtLine = given.length ? `<div class="sub2" style="margin-top:10px">You've brought <b>${esc(given.join(', '))}</b> into the club.</div>` : '';
@@ -1625,6 +1647,9 @@ async function doLogin(){
 
 function statusBadge(s){ return `<span class="badge b-${esc(s)}">${esc(s)}</span>`; }
 function cap(s){ return (s||'').charAt(0).toUpperCase()+(s||'').slice(1); }
+function firstWord(s){ return (s||'').replace(/^the\s+/i,'').trim().split(/[\s&]+/)[0]||'them'; }
+function socialHref(s){ s=(s||'').trim(); if(!s) return ''; if(/^https?:\/\//i.test(s)) return s; if(s.startsWith('@')) return 'https://instagram.com/'+s.slice(1); if(/^[a-z0-9._]+$/i.test(s)&&!s.includes('.')) return 'https://instagram.com/'+s; if(/\.[a-z]{2,}/i.test(s)) return 'https://'+s.replace(/^\/+/,''); return ''; }
+function socialLabel(s){ s=(s||'').toLowerCase(); if(s.includes('instagram')||s.startsWith('@')||/^[a-z0-9._]+$/i.test(s.trim())) return 'Instagram'; if(s.includes('facebook')||s.includes('fb.com')) return 'Facebook'; if(s.includes('linkedin')) return 'LinkedIn'; return 'profile'; }
 
 /* ---- Applications ---- */
 function drawDashboard(){
@@ -1897,8 +1922,8 @@ function addCouplesToEvent(ev, onRoster){
 function drawPairing(){
   const body=$('#console-body'); body.innerHTML='';
   const happened=consoleState.events.filter(e=>e.status==='happened');
-  body.appendChild(el(`<div class="panel-head"><h2>Pairing</h2><div class="count">Mutual sparks from your mixers</div></div>`));
-  if(!happened.length){ body.appendChild(el(`<div class="empty"><h3>No mixers to pair from yet</h3><p>Once an event is marked “happened” and you've noted who clicked, mutual matches appear here.</p></div>`)); return; }
+  body.appendChild(el(`<div class="panel-head"><h2>Pairing</h2><div class="count">Mutual sparks from your hangs</div></div>`));
+  if(!happened.length){ body.appendChild(el(`<div class="empty"><h3>No hangs to pair from yet</h3><p>Once a hang is marked “happened” and you've noted who clicked, mutual matches appear here.</p></div>`)); return; }
   happened.forEach(ev=>{
     const roster=arr(ev.roster);
     const mutuals=[];
@@ -1916,7 +1941,7 @@ function drawPairing(){
       const A=appById(x),B=appById(y);
       const card=el(`<div class="match-card">
         <div class="pairline">${esc(nameFor(x))} <span class="vs">⇄</span> ${esc(nameFor(y))} <span class="mutual-tag">Mutual</span></div>
-        <div class="why">${esc(A?A.neighborhood:'')} &amp; ${esc(B?B.neighborhood:'')} · both flagged each other after the mixer.</div>
+        <div class="why">${esc(A?A.neighborhood:'')} &amp; ${esc(B?B.neighborhood:'')} · both flagged each other after the hang.</div>
         <div class="act">${exists?`<span class="badge b-${esc(exists.status)}">Intro ${esc(exists.status)}</span>`:'<button class="btn sm">Create the intro →</button>'}</div></div>`);
       const btn=card.querySelector('button'); if(btn) btn.onclick=()=>createIntro(ev,x,y);
       ml.appendChild(card);
@@ -1925,7 +1950,8 @@ function drawPairing(){
   });
 }
 async function createIntro(ev,x,y){
-  await DB.insertTable({ couple_ids:[x,y], event_id:ev.id, place:'', scheduled_at:null, format:'dinner', status:'proposed',
+  const A=appById(x),B=appById(y); const place=(A&&B)?suggestPark([A,B]):'';
+  await DB.insertTable({ couple_ids:[x,y], event_id:ev.id, place, scheduled_at:null, format:'family', status:'proposed',
     notes:`Paired from ${ev.title}.` });
   for(const cid of [x,y]) await DB.updateApplication(cid,{status:'paired'});
   toast('Intro created. See the Board.'); consoleState.tab='board'; renderConsole();
@@ -2316,7 +2342,7 @@ function introText(a,b){
   const why=introReasons(a,b);
   const whyLine = why.length ? joinList(why) : 'I have a feeling you’ll click';
   const plan=planSuggestion(a,b);
-  return `Hi ${firstNames(a)} and ${firstNames(b)},\n\nI want to introduce you two couples. I don’t make introductions lightly, and I think the four of you will hit it off: ${whyLine}.\n\nSomething easy to start: ${plan.activity}, maybe ${plan.timing}. ${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. Should I set it up?\n\nWarmly,\nStoop`;
+  return `Hi ${firstNames(a)} and ${firstNames(b)},\n\nI want to introduce your two families. I don’t make introductions lightly, and I think you'll hit it off: ${whyLine}.\n\nSomething easy to start: ${plan.activity}, maybe ${plan.timing}. ${a.couple_name} are in ${a.neighborhood||'the city'} and ${b.couple_name} are in ${b.neighborhood||'the city'}. I'll connect you here, take it from there whenever works.\n\nWarmly,\nStoop`;
 }
 function draftIntro(t){
   const [a,b]=arr(t.couple_ids).map(appById);
