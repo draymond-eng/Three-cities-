@@ -735,6 +735,7 @@ const SEED = [
 
 const SLOT_OPTIONS = ["Weekend afternoons","Sunday dinner","Friday evenings","Saturday nights","Weeknights after 7","Whenever, we're flexible"];
 const APPETITE_OPTIONS = ["Once a month feels right","Every couple of weeks","Whenever we can, honestly","Let's start slow and see"];
+const POSTURE_OPTS = [['25','Slow to warm'],['50','In between'],['80','Quick to dive in']];
 const LIFE_STAGES = ["Parents, kids at home","Expecting","Hoping to be parents soon","New to the neighborhood","New to Chicago","Just us, no kids"];
 /* First-hang formats — parents-first: neighborhood family days lead, dinners are one option */
 const FORMAT_OPTIONS = [
@@ -832,7 +833,7 @@ const intake = { data:{}, step:0 };
 function renderDoor(){
   if(!sessionStorage.getItem(SPLASH_KEY)){ showSplash(renderDoor); return; }
   intake.step = 0;
-  intake.data = { energy:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'', partner1_tags:[], partner2_tags:[], hang_formats:[], kids_into:[], family_vibe:[], waitlist:false, phone:'', social:'', agreed:false };
+  intake.data = { partner1_posture:50, partner2_posture:50, free_slots:[], kid_ages:[], life_stage:[], bonds_by:'', partner1_tags:[], partner2_tags:[], hang_formats:[], kids_into:[], family_vibe:[], waitlist:false, phone:'', social:'', agreed:false };
   const app = $('#app'); app.innerHTML = '';
   app.appendChild(el(`
     <div class="wrap door">
@@ -1041,12 +1042,15 @@ function drawYourVibe(){
       <p class="sub">Tap what each of you loves: golf, boating, cooking, whatever it is. It's how we find couples you'll actually click with. Both of you count.</p>
       ${grid(1)}
       ${grid(2)}
-      <div class="field"><label>When you meet new people, you two are…</label>
-        <div class="chips" id="f_energy">${[['25','Slow to warm'],['50','Somewhere in between'],['80','Quick to dive in']].map(([v,t])=>`<div class="chip ${String(d.energy)===v?'on':''}" data-energy="${v}">${t}</div>`).join('')}</div></div>
+      <div class="field"><label>When you meet new people… <span class="hint">each of you, they're often different</span></label>
+        <div class="sub2" style="margin:2px 0 6px;font-weight:650;color:var(--ink)">${esc(d.partner1_name||'First partner')}</div>
+        <div class="chips" id="f_energy1">${POSTURE_OPTS.map(([v,t])=>`<div class="chip ${String(d.partner1_posture)===v?'on':''}" data-e="${v}">${t}</div>`).join('')}</div>
+        <div class="sub2" style="margin:14px 0 6px;font-weight:650;color:var(--ink)">${esc(d.partner2_name||'Second partner')}</div>
+        <div class="chips" id="f_energy2">${POSTURE_OPTS.map(([v,t])=>`<div class="chip ${String(d.partner2_posture)===v?'on':''}" data-e="${v}">${t}</div>`).join('')}</div></div>
       ${navButtons('Continue')}
     </div>`));
   [1,2].forEach(w=>$('#tags'+w).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ c.classList.toggle('on'); const key='partner'+w+'_tags'; const s=new Set(intake.data[key]||[]); c.classList.contains('on')?s.add(c.dataset.tag):s.delete(c.dataset.tag); intake.data[key]=[...s]; }));
-  $('#f_energy').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#f_energy').querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); intake.data.energy=+c.dataset.energy; });
+  [1,2].forEach(w=>$('#f_energy'+w).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#f_energy'+w).querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); intake.data['partner'+w+'_posture']=+c.dataset.e; }));
   wireNav(()=>{ if(!(intake.data.partner1_tags||[]).length&&!(intake.data.partner2_tags||[]).length){ toast('Tap a few things you’re into'); return false; } return true; });
 }
 
@@ -1123,7 +1127,7 @@ async function submitApplication(){
   const row={ couple_name:d.couple_name, partner1_name:d.partner1_name, partner2_name:d.partner2_name, neighborhood:d.neighborhood,
     email:d.email||'', phone:d.phone||'', social:d.social||'', agreed:!!d.agreed, token, referred_by:params.get('ref')||'',
     life_stage:d.life_stage, kids:d.kids||'', kid_ages:d.kid_ages, kids_into:d.kids_into||[], family_vibe:d.family_vibe||[], hang_appetite:d.hang_appetite||'', free_slots:d.free_slots, bonds_by:d.bonds_by||'', hang_formats:d.hang_formats||[],
-    partner1_posture:d.energy||50, partner2_posture:d.energy||50,
+    partner1_posture:d.partner1_posture||50, partner2_posture:d.partner2_posture||50,
     partner1_tags:p1t, partner2_tags:p2t, partner1_likes:p1t.map(tagLabel).join(', '), partner2_likes:p2t.map(tagLabel).join(', '),
     past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:d.waitlist?'waitlist':'new' };
   try{ await DB.insertApplication(row); drawDone(token); }
