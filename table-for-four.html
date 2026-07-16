@@ -530,7 +530,9 @@
    ============================================================ */
 const SUPABASE_URL = "https://rgerocvguasibggawchr.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_Jt__oqXVZunRt9XKpY1u4Q_sR1-nCVO";
-const ADMIN_EMAIL = "draymond@threecitiessocial.com";
+const ADMIN_EMAILS = ["draymond@threecitiessocial.com","bri@threecitiessocial.com"];
+const ADMIN_EMAIL = ADMIN_EMAILS[0];
+const isAdminEmail = (e)=> ADMIN_EMAILS.some(a=>a.toLowerCase()===(e||'').trim().toLowerCase());
 const USE_SUPABASE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 /* ---- The supper: venue + paid reservation ----
@@ -1562,7 +1564,7 @@ const consoleState = { tab:'dashboard', apps:[], tables:[], events:[] };
 let sbChecked=false, sbSession=null;
 async function refreshSbSession(){ try{ sbSession=await DB.session(); }catch(e){ sbSession=null; } sbChecked=true; }
 function isAuthed(){
-  if(USE_SUPABASE){ const em=sbSession&&sbSession.user&&sbSession.user.email; return !!(em&&em.toLowerCase()===ADMIN_EMAIL.toLowerCase()); }
+  if(USE_SUPABASE){ const em=sbSession&&sbSession.user&&sbSession.user.email; return !!(em&&isAdminEmail(em)); }
   return sessionStorage.getItem(AUTH_KEY)==='1';
 }
 function appById(id){ return consoleState.apps.find(x=>x.id===id); }
@@ -1586,7 +1588,7 @@ function renderConsole(){
         <button data-tab="pairing" class="${T==='pairing'?'on':''}">Pairing</button>
         <button data-tab="board" class="${T==='board'?'on':''}">Board</button>
       </div>
-      <div class="who">${esc(ADMIN_EMAIL)} <a href="#" data-signout>Sign out</a></div>
+      <div class="who">${esc((sbSession&&sbSession.user&&sbSession.user.email)||ADMIN_EMAIL)} <a href="#" data-signout>Sign out</a></div>
     </div></div>
     <div class="console-wrap"><div id="console-body" class="panel"></div></div>
     </div>`));
@@ -1612,7 +1614,7 @@ function renderLogin(){
         <div class="mono">${MARK_CREAM}</div>
         <h1>Concierge sign-in</h1>
         <p>The console is private. Sign in with your admin email and password.</p>
-        <div class="field"><label>Admin email</label><input type="email" id="l_email" value="${esc(ADMIN_EMAIL)}" placeholder="you@threecitiessocial.com" /></div>
+        <div class="field"><label>Admin email</label><input type="email" id="l_email" value="" placeholder="you@threecitiessocial.com" /></div>
         <div class="field"><label>Password</label><input type="password" id="l_pass" placeholder="Your password" /></div>
         <button class="btn block" id="l_send">Sign in</button>
         <div id="l_note" class="note">First time? In Supabase → Authentication → Users → Add user, create this email with a password (check "Auto Confirm").</div>
@@ -1637,11 +1639,11 @@ function renderLogin(){
 }
 async function doLogin(){
   const email=$('#l_email').value.trim().toLowerCase(); const note=$('#l_note');
-  if(email!==ADMIN_EMAIL.toLowerCase()){ note.style.color='var(--rust-d)'; note.textContent='That email isn’t on the admin list.'; return; }
+  if(!isAdminEmail(email)){ note.style.color='var(--rust-d)'; note.textContent='That email isn’t on the admin list.'; return; }
   if(USE_SUPABASE){
     const pass=$('#l_pass').value;
     if(!pass){ note.style.color='var(--rust-d)'; note.textContent='Enter your password.'; return; }
-    try{ note.style.color='var(--muted)'; note.textContent='Signing in…'; await DB.passwordSignIn(ADMIN_EMAIL, pass); sbChecked=false; await refreshSbSession();
+    try{ note.style.color='var(--muted)'; note.textContent='Signing in…'; await DB.passwordSignIn(email, pass); sbChecked=false; await refreshSbSession();
       if(isAuthed()){ consoleState.tab='dashboard'; renderConsole(); } else { note.style.color='var(--rust-d)'; note.textContent='Signed in, but not recognized as admin. Check the email.'; } }
     catch(e){ note.style.color='var(--rust-d)'; note.textContent='Wrong email or password (or the user doesn’t exist yet in Supabase).'; }
     return;
