@@ -738,7 +738,7 @@ const SEED = [
 const SLOT_OPTIONS = ["Weekend afternoons","Sunday dinner","Friday evenings","Saturday nights","Weeknights after 7","Whenever, we're flexible"];
 const APPETITE_OPTIONS = ["Once a month feels right","Every couple of weeks","Whenever we can, honestly","Let's start slow and see"];
 const POSTURE_OPTS = [['25','Slow to warm'],['50','In between'],['80','Quick to dive in']];
-const LIFE_STAGES = ["Parents, kids at home","Expecting","Hoping to be parents soon","New to the neighborhood","New to Chicago","Just us, no kids"];
+const LIFE_STAGES = ["Parents, kids at home","Solo parent","Expecting","Hoping to be parents soon","New to the neighborhood","New to Chicago","Just us, no kids"];
 /* First-hang formats — parents-first: neighborhood family days lead, dinners are one option */
 const FORMAT_OPTIONS = [
   {k:'family', e:'🧺', l:'A neighborhood family day'},
@@ -941,14 +941,14 @@ function drawWhoYouAre(){
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
-      <div class="kicker rustk">The two of you</div>
+      <div class="kicker rustk">Your family</div>
       <h2>Who's applying?</h2>
-      <p class="sub">The family, or family-to-be, looking for others nearby. However you'd introduce yourselves is perfect.</p>
-      <div class="field"><label>What should we call you as a couple? <span class="hint">e.g. "The Alvarez-Kims" or "Sam & Theo"</span></label>
-        <input type="text" id="f_couple" value="${esc(d.couple_name||'')}" placeholder="Your couple name" /></div>
+      <p class="sub">A family, a couple, or a solo parent looking for others nearby. However you'd introduce yourselves is perfect.</p>
+      <div class="field"><label>What should we call you? <span class="hint">e.g. "The Alvarez-Kims", "Sam & Theo", or "Mia + kids"</span></label>
+        <input type="text" id="f_couple" value="${esc(d.couple_name||'')}" placeholder="Your family name" /></div>
       <div class="two">
-        <div class="field"><label>First partner</label><input type="text" id="f_p1" value="${esc(d.partner1_name||'')}" placeholder="Name" /></div>
-        <div class="field"><label>Second partner</label><input type="text" id="f_p2" value="${esc(d.partner2_name||'')}" placeholder="Name" /></div>
+        <div class="field"><label>First grown-up</label><input type="text" id="f_p1" value="${esc(d.partner1_name||'')}" placeholder="Name" /></div>
+        <div class="field"><label>Second grown-up <span class="hint">optional</span></label><input type="text" id="f_p2" value="${esc(d.partner2_name||'')}" placeholder="Leave blank if it's just you" /></div>
       </div>
       <div class="field"><label>Which neighborhood? <span class="hint">we're on the North Side first</span></label>
         <select id="f_hood">
@@ -973,7 +973,7 @@ function drawWhoYouAre(){
     const sel=$('#f_hood').value;
     if(sel==='__other__'){ d.neighborhood=$('#f_hood_other').value.trim(); d.waitlist=true; if(!d.neighborhood){ toast('Which neighborhood are you in?'); return false; } }
     else { d.neighborhood=sel; d.waitlist=false; if(!sel){ toast('Pick your neighborhood'); return false; } }
-    if(!d.couple_name||!d.partner1_name||!d.partner2_name){ toast('Tell us your names first'); return false; }
+    if(!d.couple_name||!d.partner1_name){ toast('Tell us your name first'); return false; }
     if(!/.+@.+\..+/.test(d.email)){ toast('We need a good email to send your invite'); return false; }
     if(d.phone.replace(/[^0-9]/g,'').length<10){ toast('We need a phone number to confirm you’re a real local family'); return false; } return true; });
 }
@@ -1033,26 +1033,28 @@ function drawYourRhythm(){
 
 function drawYourVibe(){
   const d=intake.data;
+  const solo = !((d.partner2_name||'').trim());
   const grid=(who)=>`
-    <div class="field"><label>${who==1?esc(d.partner1_name||'First partner'):esc(d.partner2_name||'Second partner')} is into… <span class="hint">tap a few</span></label>
+    <div class="field"><label>${who==1?esc(d.partner1_name||'First grown-up'):esc(d.partner2_name||'Second grown-up')} is into… <span class="hint">tap a few</span></label>
       <div class="chips tags" id="tags${who}">${TAGS.map(t=>`<div class="chip tag ${(d['partner'+who+'_tags']||[]).includes(t.k)?'on':''}" data-tag="${t.k}" data-who="${who}">${t.e} ${esc(t.l)}</div>`).join('')}</div></div>`;
+  const posture=(who,name,mt)=>`<div class="sub2" style="margin:${mt} 0 6px;font-weight:650;color:var(--ink)">${esc(name)}</div>
+        <div class="chips" id="f_energy${who}">${POSTURE_OPTS.map(([v,t])=>`<div class="chip ${String(d['partner'+who+'_posture'])===v?'on':''}" data-e="${v}">${t}</div>`).join('')}</div>`;
   $('#door-body').appendChild(el(`
     <div class="card step">
       ${progressBar()}
       <div class="kicker rustk">What lights you up</div>
-      <h2>What are you two into?</h2>
-      <p class="sub">Tap what each of you loves: golf, boating, cooking, whatever it is. It's how we find couples you'll actually click with. Both of you count.</p>
+      <h2>${solo?'What are you into?':'What are you two into?'}</h2>
+      <p class="sub">Tap what ${solo?'you love':'each of you loves'}: golf, boating, cooking, whatever it is. It's how we find families you'll actually click with.</p>
       ${grid(1)}
-      ${grid(2)}
-      <div class="field"><label>When you meet new people… <span class="hint">each of you, they're often different</span></label>
-        <div class="sub2" style="margin:2px 0 6px;font-weight:650;color:var(--ink)">${esc(d.partner1_name||'First partner')}</div>
-        <div class="chips" id="f_energy1">${POSTURE_OPTS.map(([v,t])=>`<div class="chip ${String(d.partner1_posture)===v?'on':''}" data-e="${v}">${t}</div>`).join('')}</div>
-        <div class="sub2" style="margin:14px 0 6px;font-weight:650;color:var(--ink)">${esc(d.partner2_name||'Second partner')}</div>
-        <div class="chips" id="f_energy2">${POSTURE_OPTS.map(([v,t])=>`<div class="chip ${String(d.partner2_posture)===v?'on':''}" data-e="${v}">${t}</div>`).join('')}</div></div>
+      ${solo?'':grid(2)}
+      <div class="field"><label>When you meet new people… <span class="hint">${solo?'how you tend to be':"each of you, they're often different"}</span></label>
+        ${posture(1, d.partner1_name||'First grown-up','2px')}
+        ${solo?'':posture(2, d.partner2_name||'Second grown-up','14px')}</div>
       ${navButtons('Continue')}
     </div>`));
-  [1,2].forEach(w=>$('#tags'+w).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ c.classList.toggle('on'); const key='partner'+w+'_tags'; const s=new Set(intake.data[key]||[]); c.classList.contains('on')?s.add(c.dataset.tag):s.delete(c.dataset.tag); intake.data[key]=[...s]; }));
-  [1,2].forEach(w=>$('#f_energy'+w).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#f_energy'+w).querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); intake.data['partner'+w+'_posture']=+c.dataset.e; }));
+  const partners = solo?[1]:[1,2];
+  partners.forEach(w=>$('#tags'+w).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ c.classList.toggle('on'); const key='partner'+w+'_tags'; const s=new Set(intake.data[key]||[]); c.classList.contains('on')?s.add(c.dataset.tag):s.delete(c.dataset.tag); intake.data[key]=[...s]; }));
+  partners.forEach(w=>$('#f_energy'+w).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('#f_energy'+w).querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); intake.data['partner'+w+'_posture']=+c.dataset.e; }));
   wireNav(()=>{ if(!(intake.data.partner1_tags||[]).length&&!(intake.data.partner2_tags||[]).length){ toast('Tap a few things you’re into'); return false; } return true; });
 }
 
@@ -1174,6 +1176,7 @@ function drawDone(token){
 function inter(a,b){ const s=new Set(arr(b)); return arr(a).filter(x=>s.has(x)); }
 function num(x){ return Number(x)||0; }
 function norm(s){ return (s||'').trim().toLowerCase().replace(/^the\s+/,''); }
+function isSolo(a){ return !!a && ((a.life_stage&&arr(a.life_stage).some(x=>/solo parent/i.test(x))) || !((a.partner2_name||'').trim())); }
 
 /* Approx coordinates for common Chicago neighborhoods (for real proximity) */
 const HOOD_GEO = {
@@ -1305,15 +1308,18 @@ function compat(a,b){
   else if(h.shared.length) reasons.push(`Share ${h.shared.slice(0,3).map(c=>CAT_LABEL[c]||c).join(', ')}`);
   if(h.both) reasons.push('Both partners find common ground');
   // Life stage
-  const ls=inter(a.life_stage,b.life_stage); if(ls.length){ score+=Math.min(ls.length,2)*7; reasons.push(`Both ${ls.slice(0,2).join(' & ').toLowerCase()}`); }
+  const ls=inter(a.life_stage,b.life_stage); if(ls.length){ score+=Math.min(ls.length,2)*7; const lsShow=ls.filter(x=>!/solo parent/i.test(x)); if(lsShow.length) reasons.push(`Both ${lsShow.slice(0,2).join(' & ').toLowerCase()}`); }
+  // Solo parents — pair them with each other (shared logistics, no third-wheel dynamic)
+  const aSolo=isSolo(a), bSolo=isSolo(b);
+  if(aSolo&&bSolo){ score+=14; reasons.push('Both solo parents'); }
   // Pace & availability
   if(a.hang_appetite&&a.hang_appetite===b.hang_appetite){ score+=7; reasons.push('Same hang pace'); }
   const fs=inter(a.free_slots,b.free_slots); if(fs.length){ score+=Math.min(fs.length,2)*3; reasons.push(`Both free ${fs.slice(0,2).join(' & ').toLowerCase()}`); }
   if(a.bonds_by&&b.bonds_by&&a.bonds_by===b.bonds_by&&a.bonds_by!=='both'){ score+=3; reasons.push(`Both bond by ${a.bonds_by}`); }
   // Energy — minor, lean complementary
-  const ea=(num(a.partner1_posture)+num(a.partner2_posture))/2, eb=(num(b.partner1_posture)+num(b.partner2_posture))/2;
+  const ea=aSolo?num(a.partner1_posture):(num(a.partner1_posture)+num(a.partner2_posture))/2, eb=bSolo?num(b.partner1_posture):(num(b.partner1_posture)+num(b.partner2_posture))/2;
   const diff=Math.abs(ea-eb);
-  if(ea<40&&eb<40){ score-=4; flags.push('Two reserved couples, the night may need a spark'); }
+  if(ea<40&&eb<40){ score-=4; flags.push('Two reserved families, the day may need a spark'); }
   else if(diff>=15&&diff<=55){ score+=6; reasons.push('Energies balance nicely'); }
   else if(diff<15){ score+=3; }
   flags.push(...hardNoFlags(a,b));
@@ -1719,7 +1725,7 @@ function drawApplications(){
   const mkTable=(rows)=>{ const t=el(`<table class="list"><thead><tr><th>Family</th><th>Neighborhood</th><th>Applied</th><th>Status</th></tr></thead><tbody></tbody></table>`);
     const tb=t.querySelector('tbody');
     rows.forEach(a=>{ const tr=el(`<tr data-id="${a.id}">
-        <td><div class="cn">${esc(a.couple_name)} <span class="seg">${esc(coupleSegment(a))}</span></div><div class="sub2">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></td>
+        <td><div class="cn">${esc(a.couple_name)} <span class="seg">${esc(coupleSegment(a))}</span></div><div class="sub2">${esc(firstNames(a))}${isSolo(a)?' · solo':''}</div></td>
         <td>${esc(a.neighborhood)||'–'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
       tr.onclick=()=>openApplication(a.id); tb.appendChild(tr); });
     return t; };
@@ -1743,7 +1749,7 @@ function openApplication(id){
   const scrim=el(`<div class="scrim"><div class="drawer">
     <div class="drawer-head"><h2>${esc(a.couple_name)}</h2><button class="x" data-close>×</button></div>
     <div class="drawer-body">
-      <div class="kv"><div class="k">Partners</div><div class="v">${esc(a.partner1_name)} &amp; ${esc(a.partner2_name)}</div></div>
+      <div class="kv"><div class="k">${isSolo(a)?'Grown-up':'Partners'}</div><div class="v">${esc(firstNames(a))}${isSolo(a)?' <span class="sub2">· solo parent</span>':''}</div></div>
       <div class="kv"><div class="k">Neighborhood</div><div class="v">${esc(a.neighborhood)||'–'}</div></div>
       <div class="sect-title">Contact &amp; verify</div>
       <div class="kv"><div class="k">Email</div><div class="v">${a.email?`<a href="mailto:${esc(a.email)}">${esc(a.email)}</a>`:'–'}</div></div>
