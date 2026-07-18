@@ -91,8 +91,19 @@
   .sec .tag{font-size:11px;font-weight:700;color:var(--muted)}
 
   /* envelopes grid */
-  .envs{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-  @media(min-width:720px){.envs{grid-template-columns:repeat(3,1fr)}}
+  .envs{display:block}
+  .envgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(min-width:720px){.envgrid{grid-template-columns:repeat(3,1fr)}}
+  .egroup{margin-bottom:18px}
+  .eghead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:2px 2px 8px}
+  .egname{font-family:"Bricolage Grotesque";font-weight:800;font-size:16px}
+  .egsub{font-size:11px;color:var(--muted);font-weight:600;margin-left:8px}
+  .egnums{font-size:13px;font-weight:800;white-space:nowrap}
+  .egof{color:var(--muted);font-weight:600}
+  .egbar{height:7px;border-radius:5px;background:var(--line2);overflow:hidden;margin:0 2px}
+  .egbar i{display:block;height:100%;border-radius:5px;transition:width .3s}
+  .egleft{font-size:11.5px;font-weight:700;color:var(--muted);margin:5px 2px 10px}
+  .egleft.over{color:var(--warn)}
   .env{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 13px 14px;box-shadow:var(--shadow);
     overflow:hidden;transition:transform .1s ease}
   .env:active{transform:scale(.98)}
@@ -652,6 +663,8 @@ function ensureShape(s){
   if(!Array.isArray(s.catRules)) s.catRules=[];
   if(!Array.isArray(s.accounts)) s.accounts=[];
   if(!Array.isArray(s.nwHistory)) s.nwHistory=[];
+  // budget groups (Fixed / Flexible / Non-monthly). Migrate old need/want envelopes.
+  (s.buckets||[]).forEach(b=>{ if(!b.group) b.group = b.bucket==="want"?"flexible":"fixed"; });
   if(!Array.isArray(s.goals)) s.goals=[];
   if(!s.closes) s.closes={};
   if(!s.ritual) s.ritual={streak:0,lastCheckIn:null,badges:[],history:[]};
@@ -739,23 +752,18 @@ function render(){
   $("questFill").style.width=qp+"%";
   $("questCap").textContent = sav>=goal ? "🎉 Cushion rebuilt! Goal reached." : money(goal-sav)+" to go · "+Math.round(qp)+"% there";
 
-  // envelopes
-  const wrap=$("envs"); wrap.innerHTML="";
-  S.buckets.forEach(b=>{
+  // envelopes — grouped Fixed / Flexible / Non-monthly, each with a summary
+  const cardHTML=(b)=>{
     const avail=bucketAvailable(b,mk), rem=bucketRemaining(b,mk), wkSpent=spentBucketWeek(b.id,viewWeek);
     const ratio=avail>0?Math.max(0,rem/avail):0;
     const dry=rem<0;
     let bills=Math.round(ratio*MAXBILLS); if(rem>0&&bills<1)bills=1; if(dry)bills=0;
-    // who split of this week's pulls in this bucket
     const wkPulls=S.pulls.filter(p=>p.bucketId===b.id&&weekKey(p.date)===viewWeek);
     const byWho={}; wkPulls.forEach(p=>byWho[p.who]=(byWho[p.who]||0)+(+p.amount||0));
     const wtot=Object.values(byWho).reduce((a,c)=>a+c,0);
     const whoBar=wtot>0?S.people.map(pe=>{const v=byWho[pe.id]||0;return v>0?`<i style="width:${v/wtot*100}%;background:${pe.color}"></i>`:""}).join(""):"";
-    const el=document.createElement("button");
-    el.className="env"+(dry?" dry":""); el.dataset.bucket=b.id;
-    el.innerHTML=`
-      <div class="ehd"><span class="eemoji">${b.emoji}</span><span class="ename">${b.name}</span>
-        <span class="ebadge">${b.bucket==="need"?"need":"want"}</span></div>
+    return `<button class="env${dry?" dry":""}" data-bucket="${b.id}">
+      <div class="ehd"><span class="eemoji">${b.emoji}</span><span class="ename">${b.name}</span></div>
       <div class="cash ${dry?"empty":""}">
         ${dry?`<div class="emptytag">EMPTY</div>`:Array.from({length:bills}).map(()=>`<div class="bill"></div>`).join("")}
       </div>
@@ -763,9 +771,24 @@ function render(){
         <div class="eleft ${dry?"over":""}">${dry?money(rem)+" over":money(rem)+" left"}</div>
         <div class="eweek">this wk <b>${money(wkSpent)}</b><br>of ${money(avail)}</div>
       </div>
-      <div class="whopull">${whoBar}</div>`;
-    wrap.appendChild(el);
+      <div class="whopull">${whoBar}</div></button>`;
+  };
+  let envHTML="";
+  BGROUPS.forEach(g=>{
+    const list=S.buckets.filter(b=>bGroup(b)===g.key);
+    if(!list.length) return;
+    const planned=list.reduce((t,b)=>t+bucketAvailable(b,mk),0);
+    const spentM=list.reduce((t,b)=>t+spentBucketMonth(b.id,mk),0);
+    const remain=planned-spentM, pct=planned>0?Math.min(100,Math.max(0,spentM/planned*100)):0;
+    envHTML+=`<div class="egroup">
+      <div class="eghead"><div><span class="egname">${g.label}</span><span class="egsub">${g.sub}</span></div>
+        <div class="egnums">${money(spentM)} <span class="egof">of ${money(planned)}</span></div></div>
+      <div class="egbar"><i style="width:${pct}%;background:${remain<0?'var(--warn)':'var(--good)'}"></i></div>
+      <div class="egleft ${remain<0?'over':''}">${remain<0?money(-remain)+' over this month':money(remain)+' left this month'}</div>
+      <div class="envgrid">${list.map(cardHTML).join("")}</div>
+    </div>`;
   });
+  $("envs").innerHTML=envHTML;
   renderScoreboard();
   renderCloseCard();
   renderNightBanner();
@@ -797,6 +820,13 @@ function monthShort(mk){ const p=mk.split("-"); return new Date(p[0],p[1]-1,1).t
 function monthsBack(n){ const out=[]; let m=monthKey(new Date()); for(let i=0;i<n;i++){ out.unshift(m); m=addMonthKey(m,-1); } return out; }
 function spentAllMonth(mk,catId){ return S.pulls.filter(p=>monthKey(p.date)===mk && (catId==="all"||p.bucketId===catId)).reduce((t,p)=>t+(+p.amount||0),0); }
 function bktById(id){ return S.buckets.find(b=>b.id===id); }
+// Monarch-style budget groups
+const BGROUPS=[
+  {key:"fixed",      label:"Fixed",        sub:"recurring, predictable"},
+  {key:"flexible",   label:"Flexible",     sub:"everyday, discretionary"},
+  {key:"nonmonthly", label:"Non-monthly",  sub:"irregular, periodic"}
+];
+function bGroup(b){ return b.group || (b.bucket==="want"?"flexible":"fixed"); }
 
 /* ---------- net worth (manual balances, no bank login) ---------- */
 const NW_STARTER=[
@@ -1589,18 +1619,22 @@ function awardBadges(){
 $("gearBtn").onclick=()=>{ renderSettings(); openSheet($("setSheet")); };
 const ENV_EMOJIS=["🛒","🍽️","🛍️","👕","✈️","🎬","⛳","🚕","💇","🩺","🎁","👶","🐕","🎨","📦","✨","☕","🏠","💡","🎮","🐾","🍼"];
 function editBucket(bk){
-  const editing=!!bk; const b=bk||{name:"",monthly:0,bucket:"want",emoji:"✨"};
+  const editing=!!bk; const b=bk||{name:"",monthly:0,group:"flexible",emoji:"✨"};
   openForm({title:editing?"Edit envelope":"Add an envelope",
     fields:[
       {key:"name",label:"Name",type:"text",value:b.name,placeholder:"e.g. Coffee"},
       {key:"emoji",label:"Icon",type:"emoji",value:b.emoji||"✨",options:ENV_EMOJIS},
-      {key:"bucket",label:"Type",type:"select",value:b.bucket,options:[{value:"need",label:"Need (fixed-ish)"},{value:"want",label:"Want (counts in your star grade)"}]},
+      {key:"group",label:"Group",type:"select",value:bGroup(b),options:[
+        {value:"fixed",label:"Fixed — recurring, predictable"},
+        {value:"flexible",label:"Flexible — everyday spending (counts in your grade)"},
+        {value:"nonmonthly",label:"Non-monthly — irregular / periodic"}]},
       {key:"monthly",label:"Monthly budget",type:"number",value:b.monthly}
     ],
     submit:editing?"Save":"Add envelope", danger:editing?"Delete this envelope":null,
     onSubmit:v=>{ if(!v.name){toast("Name it");return false;}
-      if(editing){ bk.name=v.name; bk.emoji=v.emoji; bk.bucket=v.bucket; bk.monthly=v.monthly; }
-      else { S.buckets.push({id:"b"+Date.now(),name:v.name,emoji:v.emoji||"✨",monthly:v.monthly,bucket:v.bucket}); }
+      const bucket=v.group==="flexible"?"want":"need";   // keep need/want in sync for the star grade
+      if(editing){ bk.name=v.name; bk.emoji=v.emoji; bk.group=v.group; bk.bucket=bucket; bk.monthly=v.monthly; }
+      else { S.buckets.push({id:"b"+Date.now(),name:v.name,emoji:v.emoji||"✨",monthly:v.monthly,group:v.group,bucket:bucket}); }
       save(); render(); renderSettings(); },
     onDanger:editing?()=>{ S.buckets=S.buckets.filter(x=>x.id!==bk.id); save(); render(); renderSettings(); }:null});
 }
@@ -1664,11 +1698,14 @@ function renderSettings(){
   `;
   // buckets
   const bb=b.querySelector("#setBuckets");
-  bb.innerHTML=["need","want"].map(grp=>`<div style="font-size:11px;font-weight:800;color:var(--muted);margin:8px 0 2px">${grp==="need"?"NEEDS":"WANTS"}</div>`+
-    S.buckets.filter(x=>x.bucket===grp).map(x=>`
-    <div class="setrow"><span class="se">${x.emoji}</span><span class="sn">${x.name}<div class="sb">${grp}</div></span>
+  bb.innerHTML=BGROUPS.map(g=>{ const list=S.buckets.filter(x=>bGroup(x)===g.key); if(!list.length) return "";
+    const planned=list.reduce((t,x)=>t+(+x.monthly||0),0);
+    return `<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--muted);margin:10px 0 2px"><span>${g.label.toUpperCase()}</span><span>${money(planned)}/mo</span></div>`+
+    list.map(x=>`
+    <div class="setrow"><span class="se">${x.emoji}</span><span class="sn">${x.name}<div class="sb">${g.label}</div></span>
     <input class="mini" data-bud="${x.id}" value="${x.monthly}">
-    <button class="pdel" data-editb="${x.id}" style="color:var(--faint);font-size:15px">✎</button></div>`).join("")).join("");
+    <button class="pdel" data-editb="${x.id}" style="color:var(--faint);font-size:15px">✎</button></div>`).join("");
+  }).join("");
 
   b.querySelectorAll("[data-s]").forEach(i=>i.addEventListener("input",e=>{ S.settings[e.target.dataset.s]=parseFloat(e.target.value.replace(/[^0-9.]/g,""))||0; render(); }));
   b.querySelector("[data-house]").addEventListener("input",e=>{ S.house=e.target.value; $("houseTitle").textContent=S.house||"Household"; save(); });
