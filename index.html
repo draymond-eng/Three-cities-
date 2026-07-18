@@ -2438,8 +2438,10 @@ async function onSignedIn(user){
 }
 function applyRemote(data){
   if(!data) return;
+  const keepWeek=S.viewWeek;   // the viewed week is local state — a sync must not change it
   CLOUD.applying=true;
   S=ensureShape(data);
+  S.viewWeek=keepWeek||weekKey(new Date());
   try{ localStorage.setItem(KEY, JSON.stringify(S)); localStorage.removeItem(KEY+"_dirty"); }catch(e){}
   if(S.setupDone) closeOnboarding();
   render(); if(activeTab==="recurring") renderRecurring();
