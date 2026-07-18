@@ -1415,7 +1415,7 @@ function openMoneyNight(){
     const weeks=[...new Set(S.pulls.map(p=>weekKey(p.date)))].filter(w=>w<=mnWeek).sort();
     if(weeks.length) mnWeek=weeks[weeks.length-1];
   }
-  S.viewWeek=mnWeek; render();
+  render();   // note: Money Night uses its own mnWeek and never changes the home's week
   renderMN(); $("mn").classList.add("show");
   // cinematic title-card intro
   $("mniSub").textContent=(S.house||"Your household")+" · Week of "+fmtRange(new Date(mnWeek));
@@ -1424,7 +1424,7 @@ function openMoneyNight(){
   intro.onclick=go; clearTimeout(_mniT); _mniT=setTimeout(go,3800);
   setTimeout(burst,450); confettiRain(3800);
 }
-function closeMoneyNight(){ $("mn").classList.remove("show"); $("mnIntro").classList.remove("show"); clearTimeout(_mniT); stopRain(); }
+function closeMoneyNight(){ $("mn").classList.remove("show"); $("mnIntro").classList.remove("show"); clearTimeout(_mniT); stopRain(); S.viewWeek=weekKey(new Date()); render(); }
 $("moneyNightBtn").onclick=openMoneyNight;
 $("mnClose").onclick=closeMoneyNight;
 (function(){ const sc=$("streakChip"); if(sc){ sc.style.cursor="pointer"; sc.title="Past Money Nights"; sc.onclick=openRecaps; } })();
@@ -1500,7 +1500,7 @@ function renderMN(){
       <button class="linkbtn" id="mnAddToggle" style="margin-top:8px">＋ Add something we missed</button>
       <div id="mnAddRows" class="hidden">${rows}</div>
     </div>`;
-    body.querySelectorAll("[data-mnwk]").forEach(btn=>btn.onclick=()=>{ mnWeek=weekKey(addDays(new Date(mnWeek),7*(+btn.dataset.mnwk))); S.viewWeek=mnWeek; renderMN(); });
+    body.querySelectorAll("[data-mnwk]").forEach(btn=>btn.onclick=()=>{ mnWeek=weekKey(addDays(new Date(mnWeek),7*(+btn.dataset.mnwk))); renderMN(); });
     body.querySelectorAll("[data-setwho]").forEach(btn=>btn.onclick=()=>{ const parts=btn.dataset.setwho.split("|"); const p=S.pulls.find(x=>x.id===parts[0]); if(p){ p.who=parts[1]; save(); renderMN(); } });
     body.querySelectorAll("[data-delp]").forEach(btn=>btn.onclick=()=>{ S.pulls=S.pulls.filter(x=>x.id!==btn.dataset.delp); save(); renderMN(); });
     body.querySelector("#mnAddToggle").onclick=e=>{ body.querySelector("#mnAddRows").classList.toggle("hidden"); e.target.textContent = body.querySelector("#mnAddRows").classList.contains("hidden")?"＋ Add something we missed":"– Hide add"; };
@@ -2574,6 +2574,7 @@ function renderSyncSheet(){
 
 /* ---------- boot ---------- */
 applyAutoContribs();
+S.viewWeek=weekKey(new Date());   // always open on the current week — never a stale one from last session
 render();
 if(!S.setupDone) openOnboarding();
 cloudInit();
