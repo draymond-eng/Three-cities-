@@ -664,7 +664,8 @@ function ensureShape(s){
   if(!Array.isArray(s.accounts)) s.accounts=[];
   if(!Array.isArray(s.nwHistory)) s.nwHistory=[];
   // budget groups (Fixed / Flexible / Non-monthly). Migrate old need/want envelopes.
-  (s.buckets||[]).forEach(b=>{ if(!b.group) b.group = b.bucket==="want"?"flexible":"fixed"; });
+  (s.buckets||[]).forEach(b=>{ if(!b.group) b.group = b.bucket==="want"?"flexible":"fixed";
+    if(b.group==="nonmonthly" && !b.since) b.since=monthKey(new Date()); });
   if(!Array.isArray(s.goals)) s.goals=[];
   if(!s.closes) s.closes={};
   if(!s.ritual) s.ritual={streak:0,lastCheckIn:null,badges:[],history:[]};
@@ -689,10 +690,20 @@ function earliestMonth(){
   let e=null; S.pulls.forEach(p=>{ const m=monthKey(p.date); if(!e||m<e) e=m; });
   return e;
 }
-// available envelope capacity for a bucket in month mk = monthly + carried leftover from prior months
-// No rollover: each envelope resets to its monthly budget every month.
-// Unspent money is swept to goals/savings at month-end, never carried forward.
-function bucketAvailable(b,mk){ return (+b.monthly||0); }
+function mkNum(mk){ const [y,m]=mk.split("-").map(Number); return y*12+(m-1); }
+// Monthly (fixed/flexible) envelopes reset each month; leftovers sweep to goals, never roll.
+// Non-monthly envelopes are savings pots: they accrue their monthly amount every month and
+// carry the balance forward, so a $60/mo pot builds up toward a periodic expense.
+function bucketAvailable(b,mk){
+  if(bGroup(b)==="nonmonthly"){
+    const since=b.since||mk;
+    const months=mkNum(mk)-mkNum(since)+1; if(months<=0) return 0;
+    const accrued=(+b.monthly||0)*months;
+    const spentBefore=S.pulls.filter(p=>p.bucketId===b.id && mkNum(monthKey(p.date))<mkNum(mk)).reduce((t,p)=>t+(+p.amount||0),0);
+    return Math.round((accrued-spentBefore)*100)/100;
+  }
+  return (+b.monthly||0);
+}
 function bucketCarry(b,mk){ return 0; }
 function bucketRemaining(b,mk){ return bucketAvailable(b,mk)-spentBucketMonth(b.id,mk); }
 
@@ -756,7 +767,7 @@ function render(){
   const cardHTML=(b)=>{
     const avail=bucketAvailable(b,mk), rem=bucketRemaining(b,mk), wkSpent=spentBucketWeek(b.id,viewWeek);
     const ratio=avail>0?Math.max(0,rem/avail):0;
-    const dry=rem<0;
+    const dry=rem<0, nm=bGroup(b)==="nonmonthly";
     let bills=Math.round(ratio*MAXBILLS); if(rem>0&&bills<1)bills=1; if(dry)bills=0;
     const wkPulls=S.pulls.filter(p=>p.bucketId===b.id&&weekKey(p.date)===viewWeek);
     const byWho={}; wkPulls.forEach(p=>byWho[p.who]=(byWho[p.who]||0)+(+p.amount||0));
@@ -768,8 +779,8 @@ function render(){
         ${dry?`<div class="emptytag">EMPTY</div>`:Array.from({length:bills}).map(()=>`<div class="bill"></div>`).join("")}
       </div>
       <div class="enums">
-        <div class="eleft ${dry?"over":""}">${dry?money(rem)+" over":money(rem)+" left"}</div>
-        <div class="eweek">this wk <b>${money(wkSpent)}</b><br>of ${money(avail)}</div>
+        <div class="eleft ${dry?"over":""}">${dry?money(rem)+" over":money(rem)+(nm?" saved":" left")}</div>
+        <div class="eweek">this wk <b>${money(wkSpent)}</b><br>${nm?"pot "+money(avail):"of "+money(avail)}</div>
       </div>
       <div class="whopull">${whoBar}</div></button>`;
   };
@@ -777,16 +788,23 @@ function render(){
   BGROUPS.forEach(g=>{
     const list=S.buckets.filter(b=>bGroup(b)===g.key);
     if(!list.length) return;
-    const planned=list.reduce((t,b)=>t+bucketAvailable(b,mk),0);
-    const spentM=list.reduce((t,b)=>t+spentBucketMonth(b.id,mk),0);
-    const remain=planned-spentM, pct=planned>0?Math.min(100,Math.max(0,spentM/planned*100)):0;
-    envHTML+=`<div class="egroup">
-      <div class="eghead"><div><span class="egname">${g.label}</span><span class="egsub">${g.sub}</span></div>
-        <div class="egnums">${money(spentM)} <span class="egof">of ${money(planned)}</span></div></div>
-      <div class="egbar"><i style="width:${pct}%;background:${remain<0?'var(--warn)':'var(--good)'}"></i></div>
-      <div class="egleft ${remain<0?'over':''}">${remain<0?money(-remain)+' over this month':money(remain)+' left this month'}</div>
-      <div class="envgrid">${list.map(cardHTML).join("")}</div>
-    </div>`;
+    let headExtra;
+    if(g.key==="nonmonthly"){
+      const pot=list.reduce((t,b)=>t+bucketRemaining(b,mk),0);
+      const rate=list.reduce((t,b)=>t+(+b.monthly||0),0);
+      headExtra=`<div class="eghead"><div><span class="egname">${g.label}</span><span class="egsub">${g.sub}</span></div>
+          <div class="egnums">${money(pot)} <span class="egof">saved</span></div></div>
+        <div class="egleft">🐷 building ${money(rate)}/mo · carries over each month</div>`;
+    } else {
+      const planned=list.reduce((t,b)=>t+bucketAvailable(b,mk),0);
+      const spentM=list.reduce((t,b)=>t+spentBucketMonth(b.id,mk),0);
+      const remain=planned-spentM, pct=planned>0?Math.min(100,Math.max(0,spentM/planned*100)):0;
+      headExtra=`<div class="eghead"><div><span class="egname">${g.label}</span><span class="egsub">${g.sub}</span></div>
+          <div class="egnums">${money(spentM)} <span class="egof">of ${money(planned)}</span></div></div>
+        <div class="egbar"><i style="width:${pct}%;background:${remain<0?'var(--warn)':'var(--good)'}"></i></div>
+        <div class="egleft ${remain<0?'over':''}">${remain<0?money(-remain)+' over this month':money(remain)+' left this month'}</div>`;
+    }
+    envHTML+=`<div class="egroup">${headExtra}<div class="envgrid">${list.map(cardHTML).join("")}</div></div>`;
   });
   $("envs").innerHTML=envHTML;
   renderScoreboard();
@@ -1149,13 +1167,13 @@ function closeableMonth(){
   if(S.closes[prev]) return null;
   // only offer to close a month you actually used
   if(!S.pulls.some(p=>monthKey(p.date)===prev)) return null;
-  return S.buckets.some(b=>monthLeftover(b,prev)>0) ? prev : null;
+  return S.buckets.some(b=>bGroup(b)!=="nonmonthly"&&monthLeftover(b,prev)>0) ? prev : null;
 }
 function renderCloseCard(){
   const el=$("closeCard"); if(!el) return;
   const m=closeableMonth();
   if(!m){ el.innerHTML=""; return; }
-  const total=S.buckets.reduce((t,b)=>t+Math.max(0,monthLeftover(b,m)),0);
+  const total=S.buckets.filter(b=>bGroup(b)!=="nonmonthly").reduce((t,b)=>t+Math.max(0,monthLeftover(b,m)),0);
   el.innerHTML=`<button class="importcard" id="closeMonthBtn" style="background:linear-gradient(120deg,#fff,#eef2fb);border-color:#cbd6ee">
     <div class="ie" style="background:#e5ecfa">📆</div>
     <div class="it"><b>Close out ${monthLabel(m)}</b><span>${money(total)} unspent — sweep it into your goals & savings</span></div>
@@ -1163,7 +1181,7 @@ function renderCloseCard(){
   el.querySelector("#closeMonthBtn").onclick=()=>openClose(m);
 }
 function openClose(m){
-  const items=S.buckets.map(b=>({b,left:monthLeftover(b,m)})).filter(x=>x.left>0);
+  const items=S.buckets.map(b=>({b,left:monthLeftover(b,m)})).filter(x=>x.left>0 && bGroup(x.b)!=="nonmonthly");
   const dest={}; items.forEach(x=>dest[x.b.id]=x.b.sweepTo||"cushion");
   const goals=allGoals();
   const ov=document.createElement("div"); ov.className="scrim show"; ov.style.zIndex="85";
@@ -1633,8 +1651,9 @@ function editBucket(bk){
     submit:editing?"Save":"Add envelope", danger:editing?"Delete this envelope":null,
     onSubmit:v=>{ if(!v.name){toast("Name it");return false;}
       const bucket=v.group==="flexible"?"want":"need";   // keep need/want in sync for the star grade
-      if(editing){ bk.name=v.name; bk.emoji=v.emoji; bk.group=v.group; bk.bucket=bucket; bk.monthly=v.monthly; }
-      else { S.buckets.push({id:"b"+Date.now(),name:v.name,emoji:v.emoji||"✨",monthly:v.monthly,group:v.group,bucket:bucket}); }
+      const since=v.group==="nonmonthly"?(editing&&bk.since?bk.since:monthKey(new Date())):undefined;
+      if(editing){ bk.name=v.name; bk.emoji=v.emoji; bk.group=v.group; bk.bucket=bucket; bk.monthly=v.monthly; if(since)bk.since=since; else delete bk.since; }
+      else { const nb={id:"b"+Date.now(),name:v.name,emoji:v.emoji||"✨",monthly:v.monthly,group:v.group,bucket:bucket}; if(since)nb.since=since; S.buckets.push(nb); }
       save(); render(); renderSettings(); },
     onDanger:editing?()=>{ S.buckets=S.buckets.filter(x=>x.id!==bk.id); save(); render(); renderSettings(); }:null});
 }
