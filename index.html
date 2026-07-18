@@ -564,7 +564,11 @@ const MAXBILLS=8;
 // updatedAt is the sync clock: every real save stamps it (but not while we're
 // applying a remote copy). The reconcile below never lets an OLDER remote copy
 // overwrite a NEWER local one, so an add can't vanish before it finishes syncing.
-function save(){ if(!CLOUD.applying) S.updatedAt=Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} cloudPush(); }
+// A local edit marks the device "dirty" until the change reaches the server. We never
+// compare the two phones' clocks (they drift) — the dirty flag alone decides whether this
+// device has unsynced work, so partner updates always apply and local adds never vanish.
+let _inRender=false;
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); if(!CLOUD.applying && !_inRender) localStorage.setItem(KEY+"_dirty","1"); }catch(e){} cloudPush(); }
 function loadRaw(){ try{ const r=localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
 
 /* ---------- date helpers ---------- */
@@ -659,9 +663,6 @@ function ensureShape(s){
   return s;
 }
 let S=ensureShape(loadRaw()||baseState());
-// snapshot of the on-disk sync clock at launch, before any render bumps it —
-// used so the first cloud pull only adopts server data that's genuinely newer.
-const BOOT_STAMP=(+S.updatedAt||0);
 
 /* ---------- computed ---------- */
 function income(){ const s=S.settings; return (+s.salary||0)+(+s.gift||0)+(+s.other||0); }
@@ -768,7 +769,7 @@ function render(){
   renderScoreboard();
   renderCloseCard();
   renderNightBanner();
-  save();
+  _inRender=true; save(); _inRender=false;   // persist + push, but don't flag a re-render as a fresh local edit
 }
 
 /* ---------- week nav ---------- */
@@ -1600,8 +1601,8 @@ function editBucket(bk){
     onSubmit:v=>{ if(!v.name){toast("Name it");return false;}
       if(editing){ bk.name=v.name; bk.emoji=v.emoji; bk.bucket=v.bucket; bk.monthly=v.monthly; }
       else { S.buckets.push({id:"b"+Date.now(),name:v.name,emoji:v.emoji||"✨",monthly:v.monthly,bucket:v.bucket}); }
-      render(); renderSettings(); },
-    onDanger:editing?()=>{ S.buckets=S.buckets.filter(x=>x.id!==bk.id); render(); renderSettings(); }:null});
+      save(); render(); renderSettings(); },
+    onDanger:editing?()=>{ S.buckets=S.buckets.filter(x=>x.id!==bk.id); save(); render(); renderSettings(); }:null});
 }
 function editRule(rule){
   const editing=!!rule; const r=rule||{match:"",bucketId:(S.buckets[0]||{}).id,who:""};
@@ -2366,29 +2367,30 @@ async function onSignedIn(user){
   CLOUD.user=user;
   try{
     const { data:mem } = await CLOUD.sb.from("household_members").select("household_id").limit(1);
-    if(mem&&mem.length){ CLOUD.householdId=mem[0].household_id; await cloudPull(false, BOOT_STAMP); subscribeRealtime(); }
+    if(mem&&mem.length){
+      CLOUD.householdId=mem[0].household_id;
+      // If this device has an unsynced edit from last session, push it up first so it can't
+      // be clobbered. Otherwise pull the shared state (partner's latest).
+      if(localStorage.getItem(KEY+"_dirty")) await cloudFlush(); else await cloudPull();
+      subscribeRealtime();
+    }
   }catch(e){}
   updateSyncUI(); if(typeof renderSyncSheet==="function"&&$("syncSheet").classList.contains("show")) renderSyncSheet();
 }
-function applyRemote(data, force, cmp){
+function applyRemote(data){
   if(!data) return;
-  const rstamp=+data.updatedAt||0;
-  const base=(cmp!==undefined)?cmp:(+S.updatedAt||0);
-  // Only adopt the remote copy if it's genuinely newer (or we're force-adopting,
-  // e.g. right after joining). Otherwise keep local and make sure the server has it.
-  if(!force && rstamp<=base){ cloudPush(); return; }
   CLOUD.applying=true;
   S=ensureShape(data);
-  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); localStorage.removeItem(KEY+"_dirty"); }catch(e){}
   if(S.setupDone) closeOnboarding();
   render(); if(activeTab==="recurring") renderRecurring();
   CLOUD.applying=false;
 }
-async function cloudPull(force, cmp){
+async function cloudPull(){
   if(!CLOUD.householdId) return;
   try{
     const { data } = await CLOUD.sb.from("households").select("data,join_code").eq("id",CLOUD.householdId).single();
-    if(data){ CLOUD.joinCode=data.join_code; if(data.data && Object.keys(data.data).length) applyRemote(data.data, force, cmp); }
+    if(data){ CLOUD.joinCode=data.join_code; if(data.data && Object.keys(data.data).length) applyRemote(data.data); }
   }catch(e){}
 }
 function cloudPush(){
@@ -2399,14 +2401,14 @@ function cloudPush(){
 async function cloudFlush(){
   clearTimeout(CLOUD.pushT); CLOUD.pushT=null;
   if(!CLOUD.on||!CLOUD.householdId||CLOUD.applying) return;
-  try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); }catch(e){}
+  try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); localStorage.removeItem(KEY+"_dirty"); }catch(e){}
 }
 function subscribeRealtime(){
   if(!CLOUD.householdId) return;
   if(CLOUD.channel){ try{ CLOUD.sb.removeChannel(CLOUD.channel); }catch(e){} }
   CLOUD.channel=CLOUD.sb.channel("hh-"+CLOUD.householdId)
     .on("postgres_changes",{event:"UPDATE",schema:"public",table:"households",filter:"id=eq."+CLOUD.householdId},
-      p=>{ if(p.new&&p.new.data) applyRemote(p.new.data, false); })
+      p=>{ if(p.new&&p.new.data) applyRemote(p.new.data); })
     .subscribe();
 }
 function pickRow(d){ return Array.isArray(d)?d[0]:d; }
@@ -2420,7 +2422,7 @@ async function cloudCreateHousehold(){
   const h=pickRow(data);
   if(!h||!h.id) return "Unexpected response creating the household.";
   CLOUD.householdId=h.id; CLOUD.joinCode=h.join_code;
-  try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); }catch(e){}
+  try{ await CLOUD.sb.from("households").update({ data:S }).eq("id",CLOUD.householdId); localStorage.removeItem(KEY+"_dirty"); }catch(e){}
   await refreshJoinCode();
   subscribeRealtime(); updateSyncUI(); return null;
 }
@@ -2431,7 +2433,8 @@ async function cloudJoinHousehold(code){
   if(!h||!h.id) return "That code didn't match a household.";
   CLOUD.householdId=h.id; CLOUD.joinCode=h.join_code;
   await refreshJoinCode();
-  await cloudPull(true); subscribeRealtime(); updateSyncUI(); return null;   // force-adopt the household on join
+  try{ localStorage.removeItem(KEY+"_dirty"); }catch(e){}   // joining adopts the household — our scratch data isn't "unsynced work"
+  await cloudPull(); subscribeRealtime(); updateSyncUI(); return null;
 }
 function newJoinCode(){ const cs="ABCDEFGHJKMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<8;i++) s+=cs[Math.floor(Math.random()*cs.length)]; return s; }
 async function rotateCode(){
