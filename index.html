@@ -570,7 +570,7 @@
    ============================================================ */
 const $=id=>document.getElementById(id);
 const KEY="money-night:v1";
-const APP_VERSION="v22";   // bump alongside the service-worker CACHE in sw.js
+const APP_VERSION="v23";   // bump alongside the service-worker CACHE in sw.js
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
@@ -1586,6 +1586,30 @@ function mnNext(){
   if(mnStep===3){ /* keep mnChange */ }
   mnStep++; renderMN();
 }
+function weeklyReportHTML(wk){
+  const wkPulls=S.pulls.filter(p=>weekKey(p.date)===wk);
+  const total=wkPulls.reduce((t,p)=>t+(+p.amount||0),0);
+  if(!wkPulls.length) return `<div class="okcard" style="margin-top:22px;text-align:center">No spending logged this week — a $0 week! 🎉</div>`;
+  const byB={}; wkPulls.forEach(p=>byB[p.bucketId]=(byB[p.bucketId]||0)+(+p.amount||0));
+  const envRows=Object.entries(byB).map(([bid,amt])=>({bk:bktById(bid),amt})).sort((a,b)=>b.amt-a.amt);
+  const maxB=Math.max(...envRows.map(r=>r.amt),1);
+  const byW={}; wkPulls.forEach(p=>byW[p.who]=(byW[p.who]||0)+(+p.amount||0));
+  const whoRows=S.people.map(pe=>({pe,amt:byW[pe.id]||0})).filter(x=>x.amt>0).sort((a,b)=>b.amt-a.amt);
+  const wtot=whoRows.reduce((t,x)=>t+x.amt,0)||1;
+  return `<div style="text-align:left;margin-top:22px;border-top:1px solid var(--line2);padding-top:18px">
+    <div class="kicker">Where the money went</div>
+    <div style="font-family:'Bricolage Grotesque';font-weight:800;font-size:27px;margin:2px 0">${money(total)}</div>
+    <div class="qcap" style="margin-bottom:14px">across ${wkPulls.length} charge${wkPulls.length===1?"":"s"} · week of ${fmtRange(new Date(wk))}</div>
+    <div style="font-size:11.5px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin-bottom:8px">BY CATEGORY</div>
+    ${envRows.map(r=>`<div style="margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:3px"><span>${r.bk?r.bk.emoji+" "+r.bk.name:"🧾 Other"}</span><span>${money(r.amt)}</span></div>
+      <div style="height:7px;border-radius:5px;background:var(--line2);overflow:hidden"><i style="display:block;height:100%;width:${Math.max(4,r.amt/maxB*100)}%;background:linear-gradient(90deg,var(--good2),var(--good));border-radius:5px"></i></div>
+    </div>`).join("")}
+    ${whoRows.length?`<div style="font-size:11.5px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin:16px 0 8px">WHO SPENT IT</div>
+    <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin-bottom:10px">${whoRows.map(x=>`<i style="display:block;width:${x.amt/wtot*100}%;background:${x.pe.color}"></i>`).join("")}</div>
+    ${whoRows.map(x=>`<div style="display:flex;align-items:center;gap:9px;font-size:13px;margin:6px 0"><span style="width:12px;height:12px;border-radius:50%;background:${x.pe.color};flex:none"></span><span style="flex:1;font-weight:600">${x.pe.name.split(" ")[0]}</span><b>${money(x.amt)}</b></div>`).join("")}`:""}
+  </div>`;
+}
 function finishMoneyNight(){
   const sv=parseFloat($("mnSavings").value); if(!isNaN(sv)) S.settings.savings=sv;
   // streak: increment if last check-in was in a prior week; reset if a week was skipped (>13 days)
@@ -1614,6 +1638,7 @@ function finishMoneyNight(){
     <div class="mnstars">${[1,2,3,4,5].map(i=>i<=st?"⭐":"☆").join("")}</div>
     <div style="margin-top:14px">${sav>=goal?"🏦 Cushion goal reached!":"🏦 "+money(goal-sav)+" left to your cushion goal"}</div>
     <div style="margin-top:16px">${(earned.length?earned:S.ritual.badges).map(b=>`<span class="badge ${earned.includes(b)?"new":""}"><span class="be">${b.e}</span>${b.t}</span>`).join("")}</div>
+    ${weeklyReportHTML(rw)}
   </div>`;
   $("mnFoot").innerHTML=`<button class="primary money" id="mnDone">Done</button><button class="ghostbtn" id="mnSeeRecaps">📖 See past Money Nights</button>`;
   $("mnDone").onclick=()=>{ closeMoneyNight(); mnChange=""; render(); };
