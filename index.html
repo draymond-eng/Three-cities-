@@ -446,6 +446,7 @@
     <div class="arrow">→</div>
   </button>
 
+  <div id="monthHint"></div>
   <div class="sec">
     <h2>Your envelopes</h2>
     <span class="tag" id="envTag">tap to add a pull</span>
@@ -570,7 +571,7 @@
    ============================================================ */
 const $=id=>document.getElementById(id);
 const KEY="money-night:v1";
-const APP_VERSION="v24";   // bump alongside the service-worker CACHE in sw.js
+const APP_VERSION="v25";   // bump alongside the service-worker CACHE in sw.js
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
@@ -765,6 +766,22 @@ function render(){
   $("questFill").style.width=qp+"%";
   $("questCap").textContent = sav>=goal ? "🎉 Cushion rebuilt! Goal reached." : money(goal-sav)+" to go · "+Math.round(qp)+"% there";
 
+  // Helpful nudge when the current month has no spending but past months do — so a
+  // fresh (reset) month doesn't look like the data vanished.
+  const mh=$("monthHint");
+  if(mh){
+    const anyThisMonth=S.pulls.some(p=>monthKey(p.date)===mk);
+    if(!anyThisMonth && S.pulls.length){
+      const months=[...new Set(S.pulls.map(p=>monthKey(p.date)))].sort();
+      const last=months[months.length-1];
+      const lastTotal=S.pulls.filter(p=>monthKey(p.date)===last).reduce((t,p)=>t+(+p.amount||0),0);
+      mh.innerHTML=`<button class="importcard" id="monthHintBtn" style="background:linear-gradient(120deg,#fff,#f3efe6);border-color:var(--line);margin-bottom:14px">
+        <div class="ie" style="background:var(--gold-soft)">🗓️</div>
+        <div class="it"><b>Envelopes reset for ${monthLabel(mk)}</b><span>Nothing logged yet this month. Your last activity — ${money(lastTotal)} in ${monthLabel(last)} — is safe in your history.</span></div>
+        <div class="arrow">→</div></button>`;
+      mh.querySelector("#monthHintBtn").onclick=()=>{ setTab("trends"); };
+    } else mh.innerHTML="";
+  }
   // envelopes — grouped Fixed / Flexible / Non-monthly, each with a summary
   const cardHTML=(b)=>{
     const avail=bucketAvailable(b,mk), rem=bucketRemaining(b,mk), wkSpent=spentBucketWeek(b.id,viewWeek);
