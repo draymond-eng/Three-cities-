@@ -570,7 +570,7 @@
    ============================================================ */
 const $=id=>document.getElementById(id);
 const KEY="money-night:v1";
-const APP_VERSION="v23";   // bump alongside the service-worker CACHE in sw.js
+const APP_VERSION="v24";   // bump alongside the service-worker CACHE in sw.js
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
@@ -2041,19 +2041,29 @@ function parseText(text){
   if(/,/.test(text)&&lines[0]&&lines[0].split(",").length>=3&&/date|amount|descrip/i.test(lines[0])) return parseCSV(text);
   const out=[];
   const dateRe=/(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/;
-  const skip=/^(payment|autopay|balance|total|beginning|previous|new balance|statement|minimum|thank you|interest charge|available|credit line|purchases|payments)\b/i;
+  const dateOnly=/^\s*\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\s*$/;
+  const skip=/^(payment|autopay|balance|total|beginning|previous|new balance|statement|minimum|thank you|interest charge|available|credit line|purchases|payments|pending|posted|learn more|you can pay|pay over time|recent)\b/i;
+  const headerish=/[(\[]\s*[.•·*]{2,}\s*\d|\.{3}\s*\d|•{2,}\s*\d|ending in/i;   // card/account header like "(...7183)"
+  const amtEnd=l=> l.match(/\$\s*(-?\d[\d,]*(?:\.\d{1,2})?)\s*$/) || l.match(/(?:^|\s)(-?\d[\d,]*\.\d{2})\s*$/);
+  // Handles both one-line rows ("07/19 MERCHANT 18.61") AND stacked/app layouts where the
+  // merchant, date, and amount sit on separate lines (Chase app screenshots, Apple Live Text).
+  let pendMerch=null, pendDate=null;
   for(const raw of lines){
-    const l=raw.trim(); if(!l||skip.test(l)) continue;
-    // amount at end of line: "$54", "$54.20", or bare "54.20" (cents required if no $)
-    const am=l.match(/\$\s*(-?\d[\d,]*(?:\.\d{1,2})?)\s*$/) || l.match(/(?:^|\s)(-?\d[\d,]*\.\d{2})\s*$/);
-    if(!am) continue;
-    let amt=parseFloat(am[1].replace(/,/g,"")); if(!isFinite(amt)||amt<=0) continue;
-    let rest=l.slice(0,l.lastIndexOf(am[1])).replace(/\$\s*$/,"").trim();
-    let date=null; const dm=rest.match(dateRe);
-    if(dm){ date=normDate(dm[1]); rest=(rest.slice(0,dm.index)+rest.slice(dm.index+dm[1].length)).trim(); }
-    rest=rest.replace(/^[-–—&\s]+|[-–—&\s]+$/g,"").replace(/\s{2,}/g," ").trim();
-    if(rest.length<2) rest="Charge";
-    out.push({date:date||iso(new Date()),merchant:rest,amount:amt});
+    const l=raw.trim(); if(!l||skip.test(l)||headerish.test(l)) continue;
+    if(dateOnly.test(l)){ pendDate=normDate(l); continue; }
+    const am=amtEnd(l);
+    if(am){
+      let amt=parseFloat(am[1].replace(/,/g,"")); if(!isFinite(amt)||amt<=0) continue;
+      let rest=l.slice(0,l.lastIndexOf(am[1])).replace(/\$\s*$/,"").trim();
+      let date=null; const dm=rest.match(dateRe);
+      if(dm){ date=normDate(dm[1]); rest=(rest.slice(0,dm.index)+rest.slice(dm.index+dm[1].length)).trim(); }
+      rest=rest.replace(/^[-–—&\s]+|[-–—&\s]+$/g,"").replace(/\s{2,}/g," ").trim();
+      const merchant = rest.length>=2 ? rest : (pendMerch || "Charge");
+      out.push({date:date||pendDate||iso(new Date()),merchant,amount:amt});
+      pendMerch=null; pendDate=null;
+    } else if(pendMerch===null){
+      pendMerch=l.replace(/\s{2,}/g," ").trim();   // first text line of a stacked block = the merchant
+    }
   }
   return out;
 }
