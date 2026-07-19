@@ -513,7 +513,7 @@
     <div class="title" id="impTitle">Import statement</div>
   </div>
   <div class="impbody" id="impBody"></div>
-  <input type="file" id="impFile" accept="image/*,.pdf,.csv,.txt,.heic" hidden>
+  <input type="file" id="impFile" accept="image/*,.pdf,.csv,.txt,.heic" multiple hidden>
 </div>
 
 <!-- ONBOARDING — set the budget together -->
@@ -571,7 +571,7 @@
    ============================================================ */
 const $=id=>document.getElementById(id);
 const KEY="money-night:v1";
-const APP_VERSION="v26";   // bump alongside the service-worker CACHE in sw.js
+const APP_VERSION="v27";   // bump alongside the service-worker CACHE in sw.js
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
@@ -1978,8 +1978,8 @@ function renderImport(){
         <div class="big">🧾</div>
         <h3>Add your spending</h3>
         <p>Snap or upload a <b>screenshot/photo</b> of your statement, a <b>PDF</b>, or a <b>CSV</b> — or paste the rows below. It's all read right here on your device; nothing leaves your phone.</p>
-        <div class="srcbtns"><button class="primary money" id="impPick" style="width:auto;margin:0">📸 Photo or file</button></div>
-        <p class="qcap" style="margin-top:10px">Tip: a PDF or pasted text is the most accurate. For a photo, use a crisp, straight-on shot.</p>
+        <div class="srcbtns"><button class="primary money" id="impPick" style="width:auto;margin:0">📸 Photos or file</button></div>
+        <p class="qcap" style="margin-top:10px">Multiple screenshots? Select them all at once. A PDF or pasted text is most accurate; for photos, use crisp, straight-on shots.</p>
       </div>
       <p class="mnp" style="text-align:center;margin-top:16px">…or paste the transactions</p>
       <textarea class="pastebox" id="impPaste" placeholder="Paste rows like:
@@ -2000,23 +2000,27 @@ CHIPOTLE 0421              18.75"></textarea>
 }
 
 $("impFile").addEventListener("change",async e=>{
-  const f=e.target.files[0]; if(!f) return;
+  const files=[...e.target.files]; if(!files.length) return;
   const msg=$("impMsg");
-  const isImg=/^image\//.test(f.type)||/\.(jpe?g|png|heic|heif|webp|gif)$/i.test(f.name);
-  if(msg) msg.textContent=isImg?"":"Reading "+f.name+"…";
-  try{
-    let txns;
-    if(/\.pdf$/i.test(f.name)) txns=await parsePDF(f);
-    else if(isImg){
-      if(msg) msg.innerHTML=`📸 Reading your photo… <b id="ocrPct">0%</b><br><span class="qcap">on your device · first time downloads a small reader</span>`;
-      const text=await ocrImage(f,p=>{ const el=$("ocrPct"); if(el) el.textContent=Math.round(p*100)+"%"; });
-      txns=parseText(text);
-      if(!txns.length && msg) msg.innerHTML=`Read the photo but couldn't spot clear rows. A crisp, straight-on shot works best — or paste the text / use the PDF.`;
-    }
-    else txns=parseText(await f.text());
-    if(txns&&txns.length) handleParsed(txns);
-    else if(!isImg && msg) msg.innerHTML="Couldn't find charges in that file — try pasting the rows instead.";
-  }catch(err){ if(msg) msg.innerHTML="Couldn't read that one. Try a PDF or paste the text instead."; }
+  const isImg=f=>/^image\//.test(f.type)||/\.(jpe?g|png|heic|heif|webp|gif)$/i.test(f.name);
+  const all=[]; let read=0, failed=0;
+  for(let i=0;i<files.length;i++){
+    const f=files[i]; const many=files.length>1?` (${i+1}/${files.length})`:"";
+    try{
+      let txns;
+      if(/\.pdf$/i.test(f.name)){ if(msg) msg.textContent="Reading PDF"+many+"…"; txns=await parsePDF(f); }
+      else if(isImg(f)){
+        if(msg) msg.innerHTML=`📸 Reading photo${many}… <b id="ocrPct">0%</b><br><span class="qcap">on your device · first time downloads a small reader</span>`;
+        const text=await ocrImage(f,p=>{ const el=$("ocrPct"); if(el) el.textContent=Math.round(p*100)+"%"; });
+        txns=parseText(text);
+      } else { if(msg) msg.textContent="Reading"+many+"…"; txns=parseText(await f.text()); }
+      if(txns&&txns.length){ all.push(...txns); read++; } else failed++;
+    }catch(err){ failed++; }
+  }
+  // de-dupe identical charges that appear in overlapping screenshots
+  const seen=new Set(); const merged=all.filter(t=>{ const k=(t.date||"")+"|"+(t.merchant||"").toUpperCase()+"|"+t.amount; if(seen.has(k))return false; seen.add(k); return true; });
+  if(merged.length) handleParsed(merged);
+  else if(msg) msg.innerHTML=files.some(isImg)?`Read ${files.length} photo${files.length>1?"s":""} but couldn't spot clear rows. A crisp, straight-on shot works best — or paste the text.`:"Couldn't find charges — try pasting the rows instead.";
   e.target.value="";
 });
 // lazy on-device OCR (image → text). The photo is processed locally; nothing is uploaded.
