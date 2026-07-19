@@ -571,7 +571,7 @@
    ============================================================ */
 const $=id=>document.getElementById(id);
 const KEY="money-night:v1";
-const APP_VERSION="v27";   // bump alongside the service-worker CACHE in sw.js
+const APP_VERSION="v28";   // bump alongside the service-worker CACHE in sw.js
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
@@ -666,6 +666,7 @@ function ensureShape(s){
   if(!Array.isArray(s.catRules)) s.catRules=[];
   if(!Array.isArray(s.accounts)) s.accounts=[];
   if(!Array.isArray(s.nwHistory)) s.nwHistory=[];
+  if(!Array.isArray(s.pendingImport)) s.pendingImport=[];   // charges parsed but not yet swiped
   // budget groups (Fixed / Flexible / Non-monthly). Migrate old need/want envelopes.
   (s.buckets||[]).forEach(b=>{ if(!b.group) b.group = b.bucket==="want"?"flexible":"fixed";
     if(b.group==="nonmonthly" && !b.since) b.since=monthKey(new Date()); });
@@ -1956,7 +1957,14 @@ function obNextFn(){
 let impDeck=null, impIdx=0, impStage="choose", impAdded=0, impDemo=false, impHistory=[];
 $("importOpen").onclick=openImport;
 $("impClose").onclick=closeImport;
-function openImport(){ impStage="choose"; impDemo=false; impHistory=[]; renderImport(); $("imp").classList.add("show"); }
+function openImport(){
+  impDemo=false; impHistory=[];
+  if(Array.isArray(S.pendingImport) && S.pendingImport.length){
+    // resume charges that were pasted/scanned earlier but not all swiped yet
+    impDeck=S.pendingImport.slice(); impIdx=0; impAdded=0; impStage="deck";
+  } else { impStage="choose"; }
+  renderImport(); $("imp").classList.add("show");
+}
 function startImportDemo(){
   const pick=arr=>{ for(const n of arr){ const b=S.buckets.find(x=>x.name.toLowerCase().includes(n)); if(b) return b.id; } return S.buckets[0]&&S.buckets[0].id; };
   impDeck=[
@@ -2137,8 +2145,10 @@ function categorize(raw){
 function handleParsed(txns){
   if(!txns||!txns.length){ if($("impMsg")) $("impMsg").textContent="Hmm — I couldn't find any charges there. Check the format, or paste the rows."; return; }
   impDeck=txns.map(t=>{ const g=categorize(t.merchant); return {...t,bucketId:g.bucketId,who:g.who}; });
-  impIdx=0; impAdded=0; impStage="deck"; renderImport();
+  impIdx=0; impAdded=0; impStage="deck"; persistPending(); renderImport();
 }
+// keep the not-yet-swiped charges saved (and synced) so an unfinished import survives closing the app
+function persistPending(){ if(!impDemo){ S.pendingImport = (impDeck||[]).slice(impIdx); save(); } }
 function escapeMerch(s){ return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])).replace(/\s+/g," ").slice(0,42); }
 
 function renderDeck(){
@@ -2195,14 +2205,14 @@ function assignTop(personId){
   impAdded++; save();
   setTimeout(advance,300);
 }
-function advance(){ impIdx++; renderImport(); }
+function advance(){ impIdx++; persistPending(); renderImport(); }
 function undoLast(){
   if(!impHistory.length) return;
   const a=impHistory.pop();
   if(a.pullIds && a.pullIds.length) a.pullIds.forEach(id=>{ const i=S.pulls.findIndex(p=>p.id===id); if(i>=0) S.pulls.splice(i,1); });
   if("key" in a){ if(a.prevB===undefined) delete S.merchantRules[a.key]; else S.merchantRules[a.key]=a.prevB;
     if(a.prevW===undefined) delete S.whoRules[a.key]; else S.whoRules[a.key]=a.prevW; }
-  impAdded=Math.max(0,impAdded-1); impIdx=a.idx; if(!impDemo) save(); renderImport();
+  impAdded=Math.max(0,impAdded-1); impIdx=a.idx; if(!impDemo){ persistPending(); } renderImport();
 }
 function pickEnvelope(k){
   const ov=document.createElement("div"); ov.className="scrim show"; ov.style.zIndex="85";
@@ -2319,6 +2329,7 @@ function renderImportDone(){
     <p class="mnp">They landed in your envelopes on the dates they happened${span?` (<b>${span}</b>)`:""}. ${pastWeek?"Since a statement covers past weeks, I'll jump you to the week of your latest charge. ":""}You can always see every charge in <b>Trends → All transactions</b>.</p>
     <button class="primary money" id="impFinish">${pastWeek?"Show me those charges":"Back to Klepcake"}</button>
   </div>`;
+  S.pendingImport=[];   // deck fully sorted — nothing left pending
   $("impFinish").onclick=()=>{ closeImport(); S.viewWeek=latest?weekKey(new Date(latest)):weekKey(new Date()); render(); if(impAdded>0) burst(); };
   save();
 }
