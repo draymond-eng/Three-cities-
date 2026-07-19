@@ -570,6 +570,7 @@
    ============================================================ */
 const $=id=>document.getElementById(id);
 const KEY="money-night:v1";
+const APP_VERSION="v22";   // bump alongside the service-worker CACHE in sw.js
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
@@ -1716,7 +1717,8 @@ function renderSettings(){
     <button class="ghostbtn" id="redoSetup">🧰 Set up our budget again</button>
     <button class="ghostbtn" id="resetBtn" style="color:var(--warn)">Reset everything</button>
     <button class="ghostbtn" id="sampleBtn">Reload sample data</button>
-    <p class="qcap" style="margin:14px 2px 4px">Income & runway math is in take-home cash, not gross. Two dispute subs (GMACST/GMRSHV) were flagged in your statement — worth a call to Chase.</p>
+    <p class="qcap" style="margin:14px 2px 4px">Income & runway math is in take-home cash, not gross.</p>
+    <p class="qcap" style="margin:8px 2px 4px;text-align:center;opacity:.7">Klepcake ${APP_VERSION} · fully close & reopen to update</p>
   `;
   // buckets
   const bb=b.querySelector("#setBuckets");
