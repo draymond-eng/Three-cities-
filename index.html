@@ -571,7 +571,7 @@
    ============================================================ */
 const $=id=>document.getElementById(id);
 const KEY="money-night:v1";
-const APP_VERSION="v25";   // bump alongside the service-worker CACHE in sw.js
+const APP_VERSION="v26";   // bump alongside the service-worker CACHE in sw.js
 const MAXBILLS=8;
 
 /* ---------- persistence ---------- */
@@ -2482,19 +2482,43 @@ async function onSignedIn(user){
     const { data:mem } = await CLOUD.sb.from("household_members").select("household_id").limit(1);
     if(mem&&mem.length){
       CLOUD.householdId=mem[0].household_id;
-      // If this device has an unsynced edit from last session, push it up first so it can't
-      // be clobbered. Otherwise pull the shared state (partner's latest).
-      if(localStorage.getItem(KEY+"_dirty")) await cloudFlush(); else await cloudPull();
+      // Always pull-and-merge first (union keeps every charge from both sides), then push the
+      // merged result if we had local changes. Nothing on either phone can be lost this way.
+      const wasDirty=!!localStorage.getItem(KEY+"_dirty");
+      await cloudPull();
+      if(wasDirty) cloudPush();
       subscribeRealtime();
     }
   }catch(e){}
   updateSyncUI(); if(typeof renderSyncSheet==="function"&&$("syncSheet").classList.contains("show")) renderSyncSheet();
 }
+// Merge remote into local so nothing logged on EITHER phone is ever lost to a sync.
+// Records with ids/dates are unioned (a charge on either device survives); scalar fields
+// (settings, house, streak) take the remote's value. This makes loss impossible and lets a
+// phone that still has the charges re-populate the other one.
+function mergeState(local, remote){
+  const out=ensureShape(JSON.parse(JSON.stringify(remote)));
+  local=local||{};
+  const uni=(a,b,key)=>{ const m={}; (a||[]).forEach(x=>{ const k=x&&x[key]; if(k!=null&&m[k]===undefined) m[k]=x; }); (b||[]).forEach(x=>{ const k=x&&x[key]; if(k!=null) m[k]=x; }); return Object.values(m); };
+  out.pulls    = uni(local.pulls,    out.pulls,    "id");
+  out.buckets  = uni(local.buckets,  out.buckets,  "id");
+  out.goals    = uni(local.goals,    out.goals,    "id");
+  out.recurring= uni(local.recurring,out.recurring,"id");
+  out.subs     = uni(local.subs,     out.subs,     "id");
+  out.catRules = uni(local.catRules, out.catRules, "id");
+  out.accounts = uni(local.accounts, out.accounts, "id");
+  out.nwHistory= uni(local.nwHistory,out.nwHistory,"date");
+  out.merchantRules=Object.assign({}, local.merchantRules||{}, out.merchantRules||{});
+  out.whoRules =Object.assign({}, local.whoRules||{}, out.whoRules||{});
+  // keep the fuller Money Night history
+  if((local.ritual&&local.ritual.history||[]).length > (out.ritual&&out.ritual.history||[]).length) out.ritual=local.ritual;
+  return out;
+}
 function applyRemote(data){
   if(!data) return;
   const keepWeek=S.viewWeek;   // the viewed week is local state — a sync must not change it
   CLOUD.applying=true;
-  S=ensureShape(data);
+  S=mergeState(S, data);       // union, never overwrite — logged charges can't vanish
   S.viewWeek=keepWeek||weekKey(new Date());
   try{ localStorage.setItem(KEY, JSON.stringify(S)); localStorage.removeItem(KEY+"_dirty"); }catch(e){}
   if(S.setupDone) closeOnboarding();
