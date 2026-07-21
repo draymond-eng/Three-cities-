@@ -590,12 +590,12 @@ const initials = (name) => (name||'?').split(/[\s&]+/).filter(Boolean).slice(0,2
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2200); }
 
 /* Stoop mark — four (two couples), a table-for-four in dots */
-function markSVG(color){ return `<svg viewBox="0 0 100 100"><g fill="${color}"><circle cx="35" cy="35" r="11"/><circle cx="65" cy="35" r="11"/><circle cx="35" cy="65" r="11"/><circle cx="65" cy="65" r="11"/></g></svg>`; }
+function markSVG(color){ return `<svg viewBox="0 0 100 100"><g fill="${color}"><path d="M41 50 V28 a9 9 0 0 1 18 0 V50 Z"/><rect x="36" y="51" width="28" height="8" rx="2.5"/><rect x="29" y="62" width="42" height="8" rx="2.5"/><rect x="22" y="73" width="56" height="8" rx="2.5"/></g></svg>`; }
 const MARK_CREAM = markSVG('#fff6ea');
 const MARK_RUST  = markSVG('#b3543a');
 function setFavicon(){
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%2333402f'/>`
-    + `<g fill='%23e6c987'><circle cx='35' cy='35' r='12'/><circle cx='65' cy='35' r='12'/><circle cx='35' cy='65' r='12'/><circle cx='65' cy='65' r='12'/></g></svg>`;
+    + `<g fill='%23f4ecd8'><path d='M41 50 V28 a9 9 0 0 1 18 0 V50 Z'/><rect x='36' y='51' width='28' height='8' rx='2.5'/><rect x='29' y='62' width='42' height='8' rx='2.5'/><rect x='22' y='73' width='56' height='8' rx='2.5'/></g></svg>`;
   let link=document.querySelector("link[rel='icon']"); if(!link){ link=document.createElement('link'); link.rel='icon'; document.head.appendChild(link); }
   link.type='image/svg+xml'; link.href="data:image/svg+xml,"+svg.replace(/</g,'%3C').replace(/>/g,'%3E').replace(/#/g,'%23').replace(/ /g,'%20');
 }
