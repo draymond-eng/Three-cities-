@@ -296,6 +296,10 @@
   .fc-label{font-weight:700;color:var(--ink);font-size:15px}
   .fc-url{font-size:11.5px;color:var(--muted);word-break:break-all;margin:3px 0 9px;font-family:ui-monospace,Menlo,monospace}
   .fc-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .cand-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+  .near-toggle{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer}
+  .near-toggle input{width:16px;height:16px;accent-color:var(--rust)}
+  .near-dot{color:var(--rust);font-weight:900}
   .spark{display:flex;align-items:flex-end;gap:4px;height:74px;padding:6px 2px 0;background:var(--paper);border:1px solid var(--line);border-radius:14px}
   .spk-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
   .spk-bar{width:100%;max-width:20px;background:linear-gradient(180deg,#c8824e,#b3543a);border-radius:4px 4px 0 0;min-height:3px}
@@ -792,6 +796,23 @@ function getParam(name){ try{ const hq=new URLSearchParams((location.hash.split(
 function getSeg(){ const s=(getParam('s')||'').toLowerCase().trim(); return SEGMENTS[s]||null; }
 /* Launch area: North Side first. Everyone else joins a waitlist (West & South Side coming soon). */
 const NORTH_SIDE_HOODS = ["Albany Park","Andersonville","Avondale","Bucktown","Edgewater","Gold Coast","Irving Park","Jefferson Park","Lakeview","Lincoln Park","Lincoln Square","Logan Square","North Center","Old Town","Portage Park","Ravenswood","River North","Rogers Park","Roscoe Village","Ukrainian Village","Uptown","West Town","Wicker Park","Wrigleyville"];
+/* A neighborhood hang pulls from its anchor + walkable neighbors, so "the Lakeview Stoop"
+   fills from families who can actually get there. Anchors without an entry use just themselves. */
+const HOOD_CLUSTERS = {
+  'Lakeview':    ['Lakeview','Wrigleyville','Roscoe Village','North Center','Uptown'],
+  'Wicker Park': ['Wicker Park','Bucktown','Ukrainian Village','West Town','Logan Square'],
+  'Lincoln Park':['Lincoln Park','Old Town','Gold Coast'],
+};
+function hoodCluster(anchor){ return HOOD_CLUSTERS[anchor] || (anchor?[anchor]:[]); }
+function inCluster(anchor, hood){ if(!anchor) return true; return hoodCluster(anchor).some(h=>h.toLowerCase()===(hood||'').trim().toLowerCase()); }
+/* Named neighborhood hangs for flyer landing (a QR that opens "The Lakeview Stoop"). */
+const HANGS = {
+  'lakeview-stoop':     { label:'The Lakeview Stoop',     hood:'Lakeview',     h1:'The Lakeview&nbsp;Stoop.',     sub:'A free park hang for Lakeview families, right in the neighborhood. Meet a few others close by, in the same season of life. Kids welcome, no swiping.' },
+  'wicker-park-stoop':  { label:'The Wicker Park Stoop',  hood:'Wicker Park',  h1:'The Wicker&nbsp;Park&nbsp;Stoop.',  sub:'A free park hang for Wicker Park &amp; Bucktown families. Meet a few others close by, in the same season of life. Kids welcome, no swiping.' },
+  'lincoln-park-stoop': { label:'The Lincoln Park Stoop', hood:'Lincoln Park', h1:'The Lincoln&nbsp;Park&nbsp;Stoop.', sub:'A free park hang for Lincoln Park families, right in the neighborhood. Meet a few others close by, in the same season of life. Kids welcome, no swiping.' },
+};
+function getHang(){ const s=(getParam('hang')||'').toLowerCase().trim(); return HANGS[s]||null; }
+function prettyLoc(loc){ const h=HANGS[(loc||'').toLowerCase().trim()]; return h?h.label:(loc||''); }
 /* Specific interest tags (per partner). cat = broad category for reasoning; exact-tag overlap earns a bonus. */
 const TAGS = [
   {k:'dinners',l:'Splurge dinners',e:'🍽️',c:'dining'},{k:'barnight',l:'Neighborhood bar night',e:'🍸',c:'nightlife'},{k:'karaoke',l:'Karaoke',e:'🎤',c:'nightlife'},
@@ -881,6 +902,12 @@ function showSplash(onDone){
     const p=s.querySelector('.sub'); if(p) p.innerHTML=seg.sub;
     const iv=s.querySelector('.invited'); if(iv){ iv.innerHTML=`<span class="pill"><span class="iv-mark">✦</span> ${esc(seg.label)}</span>`; iv.classList.add('show'); }
   }
+  const hang=getHang();
+  if(hang){
+    const h=s.querySelector('h1'); if(h) h.innerHTML=hang.h1;
+    const p=s.querySelector('.sub'); if(p) p.innerHTML=hang.sub;
+    const iv=s.querySelector('.invited'); if(iv){ iv.innerHTML=`<span class="pill"><span class="iv-mark">✦</span> ${esc(hang.label)}</span>`; iv.classList.add('show'); }
+  }
   const ref=getRef();
   if(ref && DB.inviterName){ DB.inviterName(ref).then(name=>{ if(!name) return; const iv=s.querySelector('.invited'); if(iv){ iv.innerHTML=`<span class="pill"><span class="iv-mark">✦</span> ${esc(name)} invited you two</span>`; iv.classList.add('show'); } }).catch(()=>{}); }
   s.querySelector('[data-enter]').onclick=()=>{ sessionStorage.setItem(SPLASH_KEY,'1'); onDone(); };
@@ -907,10 +934,15 @@ function renderDoor(){
       </div>
     </div>`));
   const draft=loadDraft();
+  const hang=getHang();
   if(draft){ intake.data={...intake.data, ...draft.data}; intake.step=Math.min(draft.step||0, STEPS.length-1); }
-  else { const seg=getSeg(); if(seg&&seg.prefill){ for(const k in seg.prefill){ intake.data[k]=Array.isArray(seg.prefill[k])?[...seg.prefill[k]]:seg.prefill[k]; } } }
+  else {
+    const seg=getSeg(); if(seg&&seg.prefill){ for(const k in seg.prefill){ intake.data[k]=Array.isArray(seg.prefill[k])?[...seg.prefill[k]]:seg.prefill[k]; } }
+    if(hang){ intake.data.neighborhood=hang.hood; intake.data.waitlist=false; }   // came from a neighborhood hang flyer
+  }
   intake.data.source = (getParam('s')||'').toLowerCase().trim();       // which flyer tile
-  intake.data.source_loc = (getParam('loc')||'').trim();               // which location, e.g. loc=intelligentsia-lakeview
+  // Location tag for analytics: the neighborhood hang slug if they came from a hang flyer, else the loc nickname.
+  intake.data.source_loc = hang ? (getParam('hang')||'').toLowerCase().trim() : (getParam('loc')||'').trim();
   drawStep();
   if(draft && intake.step>0) setTimeout(()=>toast('Picked up right where you left off'),350);
   const body=$('#door-body');
@@ -1866,7 +1898,7 @@ function drawAnalytics(){
     'Which flyer tile is working','applications by segment');
   if(segHtml) body.appendChild(el(segHtml));
   const locHtml=perfTable(a=>{ const l=(a.source_loc||'').trim(); return l||null; },
-    k=>k, 'Which location is working','applications by flyer location');
+    k=>prettyLoc(k), 'Which location is working','applications by flyer location &amp; hang');
   if(locHtml) body.appendChild(el(locHtml));
   else body.appendChild(el(`<div style="margin-top:20px" class="sub2">Tip: add <code>&loc=</code> to each flyer's QR (e.g. <code>?s=toddlers&loc=intelligentsia-lakeview</code>) and this fills with a per-location breakdown.</div>`));
 
@@ -1896,6 +1928,7 @@ function qrPngDataUrl(text, targetPx){
   return cv.toDataURL('image/png');
 }
 function downloadDataUrl(dataUrl, filename){ const a=document.createElement('a'); a.href=dataUrl; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); }
+function hangUrl(slug){ return PUBLIC_BASE+'/?hang='+slug; }
 function drawFlyers(){
   const body=$('#console-body'); body.innerHTML='';
   const loc=normLoc(consoleState.flyerLoc||'');
@@ -1930,6 +1963,28 @@ function drawFlyers(){
   li.onchange=()=>{ consoleState.flyerLoc=li.value; drawFlyers(); setTimeout(()=>{ const f=$('#flyer-loc'); if(f){ f.focus(); f.setSelectionRange(f.value.length,f.value.length); } },0); };
   $('#flyer-copyall').onclick=()=>{ const lines=tiles.map(([slug,label])=>`${label}: ${flyerUrl(slug,loc)}`).join('\n'); navigator.clipboard?.writeText(lines).then(()=>toast('All links copied')).catch(()=>toast('Copy failed')); };
   $('#flyer-dlall').onclick=()=>{ tiles.forEach(([slug],i)=>setTimeout(()=>{ const fn='stoop-'+(slug||'join')+(loc?'-'+loc:'')+'.png'; downloadDataUrl(qrPngDataUrl(flyerUrl(slug,loc),1000), fn); }, i*250)); toast('Downloading all QR codes…'); };
+
+  // ---- Neighborhood hangs: one QR per named Stoop ----
+  const hangSlugs=Object.keys(HANGS);
+  const hs=el(`<div style="margin-top:34px">
+    <div class="panel-head"><h2>Neighborhood hangs</h2><div class="count">${hangSlugs.length} hangs</div></div>
+    <p class="sub2" style="max-width:640px">A flyer for a specific Stoop. Scanning it opens that neighborhood's hang and pre-fills the family's neighborhood, so a Lakeview flyer fills the Lakeview hang. Great for a flyer right by the park.</p>
+    <div class="flyer-grid" id="hang-grid"></div>
+  </div>`);
+  body.appendChild(hs);
+  const hgrid=hs.querySelector('#hang-grid');
+  hangSlugs.forEach(slug=>{ const h=HANGS[slug]; const url=hangUrl(slug);
+    const card=el(`<div class="flyer-card">
+      <div class="fc-qr">${qrSvgTag(url, 4, 2)}</div>
+      <div class="fc-body">
+        <div class="fc-label">${esc(h.label)}</div>
+        <div class="fc-url">${esc(url)}</div>
+        <div class="fc-btns"><button class="btn ghost small" data-copyh>Copy link</button><button class="btn small" data-dlh>Download QR</button></div>
+      </div></div>`);
+    card.querySelector('[data-copyh]').onclick=()=>{ navigator.clipboard?.writeText(url).then(()=>toast('Link copied')).catch(()=>toast(url)); };
+    card.querySelector('[data-dlh]').onclick=()=>{ downloadDataUrl(qrPngDataUrl(url,1000), 'stoop-'+slug+'.png'); toast('QR downloaded'); };
+    hgrid.appendChild(card);
+  });
 }
 function toCsv(rows){
   const cols=[['couple_name','Family'],['partner1_name','Grown-up 1'],['partner2_name','Grown-up 2'],['neighborhood','Neighborhood'],['email','Email'],['phone','Phone'],['status','Status'],['source','Flyer tile'],['source_loc','Location'],['life_stage','Life stage'],['kid_ages','Kid ages'],['hoping_for','Hoping to find'],['created_at','Applied']];
@@ -2059,7 +2114,7 @@ function drawEvents(){
     const c=el(`<div class="ecard">
       <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
         <h3>${esc(ev.title)}</h3>${statusBadge(ev.status)}</div>
-      <div class="meta"><span class="fmt-tag fmt-${esc(ev.format||'supper')}">${esc(FORMAT_LABEL[ev.format]||'Supper')}</span> · ${esc(ev.venue)||'Venue TBD'}<br>${fmtDay(ev.scheduled_at)}</div>
+      <div class="meta"><span class="fmt-tag fmt-${esc(ev.format||'supper')}">${esc(FORMAT_LABEL[ev.format]||'Supper')}</span>${ev.neighborhood?` · <b>${esc(ev.neighborhood)}</b>`:''} · ${esc(ev.venue)||'Venue TBD'}<br>${fmtDay(ev.scheduled_at)}</div>
       <div class="rosterline"><div class="avstack">${avs||'<span class="sub2">No couples yet</span>'}</div>
         <div class="sub2">${roster.length} on roster${ev.status==='happened'?` · ${att} attended`:''}</div></div></div>`);
     c.onclick=()=>openEvent(ev.id); grid.appendChild(c);
@@ -2070,10 +2125,15 @@ function openEventForm(){
   const scrim=el(`<div class="modal-scrim"><div class="modal">
     <div class="modal-head"><h2>New hang</h2><p>A curated hang for a handful of Chicago families.</p></div>
     <div class="modal-body">
-      <div class="field"><label>Title</label><input type="text" id="e_title" placeholder="e.g. Logan Square Park Day" /></div>
+      <div class="field"><label>Neighborhood <span class="hint">anchors the hang &amp; who gets invited</span></label>
+        <select id="e_hood">
+          <option value="">Citywide · no anchor</option>
+          ${NORTH_SIDE_HOODS.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('')}
+        </select></div>
+      <div class="field"><label>Title</label><input type="text" id="e_title" placeholder="e.g. The Lakeview Stoop" /></div>
       <div class="field"><label>Format</label>
         <div class="chips" id="e_fmt">${Object.entries(FORMAT_LABEL).map(([k,l],i)=>`<div class="chip ${i===0?'on':''}" data-fmt="${k}">${l}</div>`).join('')}</div></div>
-      <div class="field"><label>Venue</label><input type="text" id="e_venue" value="" placeholder="A park, or a venue" /></div>
+      <div class="field"><label>Venue <span class="hint">the park</span></label><input type="text" id="e_venue" value="" placeholder="A park, or a venue" /></div>
       <div class="two">
         <div class="field"><label>Date &amp; time</label><input type="datetime-local" id="e_when" /></div>
         <div class="field"><label>Capacity (couples)</label><input type="number" id="e_cap" value="12" min="2" /></div>
@@ -2086,10 +2146,14 @@ function openEventForm(){
   scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   let fmt='family';
   scrim.querySelectorAll('#e_fmt .chip').forEach(c=>c.onclick=()=>{ scrim.querySelectorAll('#e_fmt .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); fmt=c.dataset.fmt; });
+  // Pick a neighborhood → suggest "The {hood} Stoop" as the title (only if they haven't typed one).
+  const hoodSel=scrim.querySelector('#e_hood'), titleIn=scrim.querySelector('#e_title'); let titleTouched=false;
+  titleIn.oninput=()=>{ titleTouched=true; };
+  hoodSel.onchange=()=>{ if(!titleTouched && hoodSel.value){ titleIn.value='The '+hoodSel.value+' Stoop'; } };
   scrim.querySelector('[data-save]').onclick=async()=>{
     const title=$('#e_title').value.trim(); if(!title){ toast('Give it a title'); return; }
     const when=$('#e_when').value;
-    await DB.insertEvent({ title, format:fmt, venue:$('#e_venue').value.trim(), scheduled_at: when?new Date(when).toISOString():null,
+    await DB.insertEvent({ title, format:fmt, neighborhood:$('#e_hood').value||null, venue:$('#e_venue').value.trim(), scheduled_at: when?new Date(when).toISOString():null,
       capacity:+$('#e_cap').value||12, status:'upcoming', notes:$('#e_notes').value.trim(), roster:[] });
     close(); toast('Mixer created'); await loadConsoleData();
   };
@@ -2121,6 +2185,7 @@ function openEvent(id){
   const scrim=el(`<div class="scrim"><div class="drawer">
     <div class="drawer-head"><h2>${esc(ev.title)}</h2><button class="x" data-close>×</button></div>
     <div class="drawer-body">
+      ${ev.neighborhood?`<div class="kv"><div class="k">Neighborhood</div><div class="v">${esc(ev.neighborhood)} <span class="sub2">· pulls from ${esc(hoodCluster(ev.neighborhood).join(', '))}</span></div></div>`:''}
       <div class="kv"><div class="k">Venue</div><div class="v">${esc(ev.venue)||'–'}</div></div>
       <div class="kv"><div class="k">When</div><div class="v">${fmtDate(ev.scheduled_at)}</div></div>
       <div class="kv"><div class="k">Status</div><div class="v" style="display:flex;align-items:center;gap:10px">${statusBadge(ev.status)}
@@ -2162,23 +2227,38 @@ function suggestBlock(roster){
       <div class="sub2" style="margin-top:5px">${esc(p.reasons.slice(0,3).join(' · '))||'A few things in common'}</div></div>`;}).join('')}`;
 }
 function addCouplesToEvent(ev, onRoster){
-  const candidates=consoleState.apps.filter(a=>!onRoster.has(a.id));
+  const anchor=ev.neighborhood||'';
+  const eligible=consoleState.apps.filter(a=>!onRoster.has(a.id) && a.status!=='waitlist' && a.status!=='passed');
   const sel=new Set();
+  let nearOnly=!!anchor;   // when the hang has a neighborhood, default to its cluster
   const scrim=el(`<div class="modal-scrim"><div class="modal">
-    <div class="modal-head"><h2>Add couples</h2><p>Invite applicants to “${esc(ev.title)}.” They'll show as <b>invited</b>.</p></div>
-    <div class="modal-body"><div id="cand_list">${candidates.length?'':'<div class="sub2">Everyone is already on the roster.</div>'}</div>
-      <button class="btn block" id="add_go" ${candidates.length?'':'disabled'} style="margin-top:8px">Add selected</button>
+    <div class="modal-head"><h2>Add families</h2><p>Invite families to “${esc(ev.title)}.” They'll show as <b>invited</b>.${anchor?` Nearby means <b>${esc(anchor)}</b> and its neighbors.`:''}</p></div>
+    <div class="modal-body">
+      ${anchor?`<div class="cand-controls"><label class="near-toggle"><input type="checkbox" id="near_only" ${nearOnly?'checked':''}/> <span>Only families near ${esc(anchor)}</span></label><button class="btn ghost small" id="sel_all">Select all shown</button></div>`:'<div class="cand-controls"><span class="sub2" id="cand_count"></span><button class="btn ghost small" id="sel_all">Select all shown</button></div>'}
+      <div id="cand_list"></div>
+      <button class="btn block" id="add_go" style="margin-top:8px">Add selected</button>
     </div></div></div>`);
   document.body.appendChild(scrim);
   const list=scrim.querySelector('#cand_list');
-  candidates.forEach(a=>{ const p=el(`<div class="pick" data-id="${a.id}"><div class="box">✓</div><div><div class="pn">${esc(a.couple_name)}</div><div class="sub2">${esc(a.neighborhood)||'–'} · ${cap(a.status)}</div></div></div>`);
-    p.onclick=()=>{ sel.has(a.id)?(sel.delete(a.id),p.classList.remove('on')):(sel.add(a.id),p.classList.add('on')); }; list.appendChild(p); });
+  function shown(){ return eligible.filter(a=>!(nearOnly&&anchor) || inCluster(anchor, a.neighborhood))
+    .sort((x,y)=>{ const xe=(x.neighborhood||'').toLowerCase()===anchor.toLowerCase()?0:1, ye=(y.neighborhood||'').toLowerCase()===anchor.toLowerCase()?0:1; return xe-ye || (x.couple_name||'').localeCompare(y.couple_name||''); }); }
+  function render(){
+    const rows=shown(); list.innerHTML='';
+    const cc=scrim.querySelector('#cand_count'); if(cc) cc.textContent=`${rows.length} availabl${rows.length===1?'e family':'e families'}`;
+    if(!rows.length){ list.appendChild(el(`<div class="sub2" style="padding:8px 0">${anchor&&nearOnly?`No available families near ${esc(anchor)} yet. Uncheck the filter to see everyone.`:'No available families to add.'}</div>`)); return; }
+    rows.forEach(a=>{ const near=anchor&&(a.neighborhood||'').toLowerCase()===anchor.toLowerCase();
+      const p=el(`<div class="pick ${sel.has(a.id)?'on':''}" data-id="${a.id}"><div class="box">✓</div><div><div class="pn">${esc(a.couple_name)}${near?' <span class="near-dot">•</span>':''}</div><div class="sub2">${esc(a.neighborhood)||'–'} · ${cap(a.status)}</div></div></div>`);
+      p.onclick=()=>{ sel.has(a.id)?(sel.delete(a.id),p.classList.remove('on')):(sel.add(a.id),p.classList.add('on')); }; list.appendChild(p); });
+  }
+  render();
+  const no=scrim.querySelector('#near_only'); if(no) no.onchange=()=>{ nearOnly=no.checked; render(); };
+  scrim.querySelector('#sel_all').onclick=()=>{ const rows=shown(); const allOn=rows.every(a=>sel.has(a.id)); rows.forEach(a=>{ allOn?sel.delete(a.id):sel.add(a.id); }); render(); };
   const close=()=>scrim.remove(); scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   scrim.querySelector('#add_go').onclick=async()=>{
-    if(!sel.size){ toast('Pick at least one couple'); return; }
+    if(!sel.size){ toast('Pick at least one family'); return; }
     const roster=arr(ev.roster);
     for(const cid of sel){ roster.push({couple_id:cid, attended:false, rsvp:null, likes:[]}); const a=appById(cid); if(a&&a.status==='new') await DB.updateApplication(cid,{status:'invited'}); }
-    await DB.updateEvent(ev.id,{roster}); close(); toast('Added to the mixer'); await loadConsoleData(); openEvent(ev.id);
+    await DB.updateEvent(ev.id,{roster}); close(); toast(sel.size+' added'); await loadConsoleData(); openEvent(ev.id);
   };
 }
 
@@ -2549,7 +2629,7 @@ function joinList(a){ a=a.filter(Boolean); if(a.length<=1)return a[0]||''; if(a.
 // Where a family actually came from (the flyer tile + location they scanned),
 // as opposed to coupleSegment() which is inferred from their answers.
 function segLabelOf(slug){ const s=SEGMENTS[(slug||'').toLowerCase().trim()]; return s?s.label:''; }
-function sourceLine(a){ const seg=segLabelOf(a.source); const loc=(a.source_loc||'').trim(); if(!seg&&!loc) return ''; return [seg&&('via '+seg), loc].filter(Boolean).join(' · '); }
+function sourceLine(a){ const seg=segLabelOf(a.source); const loc=prettyLoc((a.source_loc||'').trim()); if(!seg&&!loc) return ''; return [seg&&('via '+seg), loc].filter(Boolean).join(' · '); }
 function sourceBoard(all){
   const bySeg={}, byLoc={};
   all.forEach(a=>{ const s=segLabelOf(a.source); if(s) bySeg[s]=(bySeg[s]||0)+1; const l=(a.source_loc||'').trim(); if(l) byLoc[l]=(byLoc[l]||0)+1; });
