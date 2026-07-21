@@ -287,6 +287,10 @@
   .den-fill.ready{background:linear-gradient(90deg,#6a7c49,#4a7a4f)}
   .den-n{flex:none;width:26px;text-align:right;font-weight:700;color:var(--ink)}
   @media(max-width:620px){.den-name{width:130px;font-size:13px}.den-tag{display:none}}
+  .spark{display:flex;align-items:flex-end;gap:4px;height:74px;padding:6px 2px 0;background:var(--paper);border:1px solid var(--line);border-radius:14px}
+  .spk-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
+  .spk-bar{width:100%;max-width:20px;background:linear-gradient(180deg,#c8824e,#b3543a);border-radius:4px 4px 0 0;min-height:3px}
+  .spk-x{font-size:9.5px;color:var(--muted);font-weight:600}
   .b-confirmed{background:#e0ecf3;color:#2f6a8a}
   .b-happened{background:#f3e9d0;color:#8a6a24}
   .b-fizzled{background:#eee1de;color:#9a5040}
@@ -859,7 +863,6 @@ function showSplash(onDone){
   app.appendChild(s);
   const seg=getSeg();
   if(seg){
-    const k=s.querySelector('.kicker'); if(k) k.textContent=seg.kicker;
     const h=s.querySelector('h1'); if(h) h.innerHTML=seg.h1;
     const p=s.querySelector('.sub'); if(p) p.innerHTML=seg.sub;
     const iv=s.querySelector('.invited'); if(iv){ iv.innerHTML=`<span class="pill"><span class="iv-mark">✦</span> ${esc(seg.label)}</span>`; iv.classList.add('show'); }
@@ -1640,6 +1643,7 @@ function renderConsole(){
       <div class="brandc"><div class="monoc">${MARK_CREAM}</div> Stoop <span style="opacity:.6;font-size:13px">· Chicago concierge</span></div>
       <div class="tabs">
         <button data-tab="dashboard" class="${T==='dashboard'?'on':''}">Dashboard</button>
+        <button data-tab="analytics" class="${T==='analytics'?'on':''}">Analytics</button>
         <button data-tab="applications" class="${T==='applications'?'on':''}">Applications</button>
         <button data-tab="matchmaker" class="${T==='matchmaker'?'on':''}">Matchmaker</button>
         <button data-tab="events" class="${T==='events'?'on':''}">Events</button>
@@ -1660,7 +1664,7 @@ async function loadConsoleData(){
   consoleState.tables = await DB.listTables();
   consoleState.events = await DB.listEvents();
   const body=$('#console-body'); if(!body) return;
-  ({dashboard:drawDashboard, applications:drawApplications, matchmaker:drawMatchmaker, events:drawEvents, pairing:drawPairing, board:drawBoard}[consoleState.tab]||drawDashboard)();
+  ({dashboard:drawDashboard, analytics:drawAnalytics, applications:drawApplications, matchmaker:drawMatchmaker, events:drawEvents, pairing:drawPairing, board:drawBoard}[consoleState.tab]||drawDashboard)();
 }
 
 /* login */
@@ -1768,6 +1772,99 @@ function drawDashboard(){
   </div>`));
 
   body.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{ consoleState.tab=b.dataset.goto; renderConsole(); });
+}
+
+/* ---- Analytics: acquisition funnel, growth, flyer & location performance ---- */
+const STATUS_RANK={ new:1, invited:2, attended:3, paired:4 };
+function drawAnalytics(){
+  const body=$('#console-body'); body.innerHTML='';
+  const apps=consoleState.apps||[];
+  const funnelPool=apps.filter(a=>a.status!=='passed'&&a.status!=='waitlist'); // families in the club funnel
+  const waiting=apps.filter(a=>a.status==='waitlist');
+  const atLeast=(a,s)=>(STATUS_RANK[a.status]||0)>=STATUS_RANK[s];
+  const applied=funnelPool.length;
+  const invited=funnelPool.filter(a=>atLeast(a,'invited')).length;
+  const attended=funnelPool.filter(a=>atLeast(a,'attended')).length;
+  const paired=funnelPool.filter(a=>atLeast(a,'paired')).length;
+  const pct=(n,d)=> d?Math.round(n/d*100):0;
+
+  if(!apps.length){ body.appendChild(el(`<div class="panel-head"><h2>Analytics</h2></div><div class="empty"><h3>No data yet</h3><p>Once families start applying, your funnel, growth, and flyer performance show up here.</p></div>`)); return; }
+
+  // ---- Top line ----
+  const tile=(n,label,sub)=>`<div class="dash-tile" style="cursor:default"><div class="dt-n">${n}</div><div class="dt-l">${label}</div>${sub?`<div class="dt-s">${sub}</div>`:''}</div>`;
+  body.appendChild(el(`<div>
+    <div class="panel-head"><h2>Analytics</h2><div class="count">${apps.length} total application${apps.length>1?'s':''}</div></div>
+    <div class="dash-tiles">
+      ${tile(applied,'In the club funnel', waiting.length?`+${waiting.length} waitlisted`:'applied & in-area')}
+      ${tile(attended,'Have come to a hang', applied?pct(attended,applied)+'% of applicants':null)}
+      ${tile(paired,'Paired up', attended?pct(paired,attended)+'% of attendees':null)}
+      ${tile(waiting.length,'Waitlist (off-area)', waiting.length?'demand to open next':'none yet')}
+    </div>
+  </div>`));
+
+  // ---- Acquisition funnel ----
+  const fbar=(label,n,base,ready)=>{ const p=pct(n,base); return `<div class="den-row"><div class="den-name">${esc(label)} <span class="den-tag" style="background:transparent;color:var(--muted);padding:0">${p}%</span></div><div class="den-track"><div class="den-fill${ready?' ready':''}" style="width:${Math.max(4,p)}%"></div></div><div class="den-n">${n}</div></div>`; };
+  body.appendChild(el(`<div style="margin-top:28px">
+    <div class="panel-head"><h2>Where families drop off</h2><div class="count">funnel, % of applicants</div></div>
+    <div class="den-list">
+      ${fbar('Applied',applied,applied,false)}
+      ${fbar('Invited to a hang',invited,applied,false)}
+      ${fbar('Came to a hang',attended,applied,false)}
+      ${fbar('Paired up',paired,applied,true)}
+    </div>
+    <div class="sub2" style="margin-top:10px">The biggest drop tells you where to focus: a gap at <b>Invited</b> means send more invites; a gap at <b>Came</b> means make the hangs easier to say yes to.</div>
+  </div>`));
+
+  // ---- Applications over time (last 14 days) ----
+  const dayKey=(iso)=>{ try{ return new Date(iso).toISOString().slice(0,10); }catch(_){ return ''; } };
+  const today=new Date(); const days=[];
+  for(let i=13;i>=0;i--){ const d=new Date(today.getTime()-i*86400e3); days.push(d.toISOString().slice(0,10)); }
+  const perDay={}; apps.forEach(a=>{ const k=dayKey(a.created_at); if(k) perDay[k]=(perDay[k]||0)+1; });
+  const maxDay=Math.max(1,...days.map(k=>perDay[k]||0));
+  const last14=days.reduce((s,k)=>s+(perDay[k]||0),0);
+  const spark=days.map(k=>{ const n=perDay[k]||0; const h=Math.max(3,Math.round(n/maxDay*54)); const dd=k.slice(8,10);
+    return `<div class="spk-col" title="${k}: ${n}"><div class="spk-bar" style="height:${h}px"></div><div class="spk-x">${dd}</div></div>`; }).join('');
+  body.appendChild(el(`<div style="margin-top:28px">
+    <div class="panel-head"><h2>Applications over time</h2><div class="count">${last14} in the last 14 days</div></div>
+    <div class="spark">${spark}</div>
+  </div>`));
+
+  // ---- Flyer tile + location performance ----
+  const perfTable=(keyFn,labelFn,title,note)=>{
+    const groups={};
+    apps.forEach(a=>{ const key=keyFn(a); if(key==null) return; (groups[key]=groups[key]||[]).push(a); });
+    const rows=Object.keys(groups).map(k=>{ const list=groups[k]; const g={ key:k, count:list.length,
+      attended:list.filter(a=>a.status!=='waitlist'&&a.status!=='passed'&&atLeast(a,'attended')).length }; return g; })
+      .sort((x,y)=>y.count-x.count);
+    if(!rows.length) return null;
+    const total=apps.length;
+    const tb=rows.map(r=>`<tr><td><div class="cn">${esc(labelFn(r.key))}</div></td>
+      <td>${r.count}</td><td class="sub2">${pct(r.count,total)}%</td>
+      <td>${r.attended} <span class="sub2">(${pct(r.attended,r.count)}%)</span></td></tr>`).join('');
+    return `<div style="margin-top:28px">
+      <div class="panel-head"><h2>${esc(title)}</h2><div class="count">${note}</div></div>
+      <table class="list"><thead><tr><th>${title.includes('location')?'Location':'Flyer tile'}</th><th>Scans → applied</th><th>Share</th><th>Came to a hang</th></tr></thead><tbody>${tb}</tbody></table>
+    </div>`;
+  };
+  const segHtml=perfTable(a=>segLabelOf(a.source)?a.source.toLowerCase():'__organic__',
+    k=>k==='__organic__'?'Organic / direct link':segLabelOf(k),
+    'Which flyer tile is working','applications by segment');
+  if(segHtml) body.appendChild(el(segHtml));
+  const locHtml=perfTable(a=>{ const l=(a.source_loc||'').trim(); return l||null; },
+    k=>k, 'Which location is working','applications by flyer location');
+  if(locHtml) body.appendChild(el(locHtml));
+  else body.appendChild(el(`<div style="margin-top:20px" class="sub2">Tip: add <code>&loc=</code> to each flyer's QR (e.g. <code>?s=toddlers&loc=intelligentsia-lakeview</code>) and this fills with a per-location breakdown.</div>`));
+
+  // ---- Season of life (inferred) ----
+  const seasons={}; funnelPool.forEach(a=>{ const s=coupleSegment(a); seasons[s]=(seasons[s]||0)+1; });
+  const sKeys=Object.keys(seasons).sort((x,y)=>seasons[y]-seasons[x]);
+  if(sKeys.length){
+    const maxS=Math.max(1,...sKeys.map(k=>seasons[k]));
+    body.appendChild(el(`<div style="margin-top:28px">
+      <div class="panel-head"><h2>Who's in the club</h2><div class="count">by season of life</div></div>
+      <div class="den-list">${sKeys.map(k=>`<div class="den-row"><div class="den-name">${esc(k)}</div><div class="den-track"><div class="den-fill" style="width:${Math.max(6,Math.round(seasons[k]/maxS*100))}%"></div></div><div class="den-n">${seasons[k]}</div></div>`).join('')}</div>
+    </div>`));
+  }
 }
 function drawApplications(){
   const body=$('#console-body'); const all=consoleState.apps; body.innerHTML='';
