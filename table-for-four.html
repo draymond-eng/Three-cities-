@@ -267,6 +267,14 @@
   .b-passed{background:#eee3df;color:#8a5a4a}
   .b-waitlist{background:#f4e7d6;color:#9c6b2f}
   .b-proposed{background:#eef1e9;color:var(--forest-d)}
+  .ie-list{display:flex;flex-direction:column;gap:14px;max-height:52vh;overflow:auto}
+  .ie-row{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#fffdf8}
+  .ie-name{font-weight:650;font-size:15px}
+  .ie-msg{font-size:12.5px;line-height:1.5;color:var(--muted);margin:8px 0 10px;white-space:pre-wrap;max-height:96px;overflow:auto;background:#faf3e6;border-radius:8px;padding:8px 10px}
+  .ie-acts{display:flex;gap:8px}
+  .app-filters{display:flex;gap:10px;margin:0 0 16px}
+  .app-filters #app-q{flex:1;min-width:0}
+  .app-filters select{width:auto;min-width:150px}
   .wl-hoods{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
   .wl-chip{font-size:13px;background:#f4e7d6;color:#7a5a2f;border:1px solid #e6cfa8;border-radius:999px;padding:6px 13px}
   .wl-chip b{color:#5a4322}
@@ -808,6 +816,18 @@ function a2hsCard(){
 
 /* ============================================================ Splash ============================================================ */
 const SPLASH_KEY='t4_splash_seen';
+const DRAFT_KEY='t4_app_draft';
+function saveDraft(){ try{ localStorage.setItem(DRAFT_KEY, JSON.stringify({data:intake.data, step:intake.step, ts:Date.now()})); }catch(e){} }
+function clearDraft(){ try{ localStorage.removeItem(DRAFT_KEY); }catch(e){} }
+function loadDraft(){ try{ const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null'); if(!d||!d.data) return null; if(Date.now()-(d.ts||0) > 14*864e5) return null; const started=d.data.couple_name||d.data.partner1_name||(d.data.life_stage&&d.data.life_stage.length); return started?d:null; }catch(e){ return null; } }
+// Pull whatever text fields are on screen right now into intake.data, so a mid-step
+// reload (or a phone that dozes off) never loses what someone already typed.
+const FIELD_MAP={ f_couple:'couple_name', f_p1:'partner1_name', f_p2:'partner2_name', f_email:'email', f_phone:'phone', f_kids:'kids', f_hope:'hoping_for', f_no:'hard_no' };
+function syncFields(){ for(const id in FIELD_MAP){ const e=document.getElementById(id); if(e) intake.data[FIELD_MAP[id]]=e.value.trim(); }
+  const hs=document.getElementById('f_hood'); if(hs){ if(hs.value==='__other__'){ const o=document.getElementById('f_hood_other'); intake.data.neighborhood=o?o.value.trim():intake.data.neighborhood; intake.data.waitlist=true; } else if(hs.value){ intake.data.neighborhood=hs.value; intake.data.waitlist=false; } } }
+// (773) 555-0123 — tidy a US number for the console; leave anything unusual as typed.
+function prettyPhone(v){ const d=(v||'').replace(/[^0-9]/g,''); const n=d.length===11&&d[0]==='1'?d.slice(1):d; if(n.length!==10) return v; return `(${n.slice(0,3)}) ${n.slice(3,6)}-${n.slice(6)}`; }
+let _syncT; function scheduleSync(){ clearTimeout(_syncT); _syncT=setTimeout(()=>{ syncFields(); saveDraft(); },500); }
 function getRef(){ try{ return new URLSearchParams(location.hash.split('?')[1]||'').get('ref')||''; }catch(_){ return ''; } }
 function showSplash(onDone){
   const app=$('#app'); app.innerHTML='';
@@ -849,15 +869,21 @@ function renderDoor(){
         Chicago · by application &nbsp;·&nbsp; <a href="#/console">Concierge sign-in</a>
       </div>
     </div>`));
+  const draft=loadDraft();
+  if(draft){ intake.data={...intake.data, ...draft.data}; intake.step=Math.min(draft.step||0, STEPS.length-1); }
   drawStep();
+  if(draft && intake.step>0) setTimeout(()=>toast('Picked up right where you left off'),350);
+  const body=$('#door-body');
+  body.addEventListener('input', scheduleSync);
+  body.addEventListener('focusout', (e)=>{ if(e.target && e.target.id==='f_phone'){ e.target.value=prettyPhone(e.target.value); } syncFields(); saveDraft(); });
 }
 
 const STEPS = [drawIntro, drawWhoYouAre, drawYourLife, drawYourVibe, drawYourRhythm, drawOneQuestion, drawReview];
 const FORM_STEPS = 6;
 
 function drawStep(){ const b=$('#door-body'); b.innerHTML=''; STEPS[intake.step](); window.scrollTo({top:0,behavior:'smooth'}); }
-function goNext(){ if(intake.step<STEPS.length-1){ intake.step++; drawStep(); } }
-function goBack(){ if(intake.step>0){ intake.step--; drawStep(); } }
+function goNext(){ if(intake.step<STEPS.length-1){ intake.step++; drawStep(); saveDraft(); } }
+function goBack(){ if(intake.step>0){ intake.step--; drawStep(); saveDraft(); } }
 function progressBar(){ let s=''; for(let i=1;i<=FORM_STEPS;i++) s+=`<i class="${i<=intake.step?'on':''}"></i>`; return `<div class="progress">${s}</div>`; }
 function navButtons(nextLabel){ return `<div class="nav">${intake.step>1?'<button class="btn ghost" data-back>Back</button>':''}<button class="btn" data-next>${nextLabel||'Continue'}</button></div>`; }
 function wireNav(validate){ const b=$('#door-body'); const back=b.querySelector('[data-back]'); if(back) back.onclick=goBack; const next=b.querySelector('[data-next]'); if(next) next.onclick=()=>{ if(!validate||validate()) goNext(); }; }
@@ -1125,6 +1151,7 @@ async function submitApplication(){
   const d=intake.data;
   if(!d.agreed){ toast('Please read and agree to the house rules'); const c=$('#f_agree'); if(c){ c.focus(); c.closest('.houserules').classList.add('nudge'); setTimeout(()=>c.closest('.houserules').classList.remove('nudge'),1200); } return; }
   const btn=$('#door-body [data-send]'); btn.disabled=true; btn.textContent='Sending…';
+  d.phone=prettyPhone(d.phone||'');
   const p1t=d.partner1_tags||[], p2t=d.partner2_tags||[];
   const token=makeToken();
   const params=new URLSearchParams((location.hash.split('?')[1]||''));
@@ -1135,10 +1162,11 @@ async function submitApplication(){
     partner1_tags:p1t, partner2_tags:p2t, partner1_likes:p1t.map(tagLabel).join(', '), partner2_likes:p2t.map(tagLabel).join(', '),
     past_couple:d.past_couple||'', hoping_for:d.hoping_for||'', hard_no:d.hard_no||'', status:d.waitlist?'waitlist':'new' };
   try{ await DB.insertApplication(row); drawDone(token); }
-  catch(e){ console.error(e); toast('Something went wrong. Try again.'); btn.disabled=false; btn.textContent='Send our application'; }
+  catch(e){ console.error(e); saveDraft(); toast('Couldn’t send just yet — your application is saved. Give it another tap.'); btn.disabled=false; btn.textContent='Send our application'; }
 }
 
 function drawDone(token){
+  clearDraft();
   const homeUrl=location.origin+location.pathname+'#/home/'+token;
   const refUrl=location.origin+location.pathname+'#/?ref='+token;
   $('#door-body').innerHTML='';
@@ -1720,8 +1748,17 @@ function drawDashboard(){
 function drawApplications(){
   const body=$('#console-body'); const all=consoleState.apps; body.innerHTML='';
   const active=all.filter(a=>a.status!=='waitlist'), waiting=all.filter(a=>a.status==='waitlist');
-  body.appendChild(el(`<div class="panel-head"><h2>Applications</h2><div class="count">${active.length} in your area · newest first</div></div>`));
+  body.appendChild(el(`<div class="panel-head"><h2>Applications</h2><div class="count">${active.length} in your area · ${waiting.length} waitlisted</div></div>`));
   if(!all.length){ body.appendChild(el(`<div class="empty"><h3>No applications yet</h3><p>When a family applies from the front door, it lands here.</p></div>`)); return; }
+  body.appendChild(el(`<div class="app-filters">
+    <input type="text" id="app-q" placeholder="Search name or neighborhood…" autocomplete="off" />
+    <select id="app-status">
+      <option value="all">All in-area</option>
+      <option value="new">New</option><option value="invited">Invited</option>
+      <option value="attended">Attended</option><option value="paired">Paired</option>
+      <option value="passed">Passed</option><option value="waitlist">Waitlist</option>
+    </select></div>`));
+  const results=el(`<div id="app-results"></div>`); body.appendChild(results);
   const mkTable=(rows)=>{ const t=el(`<table class="list"><thead><tr><th>Family</th><th>Neighborhood</th><th>Applied</th><th>Status</th></tr></thead><tbody></tbody></table>`);
     const tb=t.querySelector('tbody');
     rows.forEach(a=>{ const tr=el(`<tr data-id="${a.id}">
@@ -1729,18 +1766,29 @@ function drawApplications(){
         <td>${esc(a.neighborhood)||'–'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
       tr.onclick=()=>openApplication(a.id); tb.appendChild(tr); });
     return t; };
-  if(active.length) body.appendChild(mkTable(active));
-  else body.appendChild(el(`<div class="empty"><p>No applications in your launch area yet.</p></div>`));
-  if(waiting.length){
-    body.appendChild(el(`<div class="sect-title" style="margin-top:26px">Waitlist · ${waiting.length} off-area famil${waiting.length>1?'ies':'y'}</div>`));
-    body.appendChild(el(`<p class="sub2" style="margin:-6px 0 12px">Families outside the North Side. Grouped by neighborhood, this is your map of where to open next.</p>`));
-    const byHood={}; waiting.forEach(a=>{ const h=(a.neighborhood||'—').trim(); (byHood[h]=byHood[h]||[]).push(a); });
-    const order=Object.keys(byHood).sort((x,y)=>byHood[y].length-byHood[x].length);
-    const wrap=el(`<div class="wl-hoods"></div>`);
-    order.forEach(h=>{ wrap.appendChild(el(`<div class="wl-chip"><b>${esc(h)}</b> · ${byHood[h].length}</div>`)); });
-    body.appendChild(wrap);
-    body.appendChild(mkTable(waiting));
+  const matchQ=(a,q)=> !q || [a.couple_name,a.partner1_name,a.partner2_name,a.neighborhood].some(v=>(v||'').toLowerCase().includes(q));
+  function renderList(){
+    const q=($('#app-q').value||'').trim().toLowerCase(); const st=$('#app-status').value;
+    results.innerHTML='';
+    if(st==='waitlist'){
+      const rows=waiting.filter(a=>matchQ(a,q));
+      results.appendChild(el(`<div class="sub2" style="margin:0 0 10px">${rows.length} waitlisted famil${rows.length===1?'y':'ies'}</div>`));
+      results.appendChild(rows.length?mkTable(rows):el(`<div class="empty"><p>No waitlisted families match.</p></div>`));
+      return;
+    }
+    const rows=active.filter(a=>(st==='all'||a.status===st)&&matchQ(a,q));
+    results.appendChild(el(`<div class="sub2" style="margin:0 0 10px">${rows.length} famil${rows.length===1?'y':'ies'}${q||st!=='all'?' match':''}</div>`));
+    results.appendChild(rows.length?mkTable(rows):el(`<div class="empty"><p>No families match. Try clearing the search or filter.</p></div>`));
+    if(st==='all' && !q && waiting.length){
+      results.appendChild(el(`<div class="sect-title" style="margin-top:26px">Waitlist · ${waiting.length} off-area famil${waiting.length>1?'ies':'y'} · where to open next</div>`));
+      const byHood={}; waiting.forEach(a=>{ const h=(a.neighborhood||'—').trim(); (byHood[h]=byHood[h]||[]).push(a); });
+      const wrap=el(`<div class="wl-hoods"></div>`);
+      Object.keys(byHood).sort((x,y)=>byHood[y].length-byHood[x].length).forEach(h=>wrap.appendChild(el(`<div class="wl-chip"><b>${esc(h)}</b> · ${byHood[h].length}</div>`)));
+      results.appendChild(wrap); results.appendChild(mkTable(waiting));
+    }
   }
+  $('#app-q').oninput=renderList; $('#app-status').onchange=renderList;
+  renderList();
 }
 function arr(v){ return Array.isArray(v)?v:(v?[v]:[]); }
 function openApplication(id){
@@ -1881,7 +1929,7 @@ function openEvent(id){
       <div class="kv"><div class="k">Status</div><div class="v" style="display:flex;align-items:center;gap:10px">${statusBadge(ev.status)}
         ${ev.status==='upcoming'?'<button class="btn sm forest" id="mark_happened">Mark as happened</button>':''}</div></div>
       ${ev.notes?`<div class="kv"><div class="k">Notes</div><div class="v">${esc(ev.notes)}</div></div>`:''}
-      <div class="sect-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px">Roster (${roster.length}) <div style="display:flex;gap:8px">${roster.length>=2?`<button class="btn sm gold" id="plan_night">Plan ${ev.format==='supper'?'the night':(ev.format==='active'?'the meetup':'the day')} →</button>`:''}<button class="btn sm ghost" id="add_couples">+ Add families</button></div></div>
+      <div class="sect-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">Roster (${roster.length}) <div style="display:flex;gap:8px;flex-wrap:wrap">${(ev.status==='upcoming'&&roster.length>=1)?`<button class="btn sm" id="invite_all">✉ Invite everyone</button>`:''}${roster.length>=2?`<button class="btn sm gold" id="plan_night">Plan ${ev.format==='supper'?'the night':(ev.format==='active'?'the meetup':'the day')} →</button>`:''}<button class="btn sm ghost" id="add_couples">+ Add families</button></div></div>
       <div id="roster_list">${rosterRows||'<div class="sub2" style="padding:6px 0">No families on the roster yet. Add a few to fill this hang.</div>'}</div>
       ${ev.status==='happened'?`<div class="sub2" style="margin-top:14px;line-height:1.5">Tip: mark who attended, or send each couple their <b>Picks link</b> to note who they clicked with themselves. Mutual picks (⇄) turn green and show up under <b>Pairing</b>.</div>`:`<div class="sub2" style="margin-top:14px;line-height:1.5">Send each couple their <b>Invite link</b> to RSVP. Then read the room below.</div>`}
       ${suggestBlock(roster)}
@@ -1891,6 +1939,7 @@ function openEvent(id){
   scrim.querySelector('[data-close]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   const mh=scrim.querySelector('#mark_happened'); if(mh) mh.onclick=async()=>{ await DB.updateEvent(id,{status:'happened'}); toast('Marked as happened'); await loadConsoleData(); close(); openEvent(id); };
   scrim.querySelector('#add_couples').onclick=()=>addCouplesToEvent(ev, onRoster);
+  const ia=scrim.querySelector('#invite_all'); if(ia) ia.onclick=()=>inviteEveryone(ev);
   const pn=scrim.querySelector('#plan_night'); if(pn) pn.onclick=()=>openRunSheet(ev);
   scrim.querySelectorAll('[data-attend]').forEach(t=>t.onclick=async()=>{
     const cid=t.dataset.attend; const r=roster.find(x=>x.couple_id===cid); r.attended=!r.attended;
@@ -2426,6 +2475,27 @@ function draftInvite(ev, cid){
   const close=()=>scrim.remove();
   scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
   scrim.querySelector('[data-copy]').onclick=()=>{ const v=$('#invite_text').value; navigator.clipboard?navigator.clipboard.writeText(v).then(()=>toast('Copied. Go send it.'),()=>toast('Select & copy')):toast('Select & copy'); };
+}
+function inviteEveryone(ev){
+  const roster=arr(ev.roster);
+  const fams=roster.map(r=>appById(r.couple_id)).filter(Boolean);
+  if(!fams.length){ toast('Add families to the hang first'); return; }
+  const rows=fams.map(a=>`<div class="ie-row">
+      <div class="ie-name">${esc(a.couple_name)}${a.phone?` <span class="sub2">· ${esc(a.phone)}</span>`:' <span class="sub2" style="color:#9a5040">· no phone</span>'}</div>
+      <div class="ie-msg">${esc(inviteMessage(ev,a))}</div>
+      <div class="ie-acts">${a.phone?`<a class="btn sm" href="sms:${esc((a.phone||'').replace(/[^0-9+]/g,''))}">Open text →</a>`:''}<button class="btn sm ghost" data-copy1="${a.id}">Copy message</button></div>
+    </div>`).join('');
+  const scrim=el(`<div class="modal-scrim"><div class="modal">
+    <div class="modal-head"><h2>Invite everyone</h2><p>${fams.length} famil${fams.length===1?'y':'ies'} on this hang. Each message has that family's own reservation link baked in. Copy it, tap "Open text" to start the thread, and paste.</p></div>
+    <div class="modal-body"><div class="ie-list">${rows}</div>
+      <div class="nav" style="margin-top:16px"><button class="btn ghost" data-cancel>Close</button><button class="btn gold" data-copyall>Copy all messages</button></div>
+    </div></div></div>`);
+  document.body.appendChild(scrim);
+  const close=()=>scrim.remove();
+  scrim.querySelector('[data-cancel]').onclick=close; scrim.onclick=(e)=>{ if(e.target===scrim) close(); };
+  const copy=(txt,ok)=>{ navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>toast(ok),()=>toast('Select & copy')):toast('Select & copy'); };
+  scrim.querySelectorAll('[data-copy1]').forEach(btn=>btn.onclick=()=>{ const a=appById(btn.dataset.copy1); copy(inviteMessage(ev,a), `Copied ${a.couple_name}'s invite`); });
+  scrim.querySelector('[data-copyall]').onclick=()=>copy(fams.map(a=>`— ${a.couple_name} —\n${inviteMessage(ev,a)}`).join('\n\n\n'), 'All invites copied');
 }
 async function advanceTable(id,status){
   const t=consoleState.tables.find(x=>x.id===id);
