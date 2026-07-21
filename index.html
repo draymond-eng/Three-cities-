@@ -3,912 +3,772 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NCAA 27 Draft Lottery</title>
+<title>Three Cities — The Franchise Playbook</title>
+<meta name="description" content="Three Cities is a modern social club built on belonging. This is the blueprint for bringing it to your city — proven in River North, ready to franchise." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23C0562F'/%3E%3Cg fill='%23F4EEE3'%3E%3Ccircle cx='30' cy='58' r='9'/%3E%3Ccircle cx='50' cy='42' r='9'/%3E%3Ccircle cx='70' cy='58' r='9'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0e1a;
-    --bg2:#111933;
-    --panel:#151d36;
-    --panel2:#1b2546;
-    --line:#283255;
-    --text:#eef2ff;
-    --muted:#94a0c4;
-    --accent:#ffce3a;
-    --accent2:#3aa0ff;
-    --good:#39d98a;
-    --bad:#ff5d6c;
-    --comm:#2fd06b;
-    --shadow:0 10px 30px rgba(0,0,0,.45);
+    --ivory:#F4EEE3;
+    --paper:#FBF7EF;
+    --ink:#211F1B;
+    --ink-soft:#4A463D;
+    --muted:#8B8474;
+    --line:#E4DAC8;
+    --line-soft:#EDE5D6;
+    --clay:#C0562F;
+    --clay-deep:#9C4321;
+    --forest:#28352C;
+    --forest-2:#1F2A22;
+    --gold:#BE9346;
+    --shadow:0 24px 60px -30px rgba(40,30,15,.45);
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
+  html{scroll-behavior:smooth}
+  html,body{margin:0;padding:0}
   body{
-    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:radial-gradient(1200px 700px at 50% -10%,#1a2750 0%,var(--bg) 60%);
-    color:var(--text);
-    min-height:100vh;
+    font-family:var(--sans);
+    background:var(--ivory);
+    color:var(--ink);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
   }
-  a{color:var(--accent2)}
-  button{font-family:inherit;cursor:pointer}
-  .hidden{display:none !important}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:500;line-height:1.08;margin:0;letter-spacing:-.01em}
+  p{margin:0}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%}
+  ::selection{background:var(--clay);color:var(--ivory)}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+  .kicker{
+    font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--clay);display:inline-flex;align-items:center;gap:10px;
+  }
+  .kicker::before{content:"";width:26px;height:1px;background:var(--clay);display:inline-block}
+  .kicker.center::before{display:none}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    font-family:var(--sans);font-weight:600;font-size:15px;
+    padding:14px 26px;border-radius:100px;border:1px solid transparent;
+    cursor:pointer;transition:transform .15s ease, background .2s ease, color .2s ease, border-color .2s ease;
+    white-space:nowrap;
+  }
+  .btn.primary{background:var(--clay);color:var(--ivory)}
+  .btn.primary:hover{background:var(--clay-deep);transform:translateY(-2px)}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn.ghost:hover{border-color:var(--ink);background:rgba(0,0,0,.02)}
+  .btn.light{background:var(--ivory);color:var(--ink)}
+  .btn.light:hover{transform:translateY(-2px)}
+  .btn.outline-light{background:transparent;border-color:rgba(244,238,227,.35);color:var(--ivory)}
+  .btn.outline-light:hover{border-color:var(--ivory)}
+  .btn.big{padding:16px 32px;font-size:16px}
 
   /* ---------- Header ---------- */
   header{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:16px;padding:18px 26px;border-bottom:1px solid var(--line);
-    background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);
+    position:sticky;top:0;z-index:100;
+    background:rgba(244,238,227,.82);backdrop-filter:blur(14px);
+    border-bottom:1px solid transparent;transition:border-color .3s, background .3s;
   }
-  .brand{display:flex;align-items:center;gap:14px}
-  .logo{
-    width:46px;height:46px;border-radius:50%;
+  header.scrolled{border-color:var(--line);background:rgba(244,238,227,.94)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+  .brand{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:-.01em}
+  .mark{width:34px;height:34px;flex:none;border-radius:9px;background:var(--clay);position:relative}
+  .mark i{position:absolute;border-radius:50%;background:var(--ivory)}
+  .mark i:nth-child(1){width:7px;height:7px;left:7px;bottom:8px}
+  .mark i:nth-child(2){width:7px;height:7px;left:13.5px;top:8px}
+  .mark i:nth-child(3){width:7px;height:7px;right:7px;bottom:8px}
+  .nav-links{display:flex;align-items:center;gap:34px}
+  .nav-links a.link{font-size:14.5px;font-weight:500;color:var(--ink-soft);transition:color .18s}
+  .nav-links a.link:hover{color:var(--clay)}
+  .nav-cta{display:flex;align-items:center;gap:14px}
+  .menu-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;flex-direction:column;gap:5px}
+  .menu-btn span{width:24px;height:2px;background:var(--ink);border-radius:2px;transition:.25s}
+  .mobile-menu{display:none}
+
+  /* ---------- Hero ---------- */
+  .hero{position:relative;padding:74px 0 96px;overflow:hidden}
+  .hero-bg{position:absolute;inset:0;z-index:0;
     background:
-      radial-gradient(circle at 32% 30%, #fff, #fff 30%, transparent 31%),
-      conic-gradient(from 0deg, var(--accent), #ff8a3a, var(--accent2), var(--accent));
-    box-shadow:inset 0 -6px 12px rgba(0,0,0,.35), var(--shadow);
-    position:relative;flex:none;
+      radial-gradient(900px 520px at 82% -8%, rgba(192,86,47,.14), transparent 60%),
+      radial-gradient(760px 500px at 6% 108%, rgba(40,53,44,.10), transparent 60%);
   }
-  .logo::after{content:"";position:absolute;inset:34% 6px auto 6px;height:2px;border-radius:2px;background:rgba(0,0,0,.25)}
-  .title h1{margin:0;font-size:20px;letter-spacing:.5px}
-  .title p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
-  .head-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .grain{position:absolute;inset:0;z-index:0;opacity:.5;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");}
+  .hero .wrap{position:relative;z-index:1}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  .hero h1{font-size:clamp(42px,6.4vw,80px);letter-spacing:-.025em;margin:20px 0 0}
+  .hero h1 em{font-style:italic;color:var(--clay)}
+  .hero .lead{font-size:clamp(17px,2.1vw,20px);color:var(--ink-soft);margin-top:24px;max-width:540px}
+  .hero-actions{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .hero-meta{display:flex;gap:30px;margin-top:44px;flex-wrap:wrap}
+  .hero-meta .m .n{font-family:var(--serif);font-size:34px;color:var(--ink);line-height:1}
+  .hero-meta .m .l{font-size:12.5px;color:var(--muted);margin-top:7px;letter-spacing:.02em}
 
-  .btn{
-    border:1px solid var(--line);background:var(--panel2);color:var(--text);
-    padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;
-    transition:transform .06s ease, background .15s ease, border-color .15s;
+  /* hero visual — stylized membership card stack */
+  .hero-visual{position:relative;height:440px}
+  .card-3d{
+    position:absolute;border-radius:20px;box-shadow:var(--shadow);
+    padding:26px;display:flex;flex-direction:column;justify-content:space-between;
+    border:1px solid rgba(255,255,255,.15);
   }
-  .btn:hover{background:#243056;border-color:#3a4677}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{background:linear-gradient(180deg,#ffd84d,#ffb800);color:#1a1300;border-color:#d99e00}
-  .btn.primary:hover{filter:brightness(1.05)}
-  .btn.ghost{background:transparent}
-  .btn.big{padding:16px 28px;font-size:18px;border-radius:14px}
-  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .card-3d .cc-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .card-3d .cc-city{font-family:var(--serif);font-size:22px}
+  .card-3d .cc-tag{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .card-3d .cc-no{font-family:var(--sans);font-size:13px;letter-spacing:.14em;opacity:.85}
+  .card-a{inset:12% 6% auto auto;width:320px;height:200px;background:linear-gradient(150deg,#31413600,#28352c 12%,#3c5344);color:var(--ivory);z-index:3;transform:rotate(-5deg)}
+  .card-b{inset:auto auto 6% 2%;width:320px;height:200px;background:linear-gradient(150deg,#C0562F,#9C4321);color:var(--ivory);z-index:2;transform:rotate(6deg)}
+  .card-c{inset:34% auto auto 26%;width:300px;height:190px;background:linear-gradient(150deg,#FBF7EF,#EDE2CE);color:var(--ink);z-index:1;transform:rotate(-2deg);opacity:.9}
+  .stamp{width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,.16);position:relative}
+  .stamp i{position:absolute;border-radius:50%;background:currentColor;opacity:.9}
+  .stamp i:nth-child(1){width:6px;height:6px;left:8px;bottom:9px}
+  .stamp i:nth-child(2){width:6px;height:6px;left:16px;top:9px}
+  .stamp i:nth-child(3){width:6px;height:6px;right:8px;bottom:9px}
 
-  main{padding:22px 26px 60px;max-width:1280px;margin:0 auto}
+  /* ---------- Marquee ---------- */
+  .marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--paper);overflow:hidden;padding:18px 0}
+  .marquee-track{display:flex;gap:56px;white-space:nowrap;width:max-content;animation:scroll 30s linear infinite;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink-soft)}
+  .marquee-track span{display:inline-flex;align-items:center;gap:56px}
+  .marquee-track b{color:var(--clay);font-style:normal;font-family:var(--sans);font-weight:600}
+  @keyframes scroll{to{transform:translateX(-50%)}}
 
-  /* ---------- Setup ---------- */
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  @media(max-width:900px){.grid{grid-template-columns:1fr}}
-  .card{
-    background:var(--panel);border:1px solid var(--line);border-radius:16px;
-    padding:20px;box-shadow:var(--shadow);
+  /* ---------- Section scaffolding ---------- */
+  section{position:relative}
+  .band{padding:104px 0}
+  .band.tight{padding:80px 0}
+  .sec-head{max-width:720px}
+  .sec-head.center{margin:0 auto;text-align:center}
+  .sec-head h2{font-size:clamp(30px,4.4vw,52px);margin-top:16px}
+  .sec-head p{color:var(--ink-soft);font-size:17.5px;margin-top:20px}
+
+  /* concept */
+  .concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:56px}
+  .tile{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:30px}
+  .tile .ic{width:46px;height:46px;border-radius:12px;background:rgba(192,86,47,.1);color:var(--clay);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px}
+  .tile h3{font-size:22px}
+  .tile p{color:var(--ink-soft);margin-top:10px;font-size:15.5px}
+
+  /* flagship */
+  .flag{background:var(--forest);color:var(--ivory)}
+  .flag .kicker{color:var(--gold)}
+  .flag .kicker::before{background:var(--gold)}
+  .flag-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .flag h2{font-size:clamp(30px,4.4vw,50px);color:var(--ivory)}
+  .flag p.big{font-size:18px;color:rgba(244,238,227,.8);margin-top:22px}
+  .flag .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:36px}
+  .flag .stat{border:1px solid rgba(244,238,227,.16);border-radius:16px;padding:22px}
+  .flag .stat .n{font-family:var(--serif);font-size:38px;color:var(--gold);line-height:1}
+  .flag .stat .l{font-size:13.5px;color:rgba(244,238,227,.72);margin-top:8px}
+  .flag-photo{border-radius:20px;overflow:hidden;position:relative;min-height:460px;
+    background:
+      linear-gradient(180deg,rgba(31,42,34,0) 40%,rgba(31,42,34,.75)),
+      radial-gradient(120% 90% at 30% 20%, #3c5344, #26332b 70%);
+    border:1px solid rgba(244,238,227,.14);display:flex;align-items:flex-end;padding:30px}
+  .flag-photo .cap{position:relative;z-index:1}
+  .flag-photo .cap .t{font-family:var(--serif);font-size:26px}
+  .flag-photo .cap .s{font-size:13.5px;color:rgba(244,238,227,.72);margin-top:4px}
+  .flag-photo .skyline{position:absolute;left:0;right:0;top:12%;display:flex;align-items:flex-end;justify-content:center;gap:10px;opacity:.32}
+  .flag-photo .skyline b{display:block;width:26px;background:var(--gold);border-radius:4px 4px 0 0}
+
+  /* opportunity */
+  .opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .opp-list{margin-top:30px;display:flex;flex-direction:column;gap:2px}
+  .opp-item{display:flex;gap:18px;padding:20px 0;border-top:1px solid var(--line)}
+  .opp-item:last-child{border-bottom:1px solid var(--line)}
+  .opp-item .num{font-family:var(--serif);font-size:20px;color:var(--clay);flex:none;width:34px}
+  .opp-item h4{font-size:19px;font-family:var(--serif)}
+  .opp-item p{color:var(--ink-soft);font-size:15px;margin-top:5px}
+
+  /* playbook pillars */
+  .pillars{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:52px}
+  .pillar{background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:border-color .2s}
+  .pillar:hover{border-color:var(--clay)}
+  .pillar-head{display:flex;align-items:center;gap:18px;padding:24px 26px;cursor:pointer;user-select:none}
+  .pillar-head .pn{font-family:var(--serif);font-size:15px;color:var(--muted);width:34px;flex:none}
+  .pillar-head h3{font-size:21px;flex:1}
+  .pillar-head .chev{width:22px;height:22px;flex:none;transition:transform .3s;color:var(--clay)}
+  .pillar.open .chev{transform:rotate(45deg)}
+  .pillar-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+  .pillar-body .inner{padding:0 26px 26px 78px}
+  .pillar-body p{color:var(--ink-soft);font-size:15.5px}
+  .pillar-body ul{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  .pillar-body li{font-size:13px;padding:6px 13px;border-radius:100px;background:rgba(192,86,47,.08);color:var(--clay-deep);font-weight:500}
+
+  /* model cards */
+  .offer{background:var(--paper)}
+  .offer-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:52px}
+  .offer-col{background:var(--ivory);border:1px solid var(--line);border-radius:20px;padding:36px}
+  .offer-col.dark{background:var(--forest);color:var(--ivory);border-color:var(--forest)}
+  .offer-col h3{font-size:25px;margin-bottom:6px}
+  .offer-col .sub{font-size:14.5px;color:var(--muted);margin-bottom:24px}
+  .offer-col.dark .sub{color:rgba(244,238,227,.66)}
+  .offer-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:15px}
+  .offer-col li{display:flex;gap:13px;font-size:15.5px;color:var(--ink-soft);align-items:flex-start}
+  .offer-col.dark li{color:rgba(244,238,227,.85)}
+  .offer-col li .tick{color:var(--clay);flex:none;margin-top:2px;font-weight:700}
+  .offer-col.dark li .tick{color:var(--gold)}
+
+  /* economics */
+  .econ-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:52px}
+  .econ{border:1px solid var(--line);border-radius:18px;padding:28px;background:var(--paper)}
+  .econ .n{font-family:var(--serif);font-size:clamp(30px,3.6vw,42px);color:var(--clay);line-height:1}
+  .econ .l{font-size:14px;color:var(--ink-soft);margin-top:12px;font-weight:500}
+  .econ .d{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .disclaimer{font-size:12.5px;color:var(--muted);margin-top:26px;text-align:center;font-style:italic}
+
+  /* timeline */
+  .timeline{margin-top:56px;position:relative}
+  .timeline::before{content:"";position:absolute;left:19px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .tl-item{display:flex;gap:26px;padding:0 0 34px;position:relative}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-dot{width:40px;height:40px;flex:none;border-radius:50%;background:var(--ivory);border:2px solid var(--clay);color:var(--clay);
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:16px;position:relative;z-index:1}
+  .tl-item.done .tl-dot{background:var(--clay);color:var(--ivory)}
+  .tl-body h4{font-size:21px;font-family:var(--serif)}
+  .tl-body .ph{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--clay);margin-bottom:5px}
+  .tl-body p{color:var(--ink-soft);font-size:15px;margin-top:7px;max-width:640px}
+  .tl-body .dur{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+  /* partner */
+  .partner{background:var(--forest);color:var(--ivory)}
+  .partner .kicker{color:var(--gold)}.partner .kicker::before{background:var(--gold)}
+  .partner h2{color:var(--ivory)}
+  .partner-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:46px}
+  .pcard{border:1px solid rgba(244,238,227,.16);border-radius:16px;padding:26px}
+  .pcard h4{font-family:var(--serif);font-size:20px;color:var(--ivory)}
+  .pcard p{font-size:14.5px;color:rgba(244,238,227,.72);margin-top:8px}
+
+  /* faq */
+  .faq{max-width:840px;margin:52px auto 0}
+  .qa{border-bottom:1px solid var(--line)}
+  .qa .q{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:24px 0;cursor:pointer;font-family:var(--serif);font-size:20px}
+  .qa .q .pm{color:var(--clay);font-size:24px;flex:none;transition:transform .25s}
+  .qa.open .q .pm{transform:rotate(45deg)}
+  .qa .a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .qa .a p{padding:0 0 24px;color:var(--ink-soft);font-size:15.5px;max-width:720px}
+
+  /* apply / CTA */
+  .apply{background:linear-gradient(160deg,var(--clay),var(--clay-deep));color:var(--ivory)}
+  .apply-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:start}
+  .apply h2{color:var(--ivory);font-size:clamp(30px,4.4vw,50px)}
+  .apply .lead{color:rgba(244,238,227,.85);font-size:17.5px;margin-top:20px}
+  .apply .contact{margin-top:32px;display:flex;flex-direction:column;gap:12px;font-size:15px}
+  .apply .contact a{display:inline-flex;align-items:center;gap:10px;color:var(--ivory);border-bottom:1px solid rgba(244,238,227,.35);padding-bottom:2px;width:fit-content}
+  form{background:var(--ivory);border-radius:22px;padding:34px;color:var(--ink)}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field{margin-bottom:16px}
+  .field.full{grid-column:1/-1}
+  label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:7px;letter-spacing:.01em}
+  input,select,textarea{
+    width:100%;font-family:var(--sans);font-size:15px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:12px 14px;transition:border-color .18s, box-shadow .18s;
   }
-  .card h2{margin:0 0 4px;font-size:16px}
-  .card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
-  textarea,input,select{
-    width:100%;background:#0e1530;border:1px solid var(--line);color:var(--text);
-    border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--clay);box-shadow:0 0 0 3px rgba(192,86,47,.12)}
+  textarea{min-height:100px;resize:vertical}
+  form .btn{width:100%;margin-top:6px}
+  .form-note{font-size:12.5px;color:var(--muted);text-align:center;margin-top:14px}
+  .form-ok{display:none;text-align:center;padding:20px 0}
+  .form-ok.show{display:block}
+  .form-ok .big{font-family:var(--serif);font-size:26px;margin-bottom:8px}
+
+  /* footer */
+  footer{background:var(--forest-2);color:rgba(244,238,227,.7);padding:64px 0 34px}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;padding-bottom:44px;border-bottom:1px solid rgba(244,238,227,.12)}
+  footer .brand{color:var(--ivory)}
+  footer .fdesc{margin-top:16px;font-size:14.5px;max-width:340px}
+  footer h5{font-family:var(--sans);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,238,227,.5);margin:0 0 16px}
+  footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:11px}
+  footer ul a{font-size:14.5px;color:rgba(244,238,227,.72);transition:color .18s}
+  footer ul a:hover{color:var(--gold)}
+  .foot-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:26px;font-size:13px;color:rgba(244,238,227,.5);flex-wrap:wrap;gap:12px}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- Responsive ---------- */
+  @media(max-width:960px){
+    .hero-grid,.flag-grid,.opp-grid,.apply-grid{grid-template-columns:1fr;gap:44px}
+    .hero-visual{height:360px;order:-1}
+    .pillars,.offer-grid,.partner-grid{grid-template-columns:1fr}
+    .concept-grid{grid-template-columns:1fr}
+    .econ-grid{grid-template-columns:1fr 1fr}
+    .flag .stats{grid-template-columns:1fr 1fr}
   }
-  textarea{min-height:230px;resize:vertical;line-height:1.5;font-family:ui-monospace,Menlo,Consolas,monospace}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
-  .muted{color:var(--muted);font-size:12.5px}
-
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:8px 8px;text-align:left;border-bottom:1px solid var(--line)}
-  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
-  td input{padding:7px 9px}
-  .tname{width:auto}
-  .twt{width:90px;text-align:right}
-  .pct{color:var(--accent);font-weight:700;white-space:nowrap}
-  .swatch{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:inline-block;vertical-align:middle}
-  .del{color:var(--bad);background:transparent;border:none;font-size:16px;padding:4px 8px}
-  .tablewrap{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:12px}
-  .totrow td{font-weight:700;border-top:2px solid var(--line)}
-
-  /* ---------- Lottery ---------- */
-  .lottery-grid{display:grid;grid-template-columns:1.45fr 1fr;gap:22px;align-items:start}
-  @media(max-width:1000px){.lottery-grid{grid-template-columns:1fr}}
-
-  .machine-wrap{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
-  #machine{width:100%;display:block;border-radius:14px;background:radial-gradient(circle at 50% 20%,#13204a,#0a1124)}
-  .controls{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:16px}
-  .status{font-size:15px;color:var(--muted);min-height:22px;text-align:center}
-  .draw-btn{min-width:280px}
-
-  .reveal{
-    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:18px;background:rgba(6,9,20,.72);backdrop-filter:blur(3px);border-radius:16px;opacity:0;pointer-events:none;
-    transition:opacity .3s ease;
+  @media(max-width:640px){
+    .wrap{padding:0 20px}
+    .band{padding:74px 0}
+    .nav-links{display:none}
+    .nav-cta .btn:not(.menu-btn){display:none}
+    .menu-btn{display:flex}
+    .econ-grid,.frow{grid-template-columns:1fr}
+    .flag .stats{grid-template-columns:1fr 1fr}
+    .hero-meta{gap:22px}
+    .hero-visual{height:320px}
+    .card-a,.card-b{width:260px;height:165px}
+    .card-c{width:230px;height:150px}
+    .mobile-menu.open{display:block;position:fixed;inset:74px 0 0;background:var(--ivory);z-index:99;padding:24px 20px}
+    .mobile-menu.open a{display:block;font-family:var(--serif);font-size:26px;padding:14px 0;border-bottom:1px solid var(--line)}
+    .mobile-menu.open .btn{margin-top:24px;width:100%}
   }
-  .reveal.show{opacity:1;pointer-events:auto}
-  .reveal .ball{
-    width:150px;height:150px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-weight:800;color:#10131f;position:relative;box-shadow:inset 0 -18px 30px rgba(0,0,0,.35),0 14px 40px rgba(0,0,0,.5);
-    transform:scale(.2);animation:pop .5s cubic-bezier(.2,1.4,.4,1) forwards;
-  }
-  .reveal .ball::before{content:"";position:absolute;top:16%;left:20%;width:34%;height:24%;border-radius:50%;background:rgba(255,255,255,.55);filter:blur(2px)}
-  @keyframes pop{to{transform:scale(1)}}
-  .reveal .pickno{font-size:15px;letter-spacing:3px;text-transform:uppercase;color:var(--accent)}
-  .reveal .team{font-size:34px;font-weight:800;text-align:center;padding:0 16px}
-  .reveal .small{color:var(--muted);font-size:13px}
-
-  /* ---------- Board ---------- */
-  .board{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
-  .board h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:16px;display:flex;justify-content:space-between;align-items:center}
-  .board .list{max-height:560px;overflow:auto}
-  .pick{
-    display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(40,50,85,.6);
-  }
-  .pick .num{width:34px;height:34px;border-radius:8px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted);flex:none}
-  .pick.filled .num{background:var(--accent);color:#1a1300}
-  .pick.first .num{background:linear-gradient(180deg,#ffd84d,#ff9e00);color:#1a1300;box-shadow:0 0 0 2px rgba(255,206,58,.3)}
-  .pick .nm{font-weight:600;flex:1}
-  .pick .nm.empty{color:var(--muted);font-weight:400;font-style:italic}
-  .pick .od{font-size:12px;color:var(--muted)}
-  .pick.justfilled{animation:flash 1.1s ease}
-  @keyframes flash{0%{background:rgba(255,206,58,.28)}100%{background:transparent}}
-
-  .remaining{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);margin-top:22px}
-  .remaining h2{margin:0;padding:14px 18px;border-bottom:1px solid var(--line);font-size:15px}
-  .rem-list{padding:6px 8px;max-height:230px;overflow:auto}
-  .rem-item{display:flex;align-items:center;gap:10px;padding:7px 10px;font-size:13.5px}
-  .rem-item .bar{flex:1;height:8px;border-radius:5px;background:#0e1530;overflow:hidden}
-  .rem-item .bar > i{display:block;height:100%;border-radius:5px}
-  .rem-item .rp{width:54px;text-align:right;color:var(--accent);font-weight:700}
-
-  .finished-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
-
-  /* ---------- Commissioner ---------- */
-  .comm-chip{display:flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);
-    padding:5px 12px 5px 5px;border-radius:30px}
-  .comm-avatar{width:34px;height:34px;border-radius:50%;flex:none;object-fit:cover;
-    background:linear-gradient(180deg,#1c8a3f,#0c5a26);display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:13px;color:#eafff0;border:2px solid #2fd06b;overflow:hidden}
-  .comm-chip .cc-text{line-height:1.1}
-  .comm-chip .cc-role{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--comm)}
-  .comm-chip .cc-name{font-size:14px;font-weight:700}
-
-  .booth{display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,rgba(47,208,107,.10),rgba(0,0,0,0));
-    border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
-  .booth .b-avatar{width:64px;height:64px;border-radius:50%;flex:none;object-fit:cover;
-    background:linear-gradient(180deg,#1c8a3f,#0c5a26);display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:22px;color:#eafff0;border:3px solid #2fd06b;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.4)}
-  .booth .b-info{flex:1}
-  .booth .b-role{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--comm);font-weight:700}
-  .booth .b-name{font-size:20px;font-weight:800;margin:2px 0}
-  .booth .b-sub{font-size:12.5px;color:var(--muted)}
-  .booth .b-actions{display:flex;flex-direction:column;gap:6px}
-  .booth .b-actions .btn{padding:7px 12px;font-size:12.5px}
-
-  /* confetti canvas */
-  #confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
-
-  .toast{
-    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(40px);
-    background:var(--panel2);border:1px solid var(--line);padding:11px 18px;border-radius:10px;
-    box-shadow:var(--shadow);opacity:0;transition:all .25s ease;z-index:60;font-size:14px;
-  }
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  footer{color:var(--muted);text-align:center;font-size:12px;padding:26px}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">
-    <div class="logo"></div>
-    <div class="title">
-      <h1>NCAA 27 Draft Lottery</h1>
-      <p id="subline">Commissioner control room</p>
+<header id="top">
+  <div class="wrap nav">
+    <a href="#top" class="brand"><span class="mark"><i></i><i></i><i></i></span> Three&nbsp;Cities</a>
+    <nav class="nav-links">
+      <a class="link" href="#concept">The Concept</a>
+      <a class="link" href="#flagship">Flagship</a>
+      <a class="link" href="#playbook">The Playbook</a>
+      <a class="link" href="#model">Franchise Model</a>
+      <a class="link" href="#path">Path to Open</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="#apply" class="btn primary">Apply to Open</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </div>
-  <div class="head-actions">
-    <div class="comm-chip" id="commChip" title="League Commissioner">
-      <span class="comm-avatar" id="commChipAvatar">DC</span>
-      <span class="cc-text">
-        <span class="cc-role">Commissioner</span><br>
-        <span class="cc-name" id="commChipName">d_cape15</span>
-      </span>
-    </div>
-    <button class="btn ghost" id="soundToggle" title="Toggle sound">🔊 Sound: On</button>
-    <button class="btn ghost hidden" id="backToSetup">⚙️ Edit Teams</button>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#concept">The Concept</a>
+    <a href="#flagship">Flagship</a>
+    <a href="#playbook">The Playbook</a>
+    <a href="#model">Franchise Model</a>
+    <a href="#path">Path to Open</a>
+    <a href="#apply" class="btn primary">Apply to Open →</a>
   </div>
 </header>
 
-<main>
-  <!-- ===================== SETUP ===================== -->
-  <section id="setupView">
-    <div class="grid">
-      <div class="card">
-        <h2>1 · Paste your teams &amp; odds</h2>
-        <p class="sub">One team per line, as <code>Team Name, weight</code>. Weights can be percentages or any numbers — they're auto-normalized into ping-pong balls.</p>
-        <textarea id="bulk" spellcheck="false"></textarea>
-        <div class="row">
-          <button class="btn" id="parseBtn">↻ Load into table</button>
-          <button class="btn ghost" id="sampleBtn">Fill sample (21 teams)</button>
-          <span class="muted">Tip: column 2 can be % chance at #1, or raw weight.</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>2 · Review the field</h2>
-        <p class="sub">Edit names &amp; weights inline. The % is each team's lottery odds (chance at the <em>#1</em> pick).</p>
-        <div class="tablewrap">
-          <table id="teamTable">
-            <thead>
-              <tr><th>#</th><th></th><th>Team</th><th class="twt">Weight</th><th>Odds</th><th></th></tr>
-            </thead>
-            <tbody id="teamBody"></tbody>
-            <tfoot>
-              <tr class="totrow"><td></td><td></td><td>Total</td><td class="twt" id="totWeight">0</td><td class="pct">100%</td><td></td></tr>
-            </tfoot>
-          </table>
-        </div>
-        <div class="row">
-          <button class="btn" id="addTeam">＋ Add team</button>
-          <button class="btn ghost" id="clearTeams">Clear all</button>
-          <span class="muted" id="countNote"></span>
-        </div>
-        <div class="row" style="margin-top:18px;justify-content:flex-end">
-          <button class="btn primary big" id="startBtn">🎱 Start the Lottery →</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== LOTTERY ===================== -->
-  <section id="lotteryView" class="hidden">
-    <div class="lottery-grid">
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="hero-bg"></div><div class="grain"></div>
+  <div class="wrap">
+    <div class="hero-grid">
       <div>
-        <div class="booth">
-          <span class="b-avatar" id="boothAvatar">DC</span>
-          <div class="b-info">
-            <div class="b-role">On the Clock · Commissioner</div>
-            <div class="b-name" id="boothName">d_cape15</div>
-            <div class="b-sub">Til The Wheels Fall Off · presiding over the NCAA 27 lottery</div>
-          </div>
-          <div class="b-actions">
-            <button class="btn" id="commPhotoBtn">📷 Photo</button>
-            <button class="btn ghost" id="commNameBtn">✎ Name</button>
-          </div>
+        <span class="kicker">The Franchise Playbook</span>
+        <h1>Bring the <em>social club</em> to your city.</h1>
+        <p class="lead">Three Cities is a modern membership club built on one thing that never goes out of style: belonging. We proved the model in River North. Now we're handing the blueprint to operators ready to build it in their own city.</p>
+        <div class="hero-actions">
+          <a href="#apply" class="btn primary big">Apply to Open a City →</a>
+          <a href="#playbook" class="btn ghost big">See the Playbook</a>
         </div>
-        <input type="file" id="commPhotoInput" accept="image/*" class="hidden" />
-        <div class="machine-wrap">
-          <canvas id="machine" width="720" height="460"></canvas>
-          <div class="reveal" id="reveal">
-            <div class="pickno" id="revealPickNo">Pick</div>
-            <div class="ball" id="revealBall">?</div>
-            <div class="team" id="revealTeam"></div>
-            <div class="small" id="revealOdds"></div>
-            <button class="btn primary" id="revealContinue">Continue ▶</button>
-          </div>
-        </div>
-        <div class="controls">
-          <div class="status" id="status">All 21 balls are in the hopper. Commissioner, you're up.</div>
-          <button class="btn primary big draw-btn" id="drawBtn">🎬 Draw Pick #1</button>
-          <div class="finished-actions hidden" id="finishedActions">
-            <button class="btn" id="copyBtn">📋 Copy results</button>
-            <button class="btn" id="exportBtn">⬇ Download .txt</button>
-            <button class="btn ghost" id="restartBtn">↺ Run again</button>
-          </div>
-        </div>
-
-        <div class="remaining">
-          <h2 id="remTitle">Still in the hopper — who's left for the top picks</h2>
-          <div class="rem-list" id="remList"></div>
+        <div class="hero-meta">
+          <div class="m"><div class="n">1</div><div class="l">Flagship in River North</div></div>
+          <div class="m"><div class="n">8</div><div class="l">Systems in the playbook</div></div>
+          <div class="m"><div class="n">∞</div><div class="l">Cities on the map</div></div>
         </div>
       </div>
-
-      <div class="board" id="board">
-        <h2><span>Draft Order</span><span class="muted" id="boardCount"></span></h2>
-        <div class="list" id="pickList"></div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="card-3d card-a">
+          <div class="cc-top"><div class="cc-city">River North</div><div class="stamp"><i></i><i></i><i></i></div></div>
+          <div><div class="cc-tag">Founding Member</div><div class="cc-no">No. 0001 · Flagship</div></div>
+        </div>
+        <div class="card-3d card-b">
+          <div class="cc-top"><div class="cc-city">Your City</div><div class="stamp"><i></i><i></i><i></i></div></div>
+          <div><div class="cc-tag">Charter Location</div><div class="cc-no">No. ____ · Coming soon</div></div>
+        </div>
+        <div class="card-3d card-c">
+          <div class="cc-top"><div class="cc-city">Three Cities</div><div class="cc-tag" style="color:var(--clay)">Est.</div></div>
+          <div><div class="cc-tag" style="color:var(--muted)">Membership</div><div class="cc-no" style="color:var(--ink-soft)">Belong somewhere</div></div>
+        </div>
       </div>
     </div>
-  </section>
-</main>
+  </div>
+</section>
 
-<footer>NCAA 27 Draft Lottery · runs entirely in your browser · your teams are saved locally on this device</footer>
+<!-- ================= MARQUEE ================= -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Belonging <b>·</b> Programming <b>·</b> Membership <b>·</b> Ritual <b>·</b> Hospitality <b>·</b> Community <b>·</b> Belonging <b>·</b> Programming <b>·</b> Membership <b>·</b> Ritual <b>·</b> Hospitality <b>·</b> Community <b>·</b> </span>
+    <span>Belonging <b>·</b> Programming <b>·</b> Membership <b>·</b> Ritual <b>·</b> Hospitality <b>·</b> Community <b>·</b> Belonging <b>·</b> Programming <b>·</b> Membership <b>·</b> Ritual <b>·</b> Hospitality <b>·</b> Community <b>·</b> </span>
+  </div>
+</div>
 
-<canvas id="confetti"></canvas>
-<div class="toast" id="toast"></div>
+<!-- ================= CONCEPT ================= -->
+<section class="band" id="concept">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">What Three Cities Is</span>
+      <h2>A club, not a venue. A community, not a customer list.</h2>
+      <p>People are lonelier and more online than ever — and starving for a place that feels like theirs. Three Cities is the third place: not home, not work, but the room where members actually know each other. The space is the stage. The community is the product.</p>
+    </div>
+    <div class="concept-grid">
+      <div class="tile reveal">
+        <div class="ic">◐</div>
+        <h3>Membership at the core</h3>
+        <p>Recurring dues create a committed base and predictable revenue — a community that shows up, not foot traffic that hopes to. Members join a roster, not a mailing list.</p>
+      </div>
+      <div class="tile reveal">
+        <div class="ic">✦</div>
+        <h3>A calendar that never sleeps</h3>
+        <p>Dinners, salons, workouts, workshops, watch parties, socials. A relentless programming engine turns a room into a reason to come back every week.</p>
+      </div>
+      <div class="tile reveal">
+        <div class="ic">◈</div>
+        <h3>Rituals that build belonging</h3>
+        <p>The welcome. The regulars' table. The annual traditions. Small, repeatable rituals turn strangers into a scene — and a scene into a brand people defend.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FLAGSHIP ================= -->
+<section class="band flag" id="flagship">
+  <div class="wrap">
+    <div class="flag-grid">
+      <div class="reveal">
+        <span class="kicker">The Flagship · Chicago</span>
+        <h2>Proven in River North.</h2>
+        <p class="big">River North is our flagship and our proof of concept — the room where we pressure-tested every system in this playbook. Membership, programming, operations, culture: all of it was built, broken, and rebuilt here so your city doesn't have to start from a blank page.</p>
+        <div class="stats">
+          <div class="stat"><div class="n">Flagship</div><div class="l">River North, Chicago — the model location</div></div>
+          <div class="stat"><div class="n">100%</div><div class="l">Of the playbook battle-tested on the ground</div></div>
+          <div class="stat"><div class="n">Weekly</div><div class="l">Signature programming cadence</div></div>
+          <div class="stat"><div class="n">1→Many</div><div class="l">Structured to replicate, city by city</div></div>
+        </div>
+      </div>
+      <div class="flag-photo reveal">
+        <div class="skyline" aria-hidden="true">
+          <b style="height:70px"></b><b style="height:120px"></b><b style="height:90px"></b><b style="height:150px"></b><b style="height:110px"></b><b style="height:180px"></b><b style="height:100px"></b><b style="height:140px"></b><b style="height:80px"></b>
+        </div>
+        <div class="cap">
+          <div class="t">The room that started it all.</div>
+          <div class="s">River North, Chicago · Flagship location</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= OPPORTUNITY ================= -->
+<section class="band" id="opportunity">
+  <div class="wrap">
+    <div class="opp-grid">
+      <div class="sec-head reveal">
+        <span class="kicker">Why Now</span>
+        <h2>The timing has never been better for real-life community.</h2>
+        <p>The tailwinds behind a membership club aren't a trend — they're a shift in how people want to live. Three Cities sits at the center of it.</p>
+        <a href="#apply" class="btn primary big" style="margin-top:26px">Claim your city →</a>
+      </div>
+      <div class="opp-list reveal">
+        <div class="opp-item"><div class="num">01</div><div><h4>The loneliness economy</h4><p>Demand for in-person belonging is surging as digital life leaves people craving a room where they're known by name.</p></div></div>
+        <div class="opp-item"><div class="num">02</div><div><h4>Recurring revenue, real assets</h4><p>Membership dues bring the predictability of subscription to hospitality — without the churn of a business that lives on walk-ins.</p></div></div>
+        <div class="opp-item"><div class="num">03</div><div><h4>A brand people evangelize</h4><p>Members don't just attend — they recruit. Word-of-mouth is the growth engine, and it compounds.</p></div></div>
+        <div class="opp-item"><div class="num">04</div><div><h4>A blueprint, not a bet</h4><p>You inherit a tested system instead of improvising one. The hard, expensive lessons are already paid for.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= THE PLAYBOOK ================= -->
+<section class="band" id="playbook" style="background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="kicker center">The Blueprint</span>
+      <h2>Eight systems. One repeatable club.</h2>
+      <p>This is the actual playbook — the operating system behind Three Cities. Every location inherits all eight, documented, templated, and ready to run. Tap any system to look inside.</p>
+    </div>
+    <div class="pillars">
+      <div class="pillar reveal open">
+        <div class="pillar-head"><span class="pn">01</span><h3>The Brand</h3><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="pillar-body"><div class="inner"><p>The identity you inherit intact: name, story, voice, visual system, and the standards that make a Three Cities feel like a Three Cities anywhere in the country.</p><ul><li>Brand guidelines</li><li>Naming & story</li><li>Design kit</li><li>Voice & tone</li><li>Quality standards</li></ul></div></div>
+      </div>
+      <div class="pillar reveal">
+        <div class="pillar-head"><span class="pn">02</span><h3>The Space</h3><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="pillar-body"><div class="inner"><p>How to find, negotiate, and build the room. Site-selection criteria, the flagship design spec, layout blueprints, and a build-out playbook tuned for community, not just covers.</p><ul><li>Site selection</li><li>Lease guidance</li><li>Design spec</li><li>Build-out plan</li><li>Vendor list</li></ul></div></div>
+      </div>
+      <div class="pillar reveal">
+        <div class="pillar-head"><span class="pn">03</span><h3>Membership</h3><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="pillar-body"><div class="inner"><p>The engine of the business. Tier structure, pricing, the application and vetting flow, founding-member strategy, retention playbook, and the numbers behind a healthy roster.</p><ul><li>Tiers & pricing</li><li>Application flow</li><li>Founding cohort</li><li>Retention</li><li>Referrals</li></ul></div></div>
+      </div>
+      <div class="pillar reveal">
+        <div class="pillar-head"><span class="pn">04</span><h3>Programming</h3><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="pillar-body"><div class="inner"><p>The reason members show up every week. A full calendar system: signature formats, a weekly rhythm, seasonal tentpoles, and the run-of-show templates that make events repeatable.</p><ul><li>Event formats</li><li>Weekly cadence</li><li>Seasonal tentpoles</li><li>Run-of-show</li><li>Host playbook</li></ul></div></div>
+      </div>
+      <div class="pillar reveal">
+        <div class="pillar-head"><span class="pn">05</span><h3>Community & Culture</h3><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="pillar-body"><div class="inner"><p>The invisible product. The member journey from first visit to regular, the rituals that create belonging, community management, and how to protect the culture as you scale.</p><ul><li>Member journey</li><li>Rituals</li><li>Community mgmt</li><li>Codes of conduct</li><li>Culture guardrails</li></ul></div></div>
+      </div>
+      <div class="pillar reveal">
+        <div class="pillar-head"><span class="pn">06</span><h3>Operations</h3><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="pillar-body"><div class="inner"><p>The day-to-day machine. Staffing model and org chart, hiring and training, F&B and bar programs, vendor relationships, SOPs, and the daily/weekly operating checklists.</p><ul><li>Org chart</li><li>Hiring & training</li><li>F&B program</li><li>SOPs</li><li>Checklists</li></ul></div></div>
+      </div>
+      <div class="pillar reveal">
+        <div class="pillar-head"><span class="pn">07</span><h3>Technology</h3><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="pillar-body"><div class="inner"><p>The stack that runs it all. Member CRM and billing, event booking, the member-facing app or portal, communications, and the dashboards that keep the location accountable to its numbers.</p><ul><li>Member CRM</li><li>Billing</li><li>Booking</li><li>Comms</li><li>Dashboards</li></ul></div></div>
+      </div>
+      <div class="pillar reveal">
+        <div class="pillar-head"><span class="pn">08</span><h3>Growth & Launch</h3><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="pillar-body"><div class="inner"><p>How to open loud and grow steady. The pre-launch playbook, founding-member campaign, local partnerships, PR and social, and the marketing calendar that fills the room month after month.</p><ul><li>Launch plan</li><li>Founding campaign</li><li>Partnerships</li><li>PR & social</li><li>Marketing calendar</li></ul></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FRANCHISE MODEL ================= -->
+<section class="band offer" id="model">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="kicker center">The Franchise Model</span>
+      <h2>What you bring. What we hand you.</h2>
+      <p>A Three Cities franchise is a partnership. You bring the local roots and the drive to run it. We bring the brand, the blueprint, and a team that has already done it once.</p>
+    </div>
+    <div class="offer-grid">
+      <div class="offer-col reveal">
+        <h3>What you bring</h3>
+        <div class="sub">The right operator in the right city</div>
+        <ul>
+          <li><span class="tick">→</span> Capital to fund the build-out and opening runway</li>
+          <li><span class="tick">→</span> Deep local roots and a network in your market</li>
+          <li><span class="tick">→</span> A full-time commitment to being the operator on the ground</li>
+          <li><span class="tick">→</span> Hospitality or community-building instincts</li>
+          <li><span class="tick">→</span> Alignment with the Three Cities values and standards</li>
+        </ul>
+      </div>
+      <div class="offer-col dark reveal">
+        <h3>What we hand you</h3>
+        <div class="sub">The full Three Cities system</div>
+        <ul>
+          <li><span class="tick">✦</span> The brand license and exclusive rights to your territory</li>
+          <li><span class="tick">✦</span> The complete eight-system operating playbook</li>
+          <li><span class="tick">✦</span> Site-selection and build-out support with our design kit</li>
+          <li><span class="tick">✦</span> The technology stack, pre-configured for your location</li>
+          <li><span class="tick">✦</span> Hands-on launch support and founding-member campaign</li>
+          <li><span class="tick">✦</span> Training, ongoing coaching, and a network of operators</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ECONOMICS ================= -->
+<section class="band" id="economics">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="kicker center">The Model at a Glance</span>
+      <h2>Recurring revenue, multiple streams.</h2>
+      <p>Three Cities is built so no single line carries the location. Dues create the floor; programming, food and beverage, and private hire build on top.</p>
+    </div>
+    <div class="econ-grid">
+      <div class="econ reveal"><div class="n">4</div><div class="l">Revenue streams</div><div class="d">Dues · events · F&B · private hire</div></div>
+      <div class="econ reveal"><div class="n">Monthly</div><div class="l">Recurring dues base</div><div class="d">The predictable revenue floor</div></div>
+      <div class="econ reveal"><div class="n">Tiered</div><div class="l">Membership structure</div><div class="d">Accessible entry to premium</div></div>
+      <div class="econ reveal"><div class="n">Protected</div><div class="l">Territory rights</div><div class="d">Exclusive market per operator</div></div>
+    </div>
+    <p class="disclaimer">Detailed unit economics, investment ranges, and financial projections are shared with qualified applicants under NDA during the discovery process. Figures above are illustrative of the model, not a guarantee of results.</p>
+  </div>
+</section>
+
+<!-- ================= PATH TO OPEN ================= -->
+<section class="band" id="path" style="background:var(--paper);border-top:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">Path to Open</span>
+      <h2>From application to opening night.</h2>
+      <p>A structured process designed to get the right operator into the right city — and open with a room already full of founding members.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item done reveal"><div class="tl-dot">0</div><div class="tl-body"><div class="ph">Discovery</div><h4>Apply & align</h4><p>You submit your application, we get to know each other, and we share the model under NDA. We're both deciding if this is a fit — that honesty protects everyone.</p><div class="dur">2–4 weeks</div></div></div>
+      <div class="tl-item reveal"><div class="tl-dot">1</div><div class="tl-body"><div class="ph">Agreement</div><h4>Territory & terms</h4><p>We define your exclusive territory and sign the franchise agreement. You're now the official Three Cities operator for your city.</p><div class="dur">3–5 weeks</div></div></div>
+      <div class="tl-item reveal"><div class="tl-dot">2</div><div class="tl-body"><div class="ph">Build</div><h4>Site & build-out</h4><p>Using our site-selection criteria and design kit, we help you secure the space and build the room to the Three Cities spec.</p><div class="dur">3–6 months</div></div></div>
+      <div class="tl-item reveal"><div class="tl-dot">3</div><div class="tl-body"><div class="ph">Pre-launch</div><h4>Founding members</h4><p>We run the founding-member campaign together, hire and train your team, and load the calendar — so you open to a community, not an empty room.</p><div class="dur">6–10 weeks</div></div></div>
+      <div class="tl-item reveal"><div class="tl-dot">4</div><div class="tl-body"><div class="ph">Launch</div><h4>Opening night</h4><p>Doors open with our launch team on the ground. The programming engine kicks in and the club comes to life.</p><div class="dur">Go live</div></div></div>
+      <div class="tl-item reveal"><div class="tl-dot">5</div><div class="tl-body"><div class="ph">Grow</div><h4>Steady state & beyond</h4><p>Ongoing coaching, shared learnings across the network, and a path to additional locations as you master the model.</p><div class="dur">Ongoing</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PARTNER ================= -->
+<section class="band partner" id="partner">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">Who We're Looking For</span>
+      <h2>The right partner matters more than the right pitch.</h2>
+      <p style="color:rgba(244,238,227,.8)">We'd rather open five great clubs than fifty forgettable ones. If this sounds like you, we should talk.</p>
+    </div>
+    <div class="partner-grid">
+      <div class="pcard reveal"><h4>The connector</h4><p>You're the person who always knows everyone in the room — and everyone's glad you're there. You build community without trying.</p></div>
+      <div class="pcard reveal"><h4>The operator</h4><p>You sweat the details, love a well-run room, and know that hospitality lives in the small things done consistently.</p></div>
+      <div class="pcard reveal"><h4>The local</h4><p>You know your city — its neighborhoods, its people, and what's missing. You have roots, not just an address.</p></div>
+      <div class="pcard reveal"><h4>The believer</h4><p>You think the world needs more real-life belonging, and you want to build something that outlasts a trend.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="band" id="faq">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="kicker center">Questions</span>
+      <h2>The things everyone asks.</h2>
+    </div>
+    <div class="faq">
+      <div class="qa reveal"><div class="q">Do I need experience in hospitality or nightlife?<span class="pm">+</span></div><div class="a"><p>It helps, but it's not a hard requirement. What matters most is that you're a natural community builder, a committed operator, and deeply connected to your city. The playbook supplies the hospitality systems; you supply the drive and the local roots.</p></div></div>
+      <div class="qa reveal"><div class="q">What kind of investment does it take?<span class="pm">+</span></div><div class="a"><p>It varies by market and space, and the full investment range and unit economics are shared with qualified applicants under NDA during discovery. In broad terms, you should be prepared to fund the build-out plus an operating runway to carry the location through its founding-member ramp.</p></div></div>
+      <div class="qa reveal"><div class="q">Do I get an exclusive territory?<span class="pm">+</span></div><div class="a"><p>Yes. Each operator gets defined, exclusive rights to their market. We're building a network of great clubs, not saturating cities — protecting your territory protects the brand and your investment.</p></div></div>
+      <div class="qa reveal"><div class="q">How long until I open?<span class="pm">+</span></div><div class="a"><p>Most operators move from signed agreement to opening night in roughly six to twelve months, depending on how quickly you secure and build out a space. The full path is laid out in the Path to Open section above.</p></div></div>
+      <div class="qa reveal"><div class="q">What happened to Wicker Park?<span class="pm">+</span></div><div class="a"><p>We made a deliberate choice to concentrate on River North as the flagship — the single, focused proving ground for the model. That discipline is exactly what makes the playbook franchise-ready: one room, perfected, and built to replicate.</p></div></div>
+      <div class="qa reveal"><div class="q">Can I open more than one location?<span class="pm">+</span></div><div class="a"><p>Absolutely. Once you've proven you can run the model, there's a path to multi-unit development within and beyond your territory. Our best operators are the ones we want to grow with.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APPLY ================= -->
+<section class="band apply" id="apply">
+  <div class="wrap">
+    <div class="apply-grid">
+      <div class="reveal">
+        <span class="kicker" style="color:var(--ivory)"><span style="background:var(--ivory)"></span>Apply to Open</span>
+        <h2>Claim your city.</h2>
+        <p class="lead">Tell us who you are and where you'd build. If there's a fit, we'll share the model and start the conversation. Territories are first-come — the map won't stay open forever.</p>
+        <div class="contact">
+          <a href="mailto:draymond@threecitiessocial.com">✉ draymond@threecitiessocial.com</a>
+          <a href="https://threecitiessocial.com" target="_blank" rel="noopener">◉ threecitiessocial.com</a>
+        </div>
+      </div>
+      <div class="reveal">
+        <form id="applyForm">
+          <div class="frow">
+            <div class="field"><label for="name">Full name</label><input id="name" name="name" required placeholder="Your name"></div>
+            <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required placeholder="you@email.com"></div>
+          </div>
+          <div class="frow">
+            <div class="field"><label for="city">Target city</label><input id="city" name="city" required placeholder="Where would you build?"></div>
+            <div class="field"><label for="capital">Capital available</label>
+              <select id="capital" name="capital">
+                <option value="">Select a range</option>
+                <option>Under $250K</option>
+                <option>$250K – $500K</option>
+                <option>$500K – $1M</option>
+                <option>$1M+</option>
+              </select>
+            </div>
+          </div>
+          <div class="field full"><label for="background">Your background</label><input id="background" name="background" placeholder="Hospitality, community, business, etc."></div>
+          <div class="field full"><label for="message">Why Three Cities, why your city?</label><textarea id="message" name="message" placeholder="Tell us a little about your vision..."></textarea></div>
+          <button type="submit" class="btn primary big">Submit application →</button>
+          <p class="form-note">Opens your email client with the application pre-filled. We reply to every serious inquiry.</p>
+          <div class="form-ok" id="formOk"><div class="big">Thanks — your draft is ready.</div><p style="color:var(--ink-soft);font-size:14.5px">Your email app should be open with everything filled in. Just hit send and we'll be in touch.</p></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="#top" class="brand"><span class="mark"><i></i><i></i><i></i></span> Three&nbsp;Cities</a>
+        <p class="fdesc">A modern social club built on belonging. Proven in River North, ready to build in your city.</p>
+      </div>
+      <div>
+        <h5>Explore</h5>
+        <ul>
+          <li><a href="#concept">The Concept</a></li>
+          <li><a href="#flagship">Flagship</a></li>
+          <li><a href="#playbook">The Playbook</a></li>
+          <li><a href="#model">Franchise Model</a></li>
+          <li><a href="#path">Path to Open</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Get in touch</h5>
+        <ul>
+          <li><a href="#apply">Apply to Open</a></li>
+          <li><a href="mailto:draymond@threecitiessocial.com">Email us</a></li>
+          <li><a href="https://threecitiessocial.com" target="_blank" rel="noopener">threecitiessocial.com</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div>© <span id="year"></span> Three Cities. All rights reserved.</div>
+      <div>The franchise blueprint · Confidential</div>
+    </div>
+  </div>
+</footer>
 
 <script>
 "use strict";
-/* ============================================================
-   NCAA 27 Draft Lottery
-   - Weighted ping-pong-ball draw, all picks decided by lottery
-   - Commissioner pulls each pick; physics ball machine on canvas
-   ============================================================ */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
 
-const LS_KEY = "ncaa27-lottery-teams-v1";
-const LS_COMM = "ncaa27-lottery-commish-v1";
-const $ = id => document.getElementById(id);
+// header shadow on scroll
+const header = $("header");
+const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 12);
+onScroll(); window.addEventListener("scroll", onScroll, {passive:true});
 
-// ---------- color palette (distinct, evenly spread) ----------
-function colorFor(i, n){
-  const hue = Math.round((i * 360 / Math.max(n,1) + i*47) % 360);
-  const sat = 70 + (i % 3) * 8;
-  const lig = 55 + (i % 2) * 6;
-  return `hsl(${hue} ${sat}% ${lig}%)`;
-}
+// mobile menu
+const menuBtn = $("#menuBtn"), mobileMenu = $("#mobileMenu");
+menuBtn.addEventListener("click", () => {
+  const open = mobileMenu.classList.toggle("open");
+  menuBtn.classList.toggle("open", open);
+  document.body.style.overflow = open ? "hidden" : "";
+});
+$$("#mobileMenu a").forEach(a => a.addEventListener("click", () => {
+  mobileMenu.classList.remove("open"); menuBtn.classList.remove("open"); document.body.style.overflow = "";
+}));
 
-// ---------- state ----------
-let teams = [];           // {name, weight, color}
-let order = [];           // FULL precomputed order: order[0]=pick #1 ... order[N-1]=last pick
-let revealed = [];        // slot indices already revealed (true/false per slot)
-let revealSlot = -1;      // next slot to reveal (counts DOWN: last pick first)
-let drawing = false;
-let finished = false;
-let soundOn = true;
+// scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+}, {threshold:0.12, rootMargin:"0px 0px -40px 0px"});
+$$(".reveal").forEach(el => io.observe(el));
 
-// ---------- commissioner ----------
-let commish = { name:"d_cape15", photo:null };
-function loadCommish(){
-  try{ const j = JSON.parse(localStorage.getItem(LS_COMM)); if(j && j.name) commish = j; }catch(e){}
-}
-function saveCommish(){ try{ localStorage.setItem(LS_COMM, JSON.stringify(commish)); }catch(e){} }
-function commInitials(){
-  const p = commish.name.replace(/[^a-zA-Z ]/g," ").trim().split(/\s+/).filter(Boolean);
-  if(!p.length) return "DC";
-  if(p.length===1) return p[0].slice(0,2).toUpperCase();
-  return (p[0][0]+p[1][0]).toUpperCase();
-}
-function renderCommish(){
-  const name = commish.name || "Commissioner";
-  $("commChipName").textContent = name;
-  $("boothName").textContent = name;
-  [["commChipAvatar"],["boothAvatar"]].forEach(([id])=>{
-    const el = $(id);
-    if(commish.photo){ el.innerHTML = `<img src="${commish.photo}" style="width:100%;height:100%;object-fit:cover" alt="">`; }
-    else { el.textContent = commInitials(); }
+// playbook accordion
+$$(".pillar-head").forEach(head => {
+  head.addEventListener("click", () => {
+    const pillar = head.parentElement;
+    const body = pillar.querySelector(".pillar-body");
+    const isOpen = pillar.classList.contains("open");
+    $$(".pillar").forEach(p => { p.classList.remove("open"); p.querySelector(".pillar-body").style.maxHeight = null; });
+    if(!isOpen){ pillar.classList.add("open"); body.style.maxHeight = body.scrollHeight + "px"; }
   });
-}
-function bindCommish(){
-  $("commPhotoBtn").addEventListener("click", ()=> $("commPhotoInput").click());
-  $("commPhotoInput").addEventListener("change", e=>{
-    const f = e.target.files && e.target.files[0]; if(!f) return;
-    const rd = new FileReader();
-    rd.onload = ()=>{ commish.photo = rd.result; saveCommish(); renderCommish(); toast("Commissioner photo set."); };
-    rd.readAsDataURL(f);
+});
+// open the first pillar by default
+window.addEventListener("load", () => {
+  const first = $(".pillar.open .pillar-body");
+  if(first) first.style.maxHeight = first.scrollHeight + "px";
+});
+
+// faq accordion
+$$(".qa .q").forEach(q => {
+  q.addEventListener("click", () => {
+    const qa = q.parentElement, a = qa.querySelector(".a");
+    const isOpen = qa.classList.contains("open");
+    $$(".qa").forEach(x => { x.classList.remove("open"); x.querySelector(".a").style.maxHeight = null; });
+    if(!isOpen){ qa.classList.add("open"); a.style.maxHeight = a.scrollHeight + "px"; }
   });
-  $("commNameBtn").addEventListener("click", ()=>{
-    const n = prompt("Commissioner name:", commish.name);
-    if(n && n.trim()){ commish.name = n.trim(); saveCommish(); renderCommish(); }
-  });
-}
-
-// ===========================================================
-//  SETUP
-// ===========================================================
-const SAMPLE = [
- ["Marcus",80],["Dray",75],["T",67],["DC",50],["Justin",45],
- ["Rashaan",40],["AK",33],["Trent",25],["Curtis",20],["Ron",15],
- ["Dwayne",12],["Ralph",10],["Dee",8],["Alex",5],["Blake",3],
- ["Jeff",2.5],["Tev",2],["Perk",1.5],["Twone",1],["Ian",0.9],["James",0.9]
-];
-
-function loadTeams(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw){ const j = JSON.parse(raw); if(Array.isArray(j) && j.length){ return j; } }
-  }catch(e){}
-  return SAMPLE.map(([name,weight])=>({name,weight}));
-}
-function saveTeams(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(teams.map(t=>({name:t.name,weight:t.weight})))); }catch(e){}
-}
-
-function recolor(){ teams.forEach((t,i)=> t.color = colorFor(i, teams.length)); }
-
-function renderBulk(){
-  $("bulk").value = teams.map(t=>`${t.name}, ${t.weight}`).join("\n");
-}
-
-function renderTable(){
-  const tb = $("teamBody");
-  tb.innerHTML = "";
-  const total = teams.reduce((s,t)=> s + (Number(t.weight)||0), 0);
-  teams.forEach((t,i)=>{
-    const pct = total>0 ? (100*(Number(t.weight)||0)/total) : 0;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="muted">${i+1}</td>
-      <td><span class="swatch" style="background:${t.color}"></span></td>
-      <td><input class="tname" data-i="${i}" data-f="name" value="${escapeHtml(t.name)}"/></td>
-      <td><input class="twt" data-i="${i}" data-f="weight" type="number" min="0" step="any" value="${t.weight}"/></td>
-      <td class="pct">${pct.toFixed(1)}%</td>
-      <td><button class="del" data-del="${i}" title="Remove">✕</button></td>`;
-    tb.appendChild(tr);
-  });
-  $("totWeight").textContent = total.toLocaleString();
-  $("countNote").textContent = `${teams.length} team${teams.length===1?"":"s"} in the field`;
-}
-
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-
-function refreshSetup(){ recolor(); renderTable(); saveTeams(); }
-
-// table edits
-$("teamBody").addEventListener("input", e=>{
-  const el = e.target; if(el.dataset.i===undefined) return;
-  const i = +el.dataset.i, f = el.dataset.f;
-  if(f==="name") teams[i].name = el.value;
-  else teams[i].weight = Math.max(0, Number(el.value)||0);
-  // light refresh: only recompute percentages/total without rebuilding inputs
-  const total = teams.reduce((s,t)=> s + (Number(t.weight)||0), 0);
-  $("totWeight").textContent = total.toLocaleString();
-  [...$("teamBody").querySelectorAll("tr")].forEach((tr,idx)=>{
-    const pct = total>0 ? (100*(Number(teams[idx].weight)||0)/total) : 0;
-    tr.querySelector(".pct").textContent = pct.toFixed(1)+"%";
-  });
-  saveTeams();
-});
-$("teamBody").addEventListener("click", e=>{
-  const d = e.target.dataset.del;
-  if(d!==undefined){ teams.splice(+d,1); refreshSetup(); renderBulk(); }
 });
 
-$("addTeam").addEventListener("click", ()=>{
-  teams.push({name:`Team ${teams.length+1}`, weight:10});
-  refreshSetup(); renderBulk();
-});
-$("clearTeams").addEventListener("click", ()=>{
-  if(!confirm("Remove all teams?")) return;
-  teams = []; refreshSetup(); renderBulk();
-});
-$("sampleBtn").addEventListener("click", ()=>{
-  teams = SAMPLE.map(([name,weight])=>({name,weight}));
-  refreshSetup(); renderBulk();
-});
-$("parseBtn").addEventListener("click", ()=>{
-  const lines = $("bulk").value.split(/\n/).map(l=>l.trim()).filter(Boolean);
-  const out = [];
-  for(const line of lines){
-    // split on last comma or tab so team names may contain commas
-    let m = line.match(/^(.*)[,\t]\s*([-\d.]+)\s*%?$/);
-    if(m){ out.push({name:m[1].trim().replace(/,$/,""), weight:Math.max(0,Number(m[2])||0)}); }
-    else { out.push({name:line, weight:10}); }
-  }
-  if(!out.length){ toast("Nothing to load."); return; }
-  teams = out; refreshSetup();
-  toast(`Loaded ${out.length} teams.`);
+// application form -> mailto
+$("#applyForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const g = id => (f.querySelector("#"+id).value || "—").trim();
+  const subject = `Three Cities — Franchise Application: ${g("city")}`;
+  const body =
+`Name: ${g("name")}
+Email: ${g("email")}
+Target city: ${g("city")}
+Capital available: ${g("capital")}
+Background: ${g("background")}
+
+Why Three Cities:
+${g("message")}`;
+  window.location.href = `mailto:draymond@threecitiessocial.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  $("#formOk").classList.add("show");
 });
 
-$("startBtn").addEventListener("click", ()=>{
-  const valid = teams.filter(t=> t.name.trim() && (Number(t.weight)||0) > 0);
-  if(valid.length < 2){ toast("Add at least 2 teams with a weight above 0."); return; }
-  if(valid.length !== teams.length){
-    teams = valid; refreshSetup(); renderBulk();
-  }
-  startLottery();
-});
-
-// ===========================================================
-//  LOTTERY ENGINE
-// ===========================================================
-function totalWeight(){ return teams.reduce((s,t)=> s + t.weight, 0); }
-function seasonOdds(teamIdx){ const tot = totalWeight(); return tot>0 ? teams[teamIdx].weight/tot : 0; }
-
-// Lock in the full draft order up front with a correct sequential weighted
-// draw (so team with most weight is most likely to land pick #1). We then
-// REVEAL bottom-up: last pick first, building suspense toward #1.
-function computeOrder(){
-  const pool = teams.map((_,i)=>i);
-  const result = [];
-  while(pool.length){
-    const total = pool.reduce((s,i)=> s + teams[i].weight, 0);
-    let r = Math.random()*total, k=0;
-    for(; k<pool.length; k++){ r -= teams[pool[k]].weight; if(r<=0) break; }
-    if(k>=pool.length) k = pool.length-1;
-    result.push(pool[k]);
-    pool.splice(k,1);
-  }
-  return result; // result[0] = pick #1
-}
-
-function startLottery(){
-  recolor();
-  order = computeOrder();
-  revealed = teams.map(()=>false);
-  revealSlot = teams.length - 1;   // reveal the LAST pick first
-  finished = false;
-  drawing = false;
-  $("setupView").classList.add("hidden");
-  $("lotteryView").classList.remove("hidden");
-  $("backToSetup").classList.remove("hidden");
-  $("finishedActions").classList.add("hidden");
-  $("subline").textContent = `${teams.length} teams · reverse reveal · Commissioner ${commish.name}`;
-  buildBalls();
-  renderBoard();
-  renderRemaining();
-  startAnim();
-  updateDrawBtn();
-  $("status").textContent = `All ${teams.length} balls are in the hopper. Commissioner ${commish.name}, the floor is yours.`;
-}
-
-function updateDrawBtn(){
-  const btn = $("drawBtn");
-  if(finished){ btn.classList.add("hidden"); return; }
-  btn.classList.remove("hidden");
-  btn.disabled = drawing;
-  const pickNo = revealSlot + 1;
-  btn.textContent = drawing ? "🎱 Drawing…" :
-    (pickNo === 1 ? "🏆 Reveal the #1 PICK" : `🎬 Reveal Pick #${pickNo}`);
-}
-
-// ---- the commissioner draw (reveals one pick, bottom-up) ----
-$("drawBtn").addEventListener("click", ()=>{
-  if(drawing || finished || revealSlot < 0) return;
-  drawing = true; updateDrawBtn();
-  $("status").textContent = "The balls are tumbling…";
-  churn(2.6);
-  startDrumroll();
-
-  const slot = revealSlot;
-  const teamIdx = order[slot];
-
-  setTimeout(()=>{
-    ejectBall(teamIdx, ()=>{
-      stopDrumroll();
-      ding();
-      revealed[slot] = true;
-      // clear that team's remaining balls from the hopper
-      balls = balls.filter(b => b.team !== teamIdx);
-      showReveal(slot+1, teamIdx, seasonOdds(teamIdx));
-      renderBoard();
-      renderRemaining();
-    });
-  }, 2600);
-});
-
-function showReveal(pickNo, teamIdx, odds){
-  const t = teams[teamIdx];
-  $("revealPickNo").textContent = (pickNo===1 ? "🏆 " : "") + ordinal(pickNo) + " Overall Pick";
-  const ball = $("revealBall");
-  ball.style.background = t.color;
-  ball.textContent = initials(t.name);
-  ball.style.animation = "none"; void ball.offsetWidth; ball.style.animation = "";
-  $("revealTeam").textContent = t.name;
-  $("revealOdds").textContent = `${(odds*100).toFixed(1)}% lottery odds`;
-  $("reveal").classList.add("show");
-  if(pickNo === 1) burstConfetti();
-}
-
-$("revealContinue").addEventListener("click", ()=>{
-  $("reveal").classList.remove("show");
-  drawing = false;
-  revealSlot--;
-  if(revealSlot < 0){ finish(); }
-  else {
-    updateDrawBtn();
-    $("status").textContent = revealSlot === 0
-      ? `Down to the final ball. Who's the #1 pick?`
-      : `${revealSlot+1} balls left. Next up: pick #${revealSlot+1}.`;
-  }
-});
-
-function finish(){
-  finished = true;
-  updateDrawBtn();
-  $("status").textContent = `🏆 The draft order is set! ${teams[order[0]].name} lands the #1 pick.`;
-  $("finishedActions").classList.remove("hidden");
-  burstConfetti();
-}
-
-function ordinal(n){
-  const s=["th","st","nd","rd"], v=n%100;
-  return n + (s[(v-20)%10] || s[v] || s[0]);
-}
-function initials(name){
-  const parts = name.trim().split(/\s+/);
-  if(parts.length===1) return parts[0].slice(0,3).toUpperCase();
-  return parts.slice(0,2).map(p=>p[0]).join("").toUpperCase();
-}
-
-// ===========================================================
-//  BOARD + LIVE ODDS
-// ===========================================================
-function renderBoard(){
-  const list = $("pickList");
-  list.innerHTML = "";
-  const N = teams.length;
-  let count = 0;
-  for(let i=0;i<N;i++){
-    const isRevealed = revealed[i];
-    if(isRevealed) count++;
-    const justNow = isRevealed && i === revealSlot; // the slot just revealed
-    const div = document.createElement("div");
-    div.className = "pick" + (isRevealed ? " filled" : "") + (i===0 && isRevealed ? " first":"") +
-                    (justNow ? " justfilled":"");
-    let nm, od="";
-    if(isRevealed){
-      const t = teams[order[i]];
-      nm = `<span class="swatch" style="background:${t.color};margin-right:8px"></span>${escapeHtml(t.name)}`;
-      od = `${(seasonOdds(order[i])*100).toFixed(1)}%`;
-    } else {
-      nm = `<span class="nm empty">${i===0 ? "the #1 pick…" : "on the board…"}</span>`;
-    }
-    div.innerHTML = `<div class="num">${i+1}</div><div class="nm">${nm}</div><div class="od">${od}</div>`;
-    list.appendChild(div);
-  }
-  $("boardCount").textContent = `${count} / ${N} revealed`;
-}
-
-function renderRemaining(){
-  const wrap = $("remList");
-  wrap.innerHTML = "";
-  // teams still hidden = those whose slot hasn't been revealed yet (the better picks)
-  const hidden = order.filter((_,i)=> !revealed[i]);
-  if(!hidden.length){ wrap.innerHTML = `<div class="rem-item muted" style="padding:14px">All picks revealed.</div>`; return; }
-  const sorted = [...hidden].sort((a,b)=> teams[b].weight - teams[a].weight);
-  const max = seasonOdds(sorted[0]) || 1;
-  for(const idx of sorted){
-    const t = teams[idx];
-    const p = seasonOdds(idx);
-    const div = document.createElement("div");
-    div.className = "rem-item";
-    div.innerHTML = `
-      <span class="swatch" style="background:${t.color}"></span>
-      <span style="width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(t.name)}</span>
-      <span class="bar"><i style="width:${(p/max*100).toFixed(1)}%;background:${t.color}"></i></span>
-      <span class="rp">${(p*100).toFixed(1)}%</span>`;
-    wrap.appendChild(div);
-  }
-}
-
-// ===========================================================
-//  CANVAS BALL MACHINE  (lightweight physics)
-// ===========================================================
-const cv = $("machine"), ctx = cv.getContext("2d");
-let balls = [];         // {x,y,vx,vy,r,team}
-let churnUntil = 0;
-let ejecting = null;    // {ball, phase, cb}
-const GRAV = 0.32, DAMP = 0.86, AIR = 0.012;
-
-function fitCanvas(){
-  const w = cv.clientWidth || 720;
-  const ratio = 460/720;
-  cv.width = Math.round(w);
-  cv.height = Math.round(w*ratio);
-}
-window.addEventListener("resize", ()=>{ fitCanvas(); });
-
-function buildBalls(){
-  fitCanvas();
-  balls = [];
-  const total = teams.reduce((s,t)=>s+t.weight,0) || 1;
-  // distribute ~target balls proportional to weight, min 1 each
-  const TARGET = Math.min(220, Math.max(80, teams.length*7));
-  teams.forEach((t,ti)=>{
-    let n = Math.max(1, Math.round(t.weight/total * TARGET));
-    for(let k=0;k<n;k++){
-      balls.push(makeBall(ti));
-    }
-  });
-}
-function makeBall(team){
-  const r = Math.max(7, Math.min(13, cv.width/70));
-  return {
-    x: 20 + Math.random()*(cv.width-40),
-    y: 20 + Math.random()*(cv.height-120),
-    vx:(Math.random()-.5)*4, vy:(Math.random()-.5)*4,
-    r, team
-  };
-}
-
-function churn(seconds){ churnUntil = performance.now() + seconds*1000; }
-
-function ejectBall(teamIdx, cb){
-  // pick a random ball of that team to fly out the top
-  const pool = balls.filter(b=>b.team===teamIdx);
-  const chosen = pool.length ? pool[Math.floor(Math.random()*pool.length)] : null;
-  ejecting = { ball: chosen, cb, started: performance.now() };
-  if(chosen){ chosen.eject = true; }
-  // safety: ensure callback fires even if no ball
-  if(!chosen){ setTimeout(cb, 400); ejecting=null; }
-}
-
-function physics(now){
-  const churning = now < churnUntil;
-  const floor = cv.height - 10;
-  for(const b of balls){
-    if(b.eject){
-      // fly up to the top tube
-      b.vy -= 1.4; b.vx *= 0.92;
-      b.x += b.vx; b.y += b.vy;
-      if(b.y < -30){ // gone
-        b.dead = true;
-      }
-      continue;
-    }
-    b.vy += GRAV;
-    if(churning){
-      // random upward gusts like a blower
-      b.vy -= AIR* (cv.height) * (0.6+Math.random()*0.8) / 30;
-      b.vx += (Math.random()-.5)*1.6;
-    }
-    b.vx *= 0.995; b.vy *= 0.999;
-    b.x += b.vx; b.y += b.vy;
-    // walls
-    if(b.x < b.r){ b.x=b.r; b.vx=Math.abs(b.vx)*DAMP; }
-    if(b.x > cv.width-b.r){ b.x=cv.width-b.r; b.vx=-Math.abs(b.vx)*DAMP; }
-    if(b.y > floor-b.r){ b.y=floor-b.r; b.vy=-Math.abs(b.vy)*DAMP; if(churning) b.vy-=Math.random()*6; }
-    if(b.y < b.r){ b.y=b.r; b.vy=Math.abs(b.vy)*DAMP; }
-  }
-  // light pairwise separation (sampled, to stay cheap)
-  for(let i=0;i<balls.length;i++){
-    const a=balls[i]; if(a.eject) continue;
-    for(let j=i+1;j<Math.min(i+6,balls.length);j++){
-      const c=balls[j]; if(c.eject) continue;
-      const dx=c.x-a.x, dy=c.y-a.y; const d2=dx*dx+dy*dy; const rr=a.r+c.r;
-      if(d2 < rr*rr && d2>0.01){
-        const d=Math.sqrt(d2); const ov=(rr-d)/2; const nx=dx/d, ny=dy/d;
-        a.x-=nx*ov; a.y-=ny*ov; c.x+=nx*ov; c.y+=ny*ov;
-        const p=(a.vx*nx+a.vy*ny - (c.vx*nx+c.vy*ny));
-        a.vx-=p*nx*0.5; a.vy-=p*ny*0.5; c.vx+=p*nx*0.5; c.vy+=p*ny*0.5;
-      }
-    }
-  }
-  // remove dead ejected balls + finish ejection
-  if(ejecting){
-    if(!ejecting.ball || ejecting.ball.dead || now-ejecting.started>1500){
-      balls = balls.filter(b=>!b.dead);
-      const cb = ejecting.cb; ejecting=null; cb && cb();
-    }
-  }
-}
-
-function draw(){
-  ctx.clearRect(0,0,cv.width,cv.height);
-  // hopper glass
-  ctx.fillStyle = "rgba(255,255,255,0.02)";
-  ctx.fillRect(0,0,cv.width,cv.height);
-  // base tray
-  ctx.fillStyle="rgba(255,255,255,0.04)";
-  ctx.fillRect(0,cv.height-12,cv.width,12);
-  // top tube hint
-  ctx.fillStyle="rgba(255,255,255,0.05)";
-  ctx.fillRect(cv.width/2-22,0,44,16);
-
-  for(const b of balls){
-    const grd = ctx.createRadialGradient(b.x-b.r*0.35,b.y-b.r*0.4,b.r*0.2, b.x,b.y,b.r);
-    const col = teams[b.team] ? teams[b.team].color : "#ccc";
-    grd.addColorStop(0,"rgba(255,255,255,0.95)");
-    grd.addColorStop(0.25,col);
-    grd.addColorStop(1, shade(col,-18));
-    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-    ctx.fillStyle=grd; ctx.fill();
-    // tiny highlight
-    ctx.beginPath(); ctx.arc(b.x-b.r*0.35,b.y-b.r*0.4,b.r*0.22,0,Math.PI*2);
-    ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.fill();
-  }
-}
-
-function shade(hsl, amt){
-  // hsl(h s% l%) -> adjust lightness
-  const m = hsl.match(/hsl\(([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\)/);
-  if(!m) return hsl;
-  let l = Math.max(0,Math.min(100, parseFloat(m[3])+amt));
-  return `hsl(${m[1]} ${m[2]}% ${l}%)`;
-}
-
-let animId=null;
-function loop(now){
-  physics(now||performance.now());
-  draw();
-  animId = requestAnimationFrame(loop);
-}
-function startAnim(){ if(!animId) animId=requestAnimationFrame(loop); }
-
-// ===========================================================
-//  SOUND (WebAudio, no assets)
-// ===========================================================
-let actx=null, drumNode=null;
-function audio(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
-function startDrumroll(){
-  if(!soundOn) return; const ac=audio(); if(!ac) return;
-  stopDrumroll();
-  const o=ac.createOscillator(), g=ac.createGain();
-  o.type="triangle"; o.frequency.value=70;
-  const lfo=ac.createOscillator(), lg=ac.createGain();
-  lfo.frequency.value=18; lg.gain.value=40; lfo.connect(lg).connect(o.frequency);
-  g.gain.value=0.0; o.connect(g).connect(ac.destination);
-  o.start(); lfo.start();
-  g.gain.linearRampToValueAtTime(0.06, ac.currentTime+0.3);
-  drumNode={o,g,lfo};
-}
-function stopDrumroll(){
-  if(drumNode){ try{ const ac=audio(); drumNode.g.gain.linearRampToValueAtTime(0,ac.currentTime+0.1);
-    drumNode.o.stop(ac.currentTime+0.15); drumNode.lfo.stop(ac.currentTime+0.15);}catch(e){} drumNode=null; }
-}
-function ding(){
-  if(!soundOn) return; const ac=audio(); if(!ac) return;
-  [880,1320].forEach((f,i)=>{
-    const o=ac.createOscillator(), g=ac.createGain();
-    o.type="sine"; o.frequency.value=f;
-    o.connect(g).connect(ac.destination);
-    g.gain.setValueAtTime(0.0001, ac.currentTime+i*0.08);
-    g.gain.exponentialRampToValueAtTime(0.25, ac.currentTime+i*0.08+0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+i*0.08+0.5);
-    o.start(ac.currentTime+i*0.08); o.stop(ac.currentTime+i*0.08+0.55);
-  });
-}
-$("soundToggle").addEventListener("click", ()=>{
-  soundOn=!soundOn;
-  $("soundToggle").textContent = soundOn ? "🔊 Sound: On" : "🔇 Sound: Off";
-  if(!soundOn) stopDrumroll(); else audio();
-});
-
-// ===========================================================
-//  CONFETTI
-// ===========================================================
-const conf = $("confetti"), cctx = conf.getContext("2d");
-let confetti=[], confAnim=null;
-function sizeConf(){ conf.width=innerWidth; conf.height=innerHeight; }
-sizeConf(); window.addEventListener("resize", sizeConf);
-function burstConfetti(){
-  for(let i=0;i<160;i++){
-    confetti.push({
-      x:innerWidth/2+(Math.random()-.5)*200, y:innerHeight*0.35,
-      vx:(Math.random()-.5)*12, vy:Math.random()*-12-4,
-      r:4+Math.random()*6, c:`hsl(${Math.random()*360} 90% 60%)`,
-      a:1, rot:Math.random()*6, vr:(Math.random()-.5)*0.3
-    });
-  }
-  if(!confAnim) confAnim=requestAnimationFrame(confLoop);
-}
-function confLoop(){
-  cctx.clearRect(0,0,conf.width,conf.height);
-  confetti.forEach(p=>{
-    p.vy+=0.3; p.x+=p.vx; p.y+=p.vy; p.vx*=0.99; p.rot+=p.vr; p.a-=0.008;
-    cctx.save(); cctx.globalAlpha=Math.max(0,p.a); cctx.translate(p.x,p.y); cctx.rotate(p.rot);
-    cctx.fillStyle=p.c; cctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6); cctx.restore();
-  });
-  confetti=confetti.filter(p=>p.a>0 && p.y<conf.height+30);
-  if(confetti.length) confAnim=requestAnimationFrame(confLoop);
-  else { cctx.clearRect(0,0,conf.width,conf.height); confAnim=null; }
-}
-
-// ===========================================================
-//  RESULTS EXPORT
-// ===========================================================
-function resultsText(){
-  let s = `NCAA 27 DRAFT LOTTERY — OFFICIAL ORDER\n`;
-  s += `Commissioner: ${commish.name}\n`;
-  s += `Drawn ${new Date().toLocaleString()}\n`;
-  s += `${"=".repeat(40)}\n`;
-  order.forEach((ti,i)=>{ s += `${String(i+1).padStart(2," ")}. ${teams[ti].name}  (${(seasonOdds(ti)*100).toFixed(1)}%)\n`; });
-  return s;
-}
-$("copyBtn").addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText(resultsText()); toast("Results copied!"); }
-  catch(e){ toast("Copy failed — use Download instead."); }
-});
-$("exportBtn").addEventListener("click", ()=>{
-  const blob = new Blob([resultsText()], {type:"text/plain"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="ncaa27-draft-order.txt"; a.click(); URL.revokeObjectURL(a.href);
-});
-$("restartBtn").addEventListener("click", startLottery);
-$("backToSetup").addEventListener("click", ()=>{
-  if(order.length && !finished && !confirm("Leave the draw in progress and edit teams?")) return;
-  $("lotteryView").classList.add("hidden");
-  $("setupView").classList.remove("hidden");
-  $("backToSetup").classList.add("hidden");
-  $("subline").textContent = "Commissioner control room";
-  renderTable(); renderBulk();
-});
-
-// ===========================================================
-//  TOAST + INIT
-// ===========================================================
-let toastT=null;
-function toast(msg){
-  const t=$("toast"); t.textContent=msg; t.classList.add("show");
-  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"), 2200);
-}
-
-function init(){
-  teams = loadTeams();
-  recolor();
-  renderBulk();
-  renderTable();
-  loadCommish();
-  renderCommish();
-  bindCommish();
-}
-init();
+// footer year
+$("#year").textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
