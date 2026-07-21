@@ -892,6 +892,8 @@ function renderDoor(){
   const draft=loadDraft();
   if(draft){ intake.data={...intake.data, ...draft.data}; intake.step=Math.min(draft.step||0, STEPS.length-1); }
   else { const seg=getSeg(); if(seg&&seg.prefill){ for(const k in seg.prefill){ intake.data[k]=Array.isArray(seg.prefill[k])?[...seg.prefill[k]]:seg.prefill[k]; } } }
+  intake.data.source = (getParam('s')||'').toLowerCase().trim();       // which flyer tile
+  intake.data.source_loc = (getParam('loc')||'').trim();               // which location, e.g. loc=intelligentsia-lakeview
   drawStep();
   if(draft && intake.step>0) setTimeout(()=>toast('Picked up right where you left off'),350);
   const body=$('#door-body');
@@ -1178,6 +1180,7 @@ async function submitApplication(){
   const params=new URLSearchParams((location.hash.split('?')[1]||''));
   const row={ couple_name:d.couple_name, partner1_name:d.partner1_name, partner2_name:d.partner2_name, neighborhood:d.neighborhood,
     email:d.email||'', phone:d.phone||'', social:d.social||'', agreed:!!d.agreed, token, referred_by:params.get('ref')||'',
+    source:d.source||'', source_loc:d.source_loc||'',
     life_stage:d.life_stage, kids:d.kids||'', kid_ages:d.kid_ages, kids_into:d.kids_into||[], family_vibe:d.family_vibe||[], hang_appetite:d.hang_appetite||'', free_slots:d.free_slots, bonds_by:d.bonds_by||'', hang_formats:d.hang_formats||[],
     partner1_posture:d.partner1_posture||50, partner2_posture:d.partner2_posture||50,
     partner1_tags:p1t, partner2_tags:p2t, partner1_likes:p1t.map(tagLabel).join(', '), partner2_likes:p2t.map(tagLabel).join(', '),
@@ -1771,6 +1774,7 @@ function drawApplications(){
   const active=all.filter(a=>a.status!=='waitlist'), waiting=all.filter(a=>a.status==='waitlist');
   body.appendChild(el(`<div class="panel-head"><h2>Applications</h2><div class="count">${active.length} in your area · ${waiting.length} waitlisted</div></div>`));
   if(!all.length){ body.appendChild(el(`<div class="empty"><h3>No applications yet</h3><p>When a family applies from the front door, it lands here.</p></div>`)); return; }
+  const board=sourceBoard(all); if(board) body.appendChild(board);
   body.appendChild(el(`<div class="app-filters">
     <input type="text" id="app-q" placeholder="Search name or neighborhood…" autocomplete="off" />
     <select id="app-status">
@@ -1783,7 +1787,7 @@ function drawApplications(){
   const mkTable=(rows)=>{ const t=el(`<table class="list"><thead><tr><th>Family</th><th>Neighborhood</th><th>Applied</th><th>Status</th></tr></thead><tbody></tbody></table>`);
     const tb=t.querySelector('tbody');
     rows.forEach(a=>{ const tr=el(`<tr data-id="${a.id}">
-        <td><div class="cn">${esc(a.couple_name)} <span class="seg">${esc(coupleSegment(a))}</span></div><div class="sub2">${esc(firstNames(a))}${isSolo(a)?' · solo':''}</div></td>
+        <td><div class="cn">${esc(a.couple_name)} <span class="seg">${esc(coupleSegment(a))}</span></div><div class="sub2">${esc(firstNames(a))}${isSolo(a)?' · solo':''}${sourceLine(a)?' · '+esc(sourceLine(a)):''}</div></td>
         <td>${esc(a.neighborhood)||'–'}</td><td class="sub2">${timeAgo(a.created_at)}</td><td>${statusBadge(a.status)}</td></tr>`);
       tr.onclick=()=>openApplication(a.id); tb.appendChild(tr); });
     return t; };
@@ -1825,6 +1829,7 @@ function openApplication(id){
       <div class="kv"><div class="k">Phone</div><div class="v">${a.phone?`<a href="tel:${esc((a.phone||'').replace(/[^0-9+]/g,''))}">${esc(a.phone)}</a>`:'<span style="color:#9a5040">none given</span>'}</div></div>
       <div class="kv"><div class="k">House rules</div><div class="v">${a.agreed?'<span style="color:var(--good);font-weight:600">✓ agreed</span>':'<span style="color:#9a5040;font-weight:600">not agreed</span>'}</div></div>
       ${a.referred_by?`<div class="kv"><div class="k">Referred by</div><div class="v">${esc(referrerOf(a)||'a member')}</div></div>`:''}
+      ${sourceLine(a)?`<div class="kv"><div class="k">Came from</div><div class="v">${esc(sourceLine(a))}</div></div>`:''}
       <div class="kv"><div class="k">Life stage</div><div class="v">${esc(arr(a.life_stage).join(', '))||'–'}</div></div>
       <div class="kv"><div class="k">At home</div><div class="v">${esc(a.kids)||'–'}${arr(a.kid_ages).length?`  ·  ${esc(arr(a.kid_ages).join(', '))}`:''}</div></div>
       <div class="sect-title">What they're hoping for</div>
@@ -2370,6 +2375,21 @@ function tableCard(t){
 function firstNames(a){ return a?[a.partner1_name,a.partner2_name].filter(Boolean).join(' & '):''; }
 function joinList(a){ a=a.filter(Boolean); if(a.length<=1)return a[0]||''; if(a.length===2)return a[0]+' and '+a[1]; return a.slice(0,-1).join(', ')+', and '+a[a.length-1]; }
 /* Who this couple is, at a glance (removes host guesswork) */
+// Where a family actually came from (the flyer tile + location they scanned),
+// as opposed to coupleSegment() which is inferred from their answers.
+function segLabelOf(slug){ const s=SEGMENTS[(slug||'').toLowerCase().trim()]; return s?s.label:''; }
+function sourceLine(a){ const seg=segLabelOf(a.source); const loc=(a.source_loc||'').trim(); if(!seg&&!loc) return ''; return [seg&&('via '+seg), loc].filter(Boolean).join(' · '); }
+function sourceBoard(all){
+  const bySeg={}, byLoc={};
+  all.forEach(a=>{ const s=segLabelOf(a.source); if(s) bySeg[s]=(bySeg[s]||0)+1; const l=(a.source_loc||'').trim(); if(l) byLoc[l]=(byLoc[l]||0)+1; });
+  const segKeys=Object.keys(bySeg), locKeys=Object.keys(byLoc);
+  if(!segKeys.length && !locKeys.length) return null;
+  const chips=(obj)=>Object.keys(obj).sort((x,y)=>obj[y]-obj[x]).map(k=>`<div class="wl-chip"><b>${esc(k)}</b> · ${obj[k]}</div>`).join('');
+  return el(`<div class="source-board" style="margin:4px 0 20px">
+    ${segKeys.length?`<div class="sect-title">Which flyer tile is working</div><div class="wl-hoods">${chips(bySeg)}</div>`:''}
+    ${locKeys.length?`<div class="sect-title" style="margin-top:16px">Which location is working</div><div class="wl-hoods">${chips(byLoc)}</div>`:''}
+  </div>`);
+}
 function coupleSegment(a){
   const ls=arr(a.life_stage), ages=arr(a.kid_ages);
   const hasKids = ls.includes('Kids at home') || ages.some(x=>x!=='No kids'&&x!=='Expecting');
