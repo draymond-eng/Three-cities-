@@ -759,6 +759,19 @@ const FORMAT_LABEL = {family:'Family Day', casual:'Casual hang', active:'Active'
 const KID_INTERESTS = ["Sports","Arts & crafts","Music","Animals","Outdoorsy","Building & LEGO","Books","Screens & gaming","Dance","Swimming","Pretend play","Still little (0-2)"];
 /* A family's vibe — the values/style that quietly decide whether two families click */
 const FAMILY_VIBES = ["Kids-first","Date-night people too","Go-with-the-flow","Planners","Outdoorsy","Homebodies","Big & loud","Low-key"];
+/* Segment deep-links — each QR on a Stoop flyer opens a tailored front door and
+   pre-fills the application for that season of life. Keys are the ?s= slug. */
+const SEGMENTS = {
+  'new-chicago':  { label:'New to Chicago',    kicker:'New to Chicago', h1:'New here? Let’s find your&nbsp;people.', sub:'Moving to a new city with a family is a lot. Stoop matches you with a few families right in your neighborhood, in the same season of life, so Chicago starts to feel like home.', prefill:{ life_stage:['New to Chicago'] } },
+  'expecting':    { label:'Expecting Parents',  kicker:'Expecting parents', h1:'Meet families before the baby&nbsp;comes.', sub:'The friends who get this chapter make all the difference. Stoop connects you with other expecting and new parents nearby, so your village is in place before the big day.', prefill:{ life_stage:['Expecting'], kid_ages:['Expecting'] } },
+  'babies':       { label:'Parents of Babies',  kicker:'Parents of babies', h1:'For the ones up at&nbsp;3am.', sub:'Newborn life is better with parents on the same schedule. Stoop matches your family with others nearby who have little ones the same age, for easy, low-key hangs.', prefill:{ life_stage:['Parents, kids at home'], kid_ages:['0-2'] } },
+  'toddlers':     { label:'Toddler Playdates',  kicker:'Toddler playdates', h1:'Playdates that click for&nbsp;everyone.', sub:'The good ones happen when the kids get along and so do the grown-ups. Stoop pairs your family with a few nearby whose toddlers are into the same things.', prefill:{ life_stage:['Parents, kids at home'], kid_ages:['3-5'], hang_formats:['family'] } },
+  'dads-night':   { label:'Dad’s Night Out', kicker:'Dad’s night out', h1:'Dads deserve friends&nbsp;too.', sub:'An easy standing night out with a few dads from your neighborhood. No agenda, just good company after the kids are down.', prefill:{ life_stage:['Parents, kids at home'], hang_formats:['casual'] } },
+  'family-events':{ label:'Family Events',      kicker:'Family events', h1:'Your weekends, but with&nbsp;friends.', sub:'Neighborhood family days and park hangs with a few families near you, in the same season. Kids run around, grown-ups actually talk.', prefill:{ life_stage:['Parents, kids at home'], hang_formats:['family'] } },
+  'weekend':      { label:'Weekend Adventures', kicker:'Weekend adventures', h1:'Find your weekend&nbsp;crew.', sub:'For the families who’d rather be out doing it, hikes, the zoo, the lakefront. Stoop matches you with nearby families who move at your speed.', prefill:{ life_stage:['Parents, kids at home'], hang_formats:['active'] } }
+};
+function getParam(name){ try{ const hq=new URLSearchParams((location.hash.split('?')[1])||''); if(hq.get(name)) return hq.get(name); return new URLSearchParams(location.search||'').get(name)||''; }catch(_){ return ''; } }
+function getSeg(){ const s=(getParam('s')||'').toLowerCase().trim(); return SEGMENTS[s]||null; }
 /* Launch area: North Side first. Everyone else joins a waitlist (West & South Side coming soon). */
 const NORTH_SIDE_HOODS = ["Albany Park","Andersonville","Avondale","Bucktown","Edgewater","Gold Coast","Irving Park","Jefferson Park","Lakeview","Lincoln Park","Lincoln Square","Logan Square","North Center","Old Town","Portage Park","Ravenswood","River North","Rogers Park","Roscoe Village","Ukrainian Village","Uptown","West Town","Wicker Park","Wrigleyville"];
 /* Specific interest tags (per partner). cat = broad category for reasoning; exact-tag overlap earns a bonus. */
@@ -828,7 +841,7 @@ function syncFields(){ for(const id in FIELD_MAP){ const e=document.getElementBy
 // (773) 555-0123 — tidy a US number for the console; leave anything unusual as typed.
 function prettyPhone(v){ const d=(v||'').replace(/[^0-9]/g,''); const n=d.length===11&&d[0]==='1'?d.slice(1):d; if(n.length!==10) return v; return `(${n.slice(0,3)}) ${n.slice(3,6)}-${n.slice(6)}`; }
 let _syncT; function scheduleSync(){ clearTimeout(_syncT); _syncT=setTimeout(()=>{ syncFields(); saveDraft(); },500); }
-function getRef(){ try{ return new URLSearchParams(location.hash.split('?')[1]||'').get('ref')||''; }catch(_){ return ''; } }
+function getRef(){ return getParam('ref'); }
 function showSplash(onDone){
   const app=$('#app'); app.innerHTML='';
   const s=el(`
@@ -844,6 +857,13 @@ function showSplash(onDone){
       <div class="fine">Bring the kids, the chaos, all of it. Strictly platonic, wonderfully so.</div>
     </div></div>`);
   app.appendChild(s);
+  const seg=getSeg();
+  if(seg){
+    const k=s.querySelector('.kicker'); if(k) k.textContent=seg.kicker;
+    const h=s.querySelector('h1'); if(h) h.innerHTML=seg.h1;
+    const p=s.querySelector('.sub'); if(p) p.innerHTML=seg.sub;
+    const iv=s.querySelector('.invited'); if(iv){ iv.innerHTML=`<span class="pill"><span class="iv-mark">✦</span> ${esc(seg.label)}</span>`; iv.classList.add('show'); }
+  }
   const ref=getRef();
   if(ref && DB.inviterName){ DB.inviterName(ref).then(name=>{ if(!name) return; const iv=s.querySelector('.invited'); if(iv){ iv.innerHTML=`<span class="pill"><span class="iv-mark">✦</span> ${esc(name)} invited you two</span>`; iv.classList.add('show'); } }).catch(()=>{}); }
   s.querySelector('[data-enter]').onclick=()=>{ sessionStorage.setItem(SPLASH_KEY,'1'); onDone(); };
@@ -871,6 +891,7 @@ function renderDoor(){
     </div>`));
   const draft=loadDraft();
   if(draft){ intake.data={...intake.data, ...draft.data}; intake.step=Math.min(draft.step||0, STEPS.length-1); }
+  else { const seg=getSeg(); if(seg&&seg.prefill){ for(const k in seg.prefill){ intake.data[k]=Array.isArray(seg.prefill[k])?[...seg.prefill[k]]:seg.prefill[k]; } } }
   drawStep();
   if(draft && intake.step>0) setTimeout(()=>toast('Picked up right where you left off'),350);
   const body=$('#door-body');
