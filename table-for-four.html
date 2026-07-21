@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#26201a" />
 <title>Stoop · Chicago</title>
-<meta name="description" content="A curated Chicago club for parents and parents-to-be to meet family friends who live nearby and are in the same life phase. By application." />
+<meta name="description" content="A neighborly Chicago community for parents and parents-to-be to meet family friends who live nearby and are in the same life phase. By application." />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Stoop" />
 <meta property="og:title" content="Stoop" />
@@ -549,8 +549,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
 <script>
 /* ============================================================
-   Stoop — Chicago  ·  curated club for couple friends
-   Model: apply → curated mixer → flag who you clicked with →
+   Stoop — Chicago  ·  neighborly community for family friends
+   Model: apply → hang → flag who you clicked with →
           concierge pairs the mutual sparks into a 1:1 hang.
    Self-contained, no build step, runs on static hosting.
 
@@ -566,14 +566,14 @@ const isAdminEmail = (e)=> ADMIN_EMAILS.some(a=>a.toLowerCase()===(e||'').trim()
 const USE_SUPABASE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 /* ---- The supper: venue + paid reservation ----
-   VENUE is the private members club that hosts each Stoop supper.
+   VENUE is the private space that hosts each Stoop supper.
    PRICE is what a couple pays to reserve their two seats.
    PAY_URL: paste your Stripe Payment Link here (Dashboard -> Payment Links
    -> create a link for the couple price). When set, "Reserve our seats"
    sends the couple to Stripe to pay; when blank, it still holds the RSVP
    and tells them payment details are coming by email. */
 const VENUE_NAME  = "Three Cities Social";
-const VENUE_LINE  = "a private members club";
+const VENUE_LINE  = "a private supper";
 const PRICE_LABEL = "$75 / couple";        // founding rate for the first two suppers; change to "$110 / couple" after
 const PRICE_TAG   = "Founding rate";        // small badge by the price; set to "" once the founding suppers are done
 const PRICE_INCLUDES = "dinner and a welcome drink for the two of you";
@@ -890,7 +890,7 @@ function showSplash(onDone){
       <div class="kicker">Stoop</div>
       <h1>Family friends, right in&nbsp;your&nbsp;neighborhood.</h1>
       <div class="thin"></div>
-      <p class="sub">A curated Chicago club for parents, parents-to-be, and couples hoping to get there, to find the <b>families near you, in the same season of life</b>. Park days, family hangs, and the occasional grown-ups dinner.</p>
+      <p class="sub">A neighborly Chicago community for parents, parents-to-be, and couples hoping to get there, to find the <b>families near you, in the same season of life</b>. Park days, family hangs, and the occasional grown-ups dinner.</p>
       <div class="venue">Neighborhood family days, plus easy dinners once you've clicked.</div>
       <button class="btn gold" data-enter>Come in →</button>
       <div class="fine">Bring the kids, the chaos, all of it. Strictly platonic, wonderfully so.</div>
@@ -929,7 +929,7 @@ function renderDoor(){
       </div>
       <div id="door-body"></div>
       <div class="foot">
-        A curated Chicago club for parents and parents-to-be.<br>
+        A neighborly Chicago community for parents and parents-to-be.<br>
         Chicago · by application &nbsp;·&nbsp; <a href="#/console">Concierge sign-in</a>
       </div>
     </div>`));
@@ -1442,7 +1442,7 @@ function publicShell(inner){
     <div class="door-top"><div class="brand"><div class="mono">${MARK_CREAM}</div>
       <div class="wordmark">Stoop<small>family friends in your neighborhood</small></div></div></div>
     <div id="pub-body"></div>
-    <div class="foot">A curated Chicago club for parents and parents-to-be.</div></div>`));
+    <div class="foot">A neighborly Chicago community for parents and parents-to-be.</div></div>`));
   $('#pub-body').appendChild(inner);
 }
 function publicError(msg){ publicShell(el(`<div class="card done"><div class="seal">${MARK_RUST}</div><h2>Hmm.</h2><p>${esc(msg)}</p><div style="margin-top:26px"><button class="btn ghost" onclick="location.hash='#/'">Go to Stoop</button></div></div>`)); }
@@ -1473,7 +1473,7 @@ async function renderInvite([eventId, token]){
   const countdown=countdownText(ev.scheduled_at);
   const paid = (ev.format||'supper')==='supper';
   const kindNoun = ev.format==='family'?'family day':ev.format==='casual'?'get-together':ev.format==='active'?'meetup':'evening';
-  const whereSub = paid ? 'A private social club · your seat is the way in, no membership required' : 'Kids welcome. Come as you are.';
+  const whereSub = paid ? 'A private supper · your seat is the way in, no membership required' : 'Kids welcome. Come as you are.';
   const cal={ title:'Stoop: '+ev.title, venue:ev.venue||VENUE_NAME, start:ev.scheduled_at, mins: paid?150:120, desc:'Your Stoop '+(paid?'hang':kindNoun)+'. See you there.' };
   const comingHtml = (!past&&teasers.length) ? `<div class="coming"><div class="lbl">Who's coming</div>${teasers.map(t=>`<div class="coming-row">${esc(t)}</div>`).join('')}<div class="coming-note">Names stay a mystery until you ${paid?'sit down together':'meet'}.</div></div>` : '';
   const doRSVP=async(val)=>{ await DB.setRsvp(eventId, token, val); renderInvite([eventId, token]); };
@@ -1626,7 +1626,7 @@ async function renderHome(token){
     }).join('') : '';
   const attended=h.attended||0, given=arr(h.given);
   const invitesLeft=Math.max(0, attended - given.length);
-  const broughtLine = given.length ? `<div class="sub2" style="margin-top:10px">You've brought <b>${esc(given.join(', '))}</b> into the club.</div>` : '';
+  const broughtLine = given.length ? `<div class="sub2" style="margin-top:10px">You've brought <b>${esc(given.join(', '))}</b> into the community.</div>` : '';
   let invHtml;
   if(invitesLeft>0){
     invHtml=`<div class="sect-title">Your invitation${invitesLeft>1?'s':''}</div>
@@ -1635,7 +1635,7 @@ async function renderHome(token){
         <button class="btn block" id="home-ref">Share your invitation →</button>${broughtLine}</div>`;
   } else if(attended===0){
     invHtml=`<div class="sect-title">Your invitation</div>
-      <div class="home-refer"><div class="sub2" style="line-height:1.5">Come to your first hang and you'll earn an invitation to give, one family you'd love to have nearby. The club grows by who you bring.</div></div>`;
+      <div class="home-refer"><div class="sub2" style="line-height:1.5">Come to your first hang and you'll earn an invitation to give, one family you'd love to have nearby. The community grows by who you bring.</div></div>`;
   } else {
     invHtml=`<div class="sect-title">Your invitations</div>
       <div class="home-refer"><div class="pn">You've used your invitations.</div><div class="sub2" style="margin-top:4px;line-height:1.5">Come to another hang to earn one more.</div>${broughtLine}</div>`;
@@ -1660,7 +1660,7 @@ async function renderHome(token){
   const a2=a2hsCard(); if(a2) body.appendChild(a2);
   publicShell(body);
   const hr=body.querySelector('#home-ref');
-  if(hr) hr.onclick=()=>{ if(navigator.share){ navigator.share({title:'An invitation to Stoop',text:`${h.partner1} & ${h.partner2} are inviting you two to Stoop, a curated Chicago club for families and families-to-be. Here's their invitation:`,url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Invitation link copied')); } else toast(refUrl); };
+  if(hr) hr.onclick=()=>{ if(navigator.share){ navigator.share({title:'An invitation to Stoop',text:`${h.partner1} & ${h.partner2} are inviting you two to Stoop, a neighborly Chicago community for families and families-to-be. Here's their invitation:`,url:refUrl}); } else if(navigator.clipboard){ navigator.clipboard.writeText(refUrl).then(()=>toast('Invitation link copied')); } else toast(refUrl); };
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function homeIntroLabel(s){ return ({proposed:'Introduction in the works',confirmed:'Table confirmed',happened:'You met!',matched:'Matched',fizzled:'Didn’t quite click'})[s]||s; }
@@ -1796,7 +1796,7 @@ function drawDashboard(){
     <div class="panel-head"><h2>The pulse</h2><div class="count">${esc(fmtDay(new Date().toISOString()))}</div></div>
     <div class="dash-tiles">
       ${tile(newApps.length,'Waiting to review', newApps.length?'new applications':'all caught up','applications')}
-      ${tile(members.length,'Families in the club', paired?paired+' paired so far':null,'applications')}
+      ${tile(members.length,'Families in the community', paired?paired+' paired so far':null,'applications')}
       ${tile(upcoming?upSeats:'–', upcoming?'Reserved, next hang':'No hang yet', upcoming?'of '+upCap+' spots':'create one','events')}
       ${waiting.length?tile(waiting.length,'On the waitlist','off-area demand','applications'):tile(sparks,'Sparks to introduce', sparks?'mutual matches':'none pending','pairing')}
     </div>
@@ -1826,7 +1826,7 @@ const STATUS_RANK={ new:1, invited:2, attended:3, paired:4 };
 function drawAnalytics(){
   const body=$('#console-body'); body.innerHTML='';
   const apps=consoleState.apps||[];
-  const funnelPool=apps.filter(a=>a.status!=='passed'&&a.status!=='waitlist'); // families in the club funnel
+  const funnelPool=apps.filter(a=>a.status!=='passed'&&a.status!=='waitlist'); // families in the community funnel
   const waiting=apps.filter(a=>a.status==='waitlist');
   const atLeast=(a,s)=>(STATUS_RANK[a.status]||0)>=STATUS_RANK[s];
   const applied=funnelPool.length;
@@ -1842,7 +1842,7 @@ function drawAnalytics(){
   body.appendChild(el(`<div>
     <div class="panel-head"><h2>Analytics</h2><div class="count">${apps.length} total application${apps.length>1?'s':''}</div></div>
     <div class="dash-tiles">
-      ${tile(applied,'In the club funnel', waiting.length?`+${waiting.length} waitlisted`:'applied & in-area')}
+      ${tile(applied,'In the community funnel', waiting.length?`+${waiting.length} waitlisted`:'applied & in-area')}
       ${tile(attended,'Have come to a hang', applied?pct(attended,applied)+'% of applicants':null)}
       ${tile(paired,'Paired up', attended?pct(paired,attended)+'% of attendees':null)}
       ${tile(waiting.length,'Waitlist (off-area)', waiting.length?'demand to open next':'none yet')}
@@ -1908,7 +1908,7 @@ function drawAnalytics(){
   if(sKeys.length){
     const maxS=Math.max(1,...sKeys.map(k=>seasons[k]));
     body.appendChild(el(`<div style="margin-top:28px">
-      <div class="panel-head"><h2>Who's in the club</h2><div class="count">by season of life</div></div>
+      <div class="panel-head"><h2>Who's in the community</h2><div class="count">by season of life</div></div>
       <div class="den-list">${sKeys.map(k=>`<div class="den-row"><div class="den-name">${esc(k)}</div><div class="den-track"><div class="den-fill" style="width:${Math.max(6,Math.round(seasons[k]/maxS*100))}%"></div></div><div class="den-n">${seasons[k]}</div></div>`).join('')}</div>
     </div>`));
   }
@@ -2106,7 +2106,7 @@ function drawEvents(){
   body.appendChild(el(`<div class="panel-head"><h2>Events</h2><div style="display:flex;gap:8px"><button class="btn sm gold" id="build_mixer">Build a mixer</button><button class="btn sm" id="new_event">+ New mixer</button></div></div>`));
   $('#new_event').onclick=openEventForm;
   $('#build_mixer').onclick=openMixerBuilder;
-  if(!events.length){ body.appendChild(el(`<div class="empty"><h3>No events yet</h3><p>Create a curated mixer, invite couples, and read the room afterward.</p></div>`)); return; }
+  if(!events.length){ body.appendChild(el(`<div class="empty"><h3>No events yet</h3><p>Create a hang, invite families, and read the room afterward.</p></div>`)); return; }
   const grid=el(`<div class="grid-cards"></div>`);
   events.forEach(ev=>{
     const roster=arr(ev.roster); const att=roster.filter(r=>r.attended).length;
@@ -2123,7 +2123,7 @@ function drawEvents(){
 }
 function openEventForm(){
   const scrim=el(`<div class="modal-scrim"><div class="modal">
-    <div class="modal-head"><h2>New hang</h2><p>A curated hang for a handful of Chicago families.</p></div>
+    <div class="modal-head"><h2>New hang</h2><p>A hang for a handful of Chicago families.</p></div>
     <div class="modal-body">
       <div class="field"><label>Neighborhood <span class="hint">anchors the hang &amp; who gets invited</span></label>
         <select id="e_hood">
@@ -2557,7 +2557,7 @@ function openMixerBuilder(){
     mb.querySelector('[data-create]').onclick=async()=>{
       const roomApps=room.ids.map(id=>appById(id));
       const venueFor = (fmt==='family'||fmt==='casual') ? suggestPark(roomApps) : (fmt==='active' ? `A court near ${(roomApps.find(a=>a&&a.neighborhood)||{}).neighborhood||'you'}` : VENUE_NAME);
-      const ev=await DB.insertEvent({ title:(FORMAT_LABEL[fmt]||'Curated mixer'), format:fmt, venue:venueFor, scheduled_at:null, capacity:K+2, status:'upcoming',
+      const ev=await DB.insertEvent({ title:(FORMAT_LABEL[fmt]||'Stoop hang'), format:fmt, venue:venueFor, scheduled_at:null, capacity:K+2, status:'upcoming',
         notes:'Auto-composed by the Matchmaker.', roster: room.ids.map(id=>({couple_id:id,attended:false,rsvp:null,likes:[]})) });
       for(const id of room.ids){ const a=appById(id); if(a&&a.status==='new') await DB.updateApplication(id,{status:'invited'}); }
       close(); toast('Mixer created. Set the venue and date.'); consoleState.tab='events'; await loadConsoleData(); openEvent(ev.id);
@@ -2727,7 +2727,7 @@ function emailWaitlist(a){
   return `Subject: About your Stoop application\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nThank you for applying to Stoop. The last few hangs near you filled up before we could seat you, but you're on our list and we'd love to have you at an upcoming one. We'll reach out the moment there's a spot with your names on it.\n\nWarmly,\nStoop`;
 }
 function emailWelcome(a){
-  return `Subject: Welcome to Stoop\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nWe'd love to have you in the club. You'll get an invitation to a hang near you soon, with a few families in your same season.\n\nIn the meantime, your home base is here:\n${homeLinkFor(a)}\n\nGlad you're joining us,\nStoop`;
+  return `Subject: Welcome to Stoop\n\nHi ${a.partner1_name} and ${a.partner2_name},\n\nWe'd love to have you in the community. You'll get an invitation to a hang near you soon, with a few families in your same season.\n\nIn the meantime, your home base is here:\n${homeLinkFor(a)}\n\nGlad you're joining us,\nStoop`;
 }
 function openEmailDrafts(a){
   const tpls=[['Application received', emailReceived(a)],['Welcome / accepted', emailWelcome(a)],['Not this round', emailWaitlist(a)]];
