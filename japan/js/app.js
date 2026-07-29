@@ -223,11 +223,26 @@
     }));
     return pins;
   }
+  function renderMapFallback() {
+    const s = $("#screen-map");
+    s.innerHTML = `
+      <div class="section-title">Places</div>
+      <div class="section-sub">The live map needs a connection — here's every pinned stop, by city. Tap any to open in Maps.</div>
+      ${T.cities.map((c) => {
+        const pins = collectPins().filter((p) => p.city === c.id);
+        return `<div class="card"><h3>${c.emoji} ${esc(c.name)}</h3>
+          ${pins.map((p) => {
+            const emoji = p.type === "stay" ? "🏨" : (TYPE[p.type] || TYPE.sight).emoji;
+            return `<a class="row" style="text-decoration:none;color:inherit" href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">
+              <span style="font-size:18px">${emoji}</span>
+              <div class="r-main"><div class="r-title">${esc(p.title)}</div><div class="r-sub">${esc(p.note || "")}</div></div>
+              <span class="tl-map">📍</span></a>`;
+          }).join("")}
+        </div>`;
+      }).join("")}`;
+  }
   function initMap() {
-    if (typeof L === "undefined") {
-      $("#screen-map").innerHTML = `<div class="section-title">Map</div><div class="empty">Map needs an internet connection to load tiles. Reconnect and reopen this tab.</div>`;
-      return;
-    }
+    if (typeof L === "undefined") { renderMapFallback(); return; }
     if (map) { setTimeout(() => map.invalidateSize(), 60); return; }
     const s = $("#screen-map");
     s.innerHTML = `
