@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <title>Japan 2027 · Three Cities Social</title>
+  <meta name="description" content="The group travel app for our April 2027 Japan trip — itinerary, map, crew, budget, packing, and group votes." />
+  <meta name="theme-color" content="#1f3a5f" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Japan 2027" />
+
+  <!-- Leaflet (interactive map). Loads from CDN when online; map degrades gracefully offline. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark">🗾</span>
+        <div>
+          <div class="name">Japan 2027</div>
+          <div class="sub">Three Cities Social</div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <button class="whoami" id="whoamiBtn" aria-label="Set who you are">
+        <span id="whoamiAvatar"></span>
+        <span id="whoamiName">Who are you?</span>
+      </button>
+    </header>
+
+    <!-- Screens (rendered by app.js) -->
+    <main>
+      <section class="screen active" id="screen-home"></section>
+      <section class="screen" id="screen-itinerary"></section>
+      <section class="screen" id="screen-map"></section>
+      <section class="screen" id="screen-crew"></section>
+      <section class="screen" id="screen-stays"></section>
+      <section class="screen" id="screen-flights"></section>
+      <section class="screen" id="screen-budget"></section>
+      <section class="screen" id="screen-packing"></section>
+      <section class="screen" id="screen-decisions"></section>
+      <section class="screen" id="screen-ideas"></section>
+      <section class="screen" id="screen-guide"></section>
+    </main>
+
+    <!-- Bottom tab bar -->
+    <nav class="tabbar" id="tabbar">
+      <button class="tab active" data-screen="home"><span class="ti">🏠</span>Home</button>
+      <button class="tab" data-screen="itinerary"><span class="ti">🗓️</span>Plan</button>
+      <button class="tab" data-screen="map"><span class="ti">🗺️</span>Map</button>
+      <button class="tab" data-screen="crew"><span class="ti">👥</span>Crew</button>
+      <button class="tab" id="moreTab"><span class="ti">•••</span>More</button>
+    </nav>
+
+    <!-- More sheet -->
+    <div class="sheet-backdrop" id="sheetBackdrop"></div>
+    <div class="sheet" id="moreSheet" role="dialog" aria-label="More sections">
+      <div class="grab"></div>
+      <h4>More</h4>
+      <div class="sheet-grid">
+        <button class="sheet-item" data-screen="decisions"><span class="si">🗳️</span> Decisions</button>
+        <button class="sheet-item" data-screen="stays"><span class="si">🏨</span> Stays</button>
+        <button class="sheet-item" data-screen="flights"><span class="si">✈️</span> Flights</button>
+        <button class="sheet-item" data-screen="budget"><span class="si">💰</span> Budget</button>
+        <button class="sheet-item" data-screen="packing"><span class="si">🧳</span> Packing</button>
+        <button class="sheet-item" data-screen="ideas"><span class="si">💡</span> Ideas</button>
+        <button class="sheet-item" data-screen="guide"><span class="si">📖</span> Guide</button>
+      </div>
+    </div>
+
+    <!-- Who-are-you modal -->
+    <div class="modal-backdrop" id="whoModal" role="dialog" aria-label="Who are you?">
+      <div class="modal">
+        <h3>Who are you?</h3>
+        <p class="section-sub" style="margin-top:-8px">Pick yourself so votes, packing, and budget are tagged to you (saved on this phone).</p>
+        <div id="whoOptions"></div>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn ghost" id="whoClose" style="flex:1">Done</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "Japan 2027 · Three Cities Social",
+  "short_name": "Japan 2027",
+  "description": "Group travel app for our April 2027 Japan trip.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f4ee",
+  "theme_color": "#1f3a5f",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
