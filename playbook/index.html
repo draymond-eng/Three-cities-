@@ -131,6 +131,38 @@
   .tl-item .when { font-size: .74rem; text-transform: uppercase; letter-spacing: .16em; font-weight: 700; color: var(--ocean); }
   .tl-item .what { font-size: .99rem; }
 
+  /* ---------- Testimonials ---------- */
+  .gbadge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--white); border: 1px solid rgba(53,48,44,.14); border-radius: 999px;
+    padding: 8px 20px; font-size: .92rem; font-weight: 700; margin-top: 6px;
+  }
+  .gbadge .stars { color: #E8A33D; letter-spacing: 2px; }
+  .gbadge small { font-weight: 600; color: var(--ink-soft); }
+  .quotes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 40px; }
+  @media (max-width: 760px) { .quotes { grid-template-columns: 1fr; } }
+  .quote {
+    background: var(--white); border: 1px solid rgba(53,48,44,.12); border-radius: 12px;
+    padding: 26px 28px; display: flex; flex-direction: column;
+  }
+  .quote .stars { color: #E8A33D; letter-spacing: 2px; font-size: .95rem; margin-bottom: 10px; }
+  .quote p { font-size: .96rem; font-style: italic; flex: 1; }
+  .quote cite { display: block; margin-top: 14px; font-style: normal; font-size: .76rem; text-transform: uppercase; letter-spacing: .14em; color: var(--ink-soft); font-weight: 700; }
+
+  /* ---------- Circle ---------- */
+  .circle-section { background: var(--paper-deep); }
+  .circle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 34px 0; }
+  @media (max-width: 720px) { .circle-grid { grid-template-columns: 1fr; } }
+  .circle-grid > div {
+    background: var(--white); border: 1px solid rgba(53,48,44,.12); border-radius: 10px;
+    padding: 18px 20px; font-size: .9rem; color: var(--ink-soft);
+  }
+  .circle-grid b { display: block; font-family: var(--serif); font-size: 1rem; color: var(--ink); margin-bottom: 4px; }
+  .founding-chip {
+    display: inline-block; background: var(--ocean); color: var(--white); border-radius: 999px;
+    font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; padding: 5px 14px; margin-bottom: 16px;
+  }
+
   /* ---------- Laws ---------- */
   .laws-section { background: var(--ink); color: var(--paper); }
   .laws-section h2, .laws-section h3 { color: var(--white); }
@@ -192,7 +224,7 @@
   @media (max-width: 720px) { .icp { grid-template-columns: 1fr; } }
   .icp div { border: 1px solid rgba(237,231,219,.2); border-radius: 10px; padding: 18px 20px; font-size: .92rem; color: rgba(237,231,219,.82); }
   .icp b { display: block; font-family: var(--serif); font-size: 1.05rem; color: var(--white); margin-bottom: 4px; }
-  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; }
+  .tiers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 44px; }
   @media (max-width: 860px) { .tiers { grid-template-columns: 1fr; } }
   .tier {
     background: var(--paper); color: var(--ink); border-radius: 14px; padding: 30px 28px;
@@ -262,7 +294,7 @@
       <a href="#story">The Story</a>
       <a href="#laws">The Laws</a>
       <a href="#system">The System</a>
-      <a href="#vault">The Vault</a>
+      <a href="#circle">The Circle</a>
       <a href="#franchise">Franchise</a>
       <a href="#work" class="cta">Work with me</a>
     </div>
@@ -311,6 +343,30 @@
       <div class="tl-item"><div class="when">Jul 2026</div><div class="what">Walked away from a ~$1.4M lease renewal because the math said walk. The club is healthier for it.</div></div>
     </div>
     <p style="margin-top:26px">That last line matters. Most "community experts" sell the growth story. I'll also tell you about the expansion that didn't pencil — because knowing when <em>not</em> to sign is worth more than any launch tactic. Everything I teach was paid for with real money or real embarrassment.</p>
+  </div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+<section id="proof" style="padding-top:0">
+  <div class="wrap">
+    <div class="kicker">The proof</div>
+    <h2>Don't take my word for it. Take the members'.</h2>
+    <div class="gbadge"><span class="stars">★★★★★</span> 4.9 on Google <small>· 46 reviews</small></div>
+    <div class="quotes">
+      <div class="quote"><div class="stars">★★★★★</div>
+        <p>"This is the only one that delivers on high quality people, experiences and spaces! The event calendar is PACKED! All of the members share the similar values of wanting to connect on a deeper level and enjoy everything Chicago has to offer… together!"</p>
+        <cite>Member · Google review</cite></div>
+      <div class="quote"><div class="stars">★★★★★</div>
+        <p>"Three Cities was a terrific spot to host our event. Incredibly professional, prompt, and clean."</p>
+        <cite>Quinten R. · event host · Google review</cite></div>
+      <div class="quote"><div class="stars">★★★★★</div>
+        <p>"Three Cities Social in Wicker Park delivers on its promise for the community…"</p>
+        <cite>HealthSource Wicker Park · neighborhood business · Google review</cite></div>
+      <div class="quote"><div class="stars">★★★★★</div>
+        <p>"Always super clean, and the space is designed beautifully… a great perk if you're new to Chicago or want to join a social club to make new friends."</p>
+        <cite>Member · Google review</cite></div>
+    </div>
+    <p style="margin-top:22px; font-size:.88rem; color:var(--ink-soft)">45 of 46 reviews are five stars. The one that isn't keeps me honest.</p>
   </div>
 </section>
 
@@ -449,6 +505,24 @@
   </div>
 </section>
 
+<!-- ============ CIRCLE ============ -->
+<section id="circle" class="circle-section">
+  <div class="wrap">
+    <div class="kicker">The community</div>
+    <h2>The Operators Circle</h2>
+    <span class="founding-chip">Founding cohort · Capped at 50 operators</span>
+    <p class="lede">A membership community for the people who run membership communities. Club founders, event organizers, and space operators — building together, with my playbook and each other's scar tissue on tap.</p>
+    <div class="circle-grid">
+      <div><b>The monthly table</b>One live group session a month: a teardown of one member's club, a working topic from the System, and open problem-solving. Recorded for the vault.</div>
+      <div><b>The channel</b>A private space for the questions between sessions — pricing calls, vendor checks, lease gut-checks. Someone in the room has faced it.</div>
+      <div><b>Template drops</b>Working documents from the Vault released to the Circle over time, with walkthroughs of how to adapt them.</div>
+      <div><b>The network effect</b>Cross-city referrals, guest-host swaps, and first access to Founder Days, workshops, and license conversations.</div>
+    </div>
+    <p><strong>$149/month, founding rate</strong> — and per Law II, founding members keep that rate for as long as they stay. The Circle opens when the founding waitlist fills; membership is capped at 50 so it stays a table, not an audience.</p>
+    <p style="margin-top:24px"><a class="btn btn-solid" href="mailto:draymond@threecitiessocial.com?subject=Operators%20Circle%20Waitlist">Join the founding waitlist</a></p>
+  </div>
+</section>
+
 <!-- ============ OFFER ============ -->
 <section id="work" class="offer-section">
   <div class="wrap-wide">
@@ -475,6 +549,18 @@
           <li>The expansion-gate / napkin-test worksheets</li>
         </ul>
         <a class="btn btn-line" href="mailto:draymond@threecitiessocial.com?subject=Blueprint%20Call">Book a Blueprint Call</a>
+      </div>
+      <div class="tier">
+        <h3>The Founder Day</h3>
+        <div class="price">$1,800 <small>· one day in Chicago</small></div>
+        <p class="sub">See a working club from the inside.</p>
+        <ul>
+          <li>A full day at the clubhouse — tour it like a prospect, staff it like an owner</li>
+          <li>Sit in on real programming and member operations</li>
+          <li>Afternoon working session on your club's plan</li>
+          <li>30-day follow-up call once you're home</li>
+        </ul>
+        <a class="btn btn-line" href="mailto:draymond@threecitiessocial.com?subject=Founder%20Day">Book a Founder Day</a>
       </div>
       <div class="tier feature">
         <h3>The Launch Sprint</h3>
