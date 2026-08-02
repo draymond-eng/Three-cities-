@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Clubhouse Playbook — Draymond Washington</title>
+<meta name="description" content="How I built a social club from 25 friends to 300 members in Chicago — the real numbers, the mistakes, and the playbook. By Draymond Washington, founder of Three Cities Social.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDE7DB;
+    --paper-deep: #E4DCCB;
+    --ink: #35302C;
+    --ink-soft: #5C554E;
+    --ocean: #427179;
+    --gold: #6B582A;
+    --autumn: #984929;
+    --clay: #A19D7F;
+    --white: #FBF9F4;
+    --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --sans: 'Nunito Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+  ::selection { background: var(--ocean); color: var(--white); }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(237,231,219,.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(53,48,44,.14);
+  }
+  .nav-inner {
+    max-width: 1080px; margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .nav-mark {
+    font-family: var(--serif); font-weight: 700; font-size: 1.02rem;
+    letter-spacing: .02em; white-space: nowrap;
+  }
+  .nav-mark span { color: var(--autumn); }
+  .nav-links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: flex-end; }
+  .nav-links a {
+    color: var(--ink-soft); text-decoration: none; font-size: .78rem;
+    text-transform: uppercase; letter-spacing: .12em; font-weight: 700;
+  }
+  .nav-links a:hover { color: var(--autumn); }
+  .nav-links a.cta { color: var(--white); background: var(--autumn); padding: 6px 14px; border-radius: 999px; }
+  .nav-links a.cta:hover { background: var(--gold); color: var(--white); }
+  @media (max-width: 900px) { .nav-links a:not(.cta) { display: none; } }
+
+  /* ---------- Shared ---------- */
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  .wrap-wide { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 84px 0; }
+  .kicker {
+    font-size: .75rem; text-transform: uppercase; letter-spacing: .22em;
+    font-weight: 700; color: var(--autumn); margin-bottom: 14px;
+  }
+  h1, h2, h3 { font-family: var(--serif); line-height: 1.18; }
+  h2 { font-size: clamp(1.9rem, 4.4vw, 2.7rem); font-weight: 700; margin-bottom: 22px; }
+  h3 { font-size: 1.28rem; font-weight: 700; margin: 34px 0 10px; }
+  p + p { margin-top: 16px; }
+  .lede { font-size: 1.16rem; color: var(--ink-soft); }
+  em { font-style: italic; }
+  .divider {
+    max-width: 880px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; gap: 14px; color: var(--clay);
+  }
+  .divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid rgba(53,48,44,.16); }
+  .divider svg { flex: none; }
+
+  .pull {
+    border-left: 3px solid var(--gold);
+    padding: 6px 0 6px 24px; margin: 34px 0;
+    font-family: var(--serif); font-size: 1.34rem; font-style: italic; line-height: 1.45;
+    color: var(--ink);
+  }
+  .pull cite { display: block; font-family: var(--sans); font-style: normal; font-size: .8rem; text-transform: uppercase; letter-spacing: .14em; color: var(--ink-soft); margin-top: 10px; }
+
+  .note {
+    background: var(--white); border: 1px solid rgba(53,48,44,.12); border-radius: 10px;
+    padding: 22px 26px; margin: 30px 0; font-size: .96rem;
+  }
+  .note strong.tag { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .18em; color: var(--ocean); margin-bottom: 8px; }
+
+  ul.clean { list-style: none; margin: 18px 0; }
+  ul.clean li { padding: 9px 0 9px 28px; position: relative; border-bottom: 1px solid rgba(53,48,44,.08); }
+  ul.clean li:last-child { border-bottom: none; }
+  ul.clean li::before { content: "—"; position: absolute; left: 0; color: var(--autumn); font-weight: 700; }
+
+  table { width: 100%; border-collapse: collapse; margin: 26px 0; font-size: .93rem; background: var(--white); border-radius: 10px; overflow: hidden; }
+  .table-scroll { overflow-x: auto; }
+  th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .14em; color: var(--white); background: var(--ink); padding: 12px 16px; }
+  td { padding: 12px 16px; border-bottom: 1px solid rgba(53,48,44,.09); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td strong { color: var(--autumn); }
+
+  /* ---------- Hero ---------- */
+  header.hero {
+    background: var(--ink); color: var(--paper);
+    padding: 110px 0 0; overflow: hidden; position: relative;
+  }
+  .hero-inner { max-width: 1080px; margin: 0 auto; padding: 0 24px 90px; position: relative; }
+  .hero .kicker { color: var(--clay); }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6.4vw, 4.4rem); font-weight: 700; max-width: 15em;
+    margin-bottom: 26px; color: var(--white);
+  }
+  .hero h1 .accent { color: #C98A5B; font-style: italic; }
+  .hero .lede { color: rgba(237,231,219,.78); max-width: 40em; font-size: 1.2rem; }
+  .hero-byline { margin-top: 34px; display: flex; align-items: center; gap: 14px; }
+  .hero-byline .seal {
+    width: 52px; height: 52px; border: 1.5px solid var(--clay); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-weight: 700; font-size: 1.05rem; color: var(--paper);
+    flex: none; letter-spacing: .04em;
+  }
+  .hero-byline p { font-size: .95rem; color: rgba(237,231,219,.75); line-height: 1.45; }
+  .hero-byline p strong { color: var(--paper); display: block; font-size: 1.02rem; }
+  .statbar { background: var(--autumn); color: var(--paper); }
+  .statbar-inner {
+    max-width: 1080px; margin: 0 auto; padding: 26px 24px;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; text-align: center;
+  }
+  .statbar b { display: block; font-family: var(--serif); font-size: clamp(1.3rem, 2.6vw, 1.85rem); font-weight: 700; }
+  .statbar small { font-size: .72rem; text-transform: uppercase; letter-spacing: .13em; opacity: .85; }
+  @media (max-width: 760px) { .statbar-inner { grid-template-columns: repeat(2, 1fr); } .statbar-inner div:last-child { grid-column: span 2; } }
+
+  /* ---------- Timeline ---------- */
+  .timeline { margin: 40px 0 8px; border-left: 2px solid var(--clay); padding-left: 28px; }
+  .tl-item { position: relative; padding-bottom: 26px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-item::before {
+    content: ""; position: absolute; left: -34.5px; top: 7px;
+    width: 11px; height: 11px; border-radius: 50%; background: var(--autumn);
+    border: 2px solid var(--paper);
+  }
+  .tl-item .when { font-size: .74rem; text-transform: uppercase; letter-spacing: .16em; font-weight: 700; color: var(--ocean); }
+  .tl-item .what { font-size: .99rem; }
+
+  /* ---------- Laws ---------- */
+  .laws-section { background: var(--ink); color: var(--paper); }
+  .laws-section h2, .laws-section h3 { color: var(--white); }
+  .laws-section .lede { color: rgba(237,231,219,.72); }
+  .laws { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 44px; }
+  @media (max-width: 760px) { .laws { grid-template-columns: 1fr; } }
+  .law {
+    background: rgba(251,249,244,.05); border: 1px solid rgba(237,231,219,.16);
+    border-radius: 12px; padding: 26px 26px 22px;
+  }
+  .law .num { font-family: var(--serif); font-style: italic; font-size: 1rem; color: #C98A5B; }
+  .law h3 { margin: 6px 0 10px; font-size: 1.22rem; }
+  .law p { font-size: .93rem; color: rgba(237,231,219,.8); }
+  .law .receipt { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(237,231,219,.25); font-size: .84rem; color: var(--clay); }
+  .law .receipt b { color: #C98A5B; font-weight: 700; }
+
+  /* ---------- Phase chapters ---------- */
+  .chapter-head { display: flex; align-items: baseline; gap: 18px; }
+  .chapter-num {
+    font-family: var(--serif); font-style: italic; font-size: 3.4rem; color: var(--clay);
+    line-height: 1; flex: none;
+  }
+  .alt { background: var(--paper-deep); }
+
+  .cardgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 30px 0; }
+  @media (max-width: 720px) { .cardgrid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--white); border: 1px solid rgba(53,48,44,.12); border-radius: 12px;
+    padding: 24px 26px;
+  }
+  .card h4 { font-family: var(--serif); font-size: 1.1rem; margin-bottom: 8px; }
+  .card p { font-size: .92rem; color: var(--ink-soft); }
+  .card .stat { font-family: var(--serif); font-size: 1.7rem; font-weight: 700; color: var(--autumn); display: block; margin-bottom: 4px; }
+
+  /* ---------- Money ---------- */
+  .stool { display: grid; grid-template-columns: 62fr 29fr 9fr; gap: 6px; margin: 26px 0 8px; }
+  .stool > div { padding: 16px 12px; border-radius: 8px; color: var(--white); text-align: center; min-width: 0; }
+  .stool b { display: block; font-family: var(--serif); font-size: 1.25rem; }
+  .stool small { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; opacity: .9; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stool .s1 { background: var(--ocean); }
+  .stool .s2 { background: var(--gold); }
+  .stool .s3 { background: var(--autumn); }
+  .stool-caption { font-size: .82rem; color: var(--ink-soft); text-align: center; margin-bottom: 26px; }
+
+  /* ---------- Vault ---------- */
+  .vault { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 36px; }
+  @media (max-width: 860px) { .vault { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .vault { grid-template-columns: 1fr; } }
+  .vault-item {
+    background: var(--white); border: 1px solid rgba(53,48,44,.12); border-radius: 10px;
+    padding: 18px 20px; font-size: .88rem;
+  }
+  .vault-item b { display: block; font-family: var(--serif); font-size: .98rem; margin-bottom: 4px; }
+  .vault-item span { color: var(--ink-soft); font-size: .84rem; }
+
+  /* ---------- Offer ---------- */
+  .offer-section { background: var(--ink); color: var(--paper); }
+  .offer-section h2 { color: var(--white); }
+  .offer-section .lede { color: rgba(237,231,219,.75); }
+  .icp { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 34px 0 10px; }
+  @media (max-width: 720px) { .icp { grid-template-columns: 1fr; } }
+  .icp div { border: 1px solid rgba(237,231,219,.2); border-radius: 10px; padding: 18px 20px; font-size: .92rem; color: rgba(237,231,219,.82); }
+  .icp b { display: block; font-family: var(--serif); font-size: 1.05rem; color: var(--white); margin-bottom: 4px; }
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 44px; }
+  @media (max-width: 860px) { .tiers { grid-template-columns: 1fr; } }
+  .tier {
+    background: var(--paper); color: var(--ink); border-radius: 14px; padding: 30px 28px;
+    display: flex; flex-direction: column;
+  }
+  .tier.feature { outline: 3px solid #C98A5B; position: relative; }
+  .tier.feature::before {
+    content: "Most popular"; position: absolute; top: -13px; left: 24px;
+    background: var(--autumn); color: var(--white); font-size: .68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .14em; padding: 4px 12px; border-radius: 999px;
+  }
+  .tier h3 { margin: 0 0 4px; font-size: 1.3rem; }
+  .tier .price { font-family: var(--serif); font-size: 1.9rem; font-weight: 700; color: var(--autumn); }
+  .tier .price small { font-family: var(--sans); font-size: .78rem; font-weight: 600; color: var(--ink-soft); }
+  .tier p.sub { font-size: .86rem; color: var(--ink-soft); margin: 8px 0 16px; }
+  .tier ul { list-style: none; margin: 0 0 22px; flex: 1; }
+  .tier ul li { font-size: .89rem; padding: 7px 0 7px 24px; position: relative; border-bottom: 1px solid rgba(53,48,44,.08); }
+  .tier ul li:last-child { border-bottom: none; }
+  .tier ul li::before { content: "✓"; position: absolute; left: 2px; color: var(--ocean); font-weight: 700; }
+  .btn {
+    display: inline-block; text-align: center; text-decoration: none; font-weight: 700;
+    font-size: .92rem; padding: 13px 26px; border-radius: 999px; letter-spacing: .02em;
+  }
+  .btn-solid { background: var(--autumn); color: var(--white); }
+  .btn-solid:hover { background: var(--gold); }
+  .btn-line { border: 1.5px solid var(--ink); color: var(--ink); }
+  .btn-line:hover { border-color: var(--autumn); color: var(--autumn); }
+  .offer-foot { margin-top: 40px; text-align: center; font-size: .9rem; color: rgba(237,231,219,.66); }
+  .offer-foot a { color: #C98A5B; }
+
+  /* ---------- Footer ---------- */
+  footer { background: var(--ink); color: rgba(237,231,219,.6); border-top: 1px solid rgba(237,231,219,.14); }
+  .foot-inner { max-width: 1080px; margin: 0 auto; padding: 44px 24px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: .84rem; }
+  footer a { color: var(--clay); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-mark">The Clubhouse <span>Playbook</span></div>
+    <div class="nav-links">
+      <a href="#laws">The Laws</a>
+      <a href="#container">Container</a>
+      <a href="#engine">Engine</a>
+      <a href="#money">Money</a>
+      <a href="#second-house">Expansion</a>
+      <a href="#os">Operating System</a>
+      <a href="#vault">The Vault</a>
+      <a href="#work" class="cta">Work with me</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="kicker">A founder's field manual · Chicago</div>
+    <h1>I built a social club from 25 friends to 300 members. <span class="accent">Here's exactly how.</span></h1>
+    <p class="lede">Not theory. Not community-manager frameworks. The real playbook from building Three Cities Social — the leases, the pricing mistakes, the events that flopped, the numbers nobody publishes — written by the person who signed everything.</p>
+    <div class="hero-byline">
+      <div class="seal">III</div>
+      <p><strong>Draymond Washington</strong>Founder, Three Cities Social · Est. Chicago, 2024</p>
+    </div>
+  </div>
+  <div class="statbar">
+    <div class="statbar-inner">
+      <div><b>25 → 300</b><small>members</small></div>
+      <div><b>4 months</b><small>to profitability</small></div>
+      <div><b>30–45</b><small>events per month</small></div>
+      <div><b>2</b><small>clubhouses opened</small></div>
+      <div><b>$0</b><small>venture capital</small></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ WHY ============ -->
+<section id="why">
+  <div class="wrap">
+    <div class="kicker">The premise</div>
+    <h2>Belonging is a business — if you refuse to run it like one.</h2>
+    <p class="lede">Before I opened a clubhouse, I joined four social clubs in Chicago and paid anywhere from $150 to $2,000 a month. Every one of them nickel-and-dimed me at the door and hoped I wouldn't show up.</p>
+    <div class="pull">"My final bills every month were $2,000 — and I wasn't really doing anything."<cite>The founding insight</cite></div>
+    <p>So Three Cities Social was designed as the inversion: <strong>BYOB, everything included, no bar minimums, no bottle service, no celebrity in the corner booth.</strong> A 7,500-square-foot clubhouse open 7am to midnight, running about 90% unmanned on badge access, where the whole point is the person at the next table.</p>
+    <p>Research says a friendship takes roughly <strong>70 hours</strong> to form. Apps can't compress that. Bars can't hold it. A clubhouse can — because a physical home base is <em>the validation of "I'll see you again."</em> Everything in this playbook serves that one mechanic.</p>
+
+    <h3>The timeline, honestly</h3>
+    <div class="timeline">
+      <div class="tl-item"><div class="when">Oct 2022</div><div class="what">Started as a free events group. No lease, no dues — just proof that people would keep showing up.</div></div>
+      <div class="tl-item"><div class="when">Jul 2024</div><div class="what">Opened the River North clubhouse with 25 founding members on a free first year.</div></div>
+      <div class="tl-item"><div class="when">Nov 2024</div><div class="what">Profitable — four months after opening.</div></div>
+      <div class="tl-item"><div class="when">May 2025</div><div class="what">250+ members, 16–20 events a month, still effectively a one-person operation.</div></div>
+      <div class="tl-item"><div class="when">Oct 2025</div><div class="what">Opened a second clubhouse in Wicker Park on a below-market sublease.</div></div>
+      <div class="tl-item"><div class="when">Dec 2025</div><div class="what">~300 members. Also: a five-figure monthly burn from the expansion. Both things were true.</div></div>
+      <div class="tl-item"><div class="when">Jul 2026</div><div class="what">Walked away from a ~$1.4M lease renewal because the math said walk. The club is healthier for it.</div></div>
+    </div>
+    <p style="margin-top:26px">That last line matters. Most "community experts" will sell you the growth story. I'll also tell you about the expansion that didn't pencil — because knowing when <em>not</em> to sign is worth more than any launch tactic.</p>
+  </div>
+</section>
+
+<!-- ============ LAWS ============ -->
+<section id="laws" class="laws-section">
+  <div class="wrap-wide">
+    <div class="kicker">Part one</div>
+    <h2>The Ten Laws of the Clubhouse</h2>
+    <p class="lede">Every law below was paid for with real money or real embarrassment. Each one comes with its receipt.</p>
+    <div class="laws">
+      <div class="law"><div class="num">Law I</div><h3>Charge to show up.</h3>
+        <p>Free things get treated like free things. Attach even a small, refundable commitment and attendance transforms.</p>
+        <div class="receipt"><b>Receipt:</b> Our free kickball team of 25 forfeited ~80% of its games. Our $50-deposit volleyball league — credit refunded for attending — never forfeited once.</div></div>
+      <div class="law"><div class="num">Law II</div><h3>Your price is your price, forever.</h3>
+        <p>Grandfather every member at their joining rate, permanently. It converts every price increase into a loyalty reward for the people already in the room — and an urgency engine for the people who aren't.</p>
+        <div class="receipt"><b>Receipt:</b> "The price you're paying per month is the price you're going to pay forever, no matter how much we grow." Members quote this line back to me.</div></div>
+      <div class="law"><div class="num">Law III</div><h3>Build the container. Let members make the club.</h3>
+        <p>The founder's job is infrastructure, not entertainment. Recruit member curators, give them the space free, and let them keep 100% of their ticket revenue.</p>
+        <div class="receipt"><b>Receipt:</b> Curator cohorts — a handful of members each hosting monthly — plus fitness partnerships got us to 16–20 events a month at near-zero programming cost.</div></div>
+      <div class="law"><div class="num">Law IV</div><h3>The depth of membership is the product.</h3>
+        <p>Your most valuable inventory is who's already inside. Experts trade programming for membership; influencers trade reach for hosting rights. Pay in belonging, not cash.</p>
+        <div class="receipt"><b>Receipt:</b> Our Residency program: four experts (career, nutrition, finance, AI) each run recurring events and office hours — compensated with a plus-one membership, not a fee.</div></div>
+      <div class="law"><div class="num">Law V</div><h3>Rent the room. Never sell the room.</h3>
+        <p>Private-event rentals are the margin that keeps the lights on — but every buyout closes your club to the people who pay dues. Cap rentals and program an off-site member event during each one.</p>
+        <div class="receipt"><b>Receipt:</b> "Private event rentals are what keep the lights on here." Capped at 1–2 a month anyway.</div></div>
+      <div class="law"><div class="num">Law VI</div><h3>No second strike.</h3>
+        <p>Culture is enforced at the moment it's cheapest to lose revenue and hardest to do — when the club is small. One serious conduct violation is one too many.</p>
+        <div class="receipt"><b>Receipt:</b> The first removal happened when we had roughly 20 members. That decision is why there's a club at 300.</div></div>
+      <div class="law"><div class="num">Law VII</div><h3>Don't take the money.</h3>
+        <p>Venture capital and community businesses want different things. The moment growth outranks belonging, members can smell it.</p>
+        <div class="receipt"><b>Receipt:</b> "VCs kill community-based organizations." I watched a heavily funded club change its pricing five times and go corporate. We funded expansion with a private family loan on nine-year terms instead.</div></div>
+      <div class="law"><div class="num">Law VIII</div><h3>All-inclusive beats à la carte.</h3>
+        <p>Every surcharge is a small resentment. BYOB means no liquor license, no bar minimums, and no $19 cocktails standing between a member and a Tuesday visit.</p>
+        <div class="receipt"><b>Receipt:</b> The clubs I quit all billed me à la carte. The club I built includes everything — and runs 90% unmanned on badge access, 7am to midnight.</div></div>
+      <div class="law"><div class="num">Law IX</div><h3>Cap the club.</h3>
+        <p>There's a number where intimacy dies. Decide yours before you reach it, and let scarcity do your marketing.</p>
+        <div class="receipt"><b>Receipt:</b> ~500 members per house is our ceiling — "the healthy number to keep the lights on" and still know names. Fun fact: Soho House reportedly still has its first 500 members.</div></div>
+      <div class="law"><div class="num">Law X</div><h3>Write it down before you need it.</h3>
+        <p>The test for every process: if the founder disappeared tomorrow, does the club survive the month? Playbooks aren't bureaucracy — they're the only exit from being the product yourself.</p>
+        <div class="receipt"><b>Receipt:</b> "If I die tomorrow, we'd be totally screwed" is the sentence that started the document you're reading.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PHASE I ============ -->
+<section id="container">
+  <div class="wrap">
+    <div class="chapter-head"><div class="chapter-num">I.</div><div>
+      <div class="kicker">Phase one · 0 → 25</div>
+      <h2>The Container</h2>
+    </div></div>
+    <p class="lede">Everything before the lease. This phase is cheap, unglamorous, and where most would-be founders skip straight to the fun part — and die.</p>
+
+    <h3>Run the club before the club exists</h3>
+    <p>Three Cities ran as a <strong>free events group for almost two years</strong> before a single lease was signed. That's not caution — that's product development. You learn which formats repeat, who your organizers are, and whether people come back without a space doing the work for you. The waitlist you build here is the founding cohort you'll convert later.</p>
+
+    <h3>The napkin test for a space</h3>
+    <ul class="clean">
+      <li><strong>Walkable neighborhood</strong> — the club should be on the way home, not a destination trip.</li>
+      <li><strong>Rent under $8,000/month</strong> for your first room. The lease is the one mistake you can't iterate out of.</li>
+      <li><strong>BYOB-permissive zoning</strong> — no liquor license means lower costs, lower risk, and an all-inclusive member experience.</li>
+      <li><strong>Residential + cultural density</strong> — you want members who can stumble in on a Tuesday.</li>
+    </ul>
+    <div class="note"><strong class="tag">Hard-won detail</strong>Check your city's assembly/amusement licensing <em>before</em> you sign — we needed a Public Place of Amusement license, zoning approval, and owner fingerprinting in Chicago, and used a permit consultant to navigate it. Budget weeks, not days.</div>
+
+    <h3>The founding cohort: give away year one</h3>
+    <p>Our first 25 members paid <strong>nothing for the first year</strong>. Heresy? That free year bought the three things no ad budget can: a full room on opening night, two dozen evangelists, and twelve months of programming feedback. When the year ended, we converted them with a simple, honest offer — lock in $199/month before the public price went to $249 — and the grandfathering promise (Law II) did the rest.</p>
+
+    <h3>One funnel. Literally one.</h3>
+    <p>Our entire acquisition machine was: <strong>see us somewhere → visit the website → book a tour</strong>. Half of all early signups came through a free neighborhood walking tour — a zero-pressure front door that let people experience curation before buying membership. The numbers behind the funnel:</p>
+    <div class="cardgrid">
+      <div class="card"><span class="stat">&gt;90%</span><h4>Tour close rate</h4><p>When someone stands in the space and hears the story in person, they join. The tour <em>is</em> the sales team.</p></div>
+      <div class="card"><span class="stat">Same day</span><h4>Join-on-tour incentive</h4><p>Joining fee waived if you sign the day of your tour. Most people do.</p></div>
+    </div>
+    <p>Nothing about this funnel is clever. That's the point — one repeatable motion, executed hundreds of times, beats five clever ones executed occasionally.</p>
+  </div>
+</section>
+
+<div class="divider"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="12" stroke="#A19D7F" stroke-width="1.4"/><text x="13" y="17" text-anchor="middle" font-family="Georgia" font-style="italic" font-size="11" fill="#A19D7F">III</text></svg></div>
+
+<!-- ============ PHASE II ============ -->
+<section id="engine">
+  <div class="wrap">
+    <div class="chapter-head"><div class="chapter-num">II.</div><div>
+      <div class="kicker">Phase two · 25 → 300</div>
+      <h2>The Engine</h2>
+    </div></div>
+    <p class="lede">A club is a machine with three moving parts: programming that creates repetition, onboarding that creates belonging, and retention that notices before the member does.</p>
+
+    <h3>Programming: the five-format calendar</h3>
+    <p>Every event we run fits one of five formats — <strong>Move, Talk, Play, Serve, Social</strong> — and the calendar is built so each format has a rhythm: a weekly anchor (Friday happy hour), monthly signatures (a mystery-dinner series, a neighborhood-exploration series), seasonal marquees (boat outings, the vendor market, the annual trip), and member-led micro-groups underneath it all.</p>
+    <div class="note"><strong class="tag">Why leagues outperform everything</strong>A league is the same small group, every week, with a shared goal — which is precisely the friendship formula (remember: ~70 hours). Our season format: 6 teams, 6 events, points for performance <em>and</em> participation <em>and</em> team spirit. Add a commitment deposit (Law I) and you have the highest-retention programming that exists.</div>
+
+    <h3>The curator flywheel</h3>
+    <p>You cannot personally throw 30 events a month, and you shouldn't try. The flywheel: recruit a rotating cohort of member curators each quarter. Each hosts one or two events monthly. Members attend free; curators sell public tickets and <strong>keep 100% of the revenue</strong>. One of our curators sells out at $95 a ticket. The club gets a full calendar and a stream of ticket-buying prospects walking through the door; curators get a stage and an income; members get programming with a soul. Everyone is overpaid in the currency they care about.</p>
+
+    <h3>Onboarding: the first 30 days decide the first year</h3>
+    <p>Most churn is decided in month one and merely executed later. Our choreography for every new member:</p>
+    <ul class="clean">
+      <li><strong>Welcome inside 24 hours</strong> — a personal message, not an automation.</li>
+      <li><strong>Four touchpoints</strong>: Day 1, Week 1, Month 1, Month 2 — each owned by a named person, not a "team."</li>
+      <li><strong>Two recurring events + three hosted introductions + one small group</strong> in the first 30 days. We track it.</li>
+      <li><strong>Ambassadors</strong>: every new-member cohort is paired with trained veteran members whose only job is making the room feel familiar.</li>
+    </ul>
+    <div class="pull">"The first 100 joined a movement. The next 200 joined a club."<cite>Why onboarding has to get more deliberate as you grow</cite></div>
+    <p>Early members self-organize — they're founders too, in spirit. Everyone after them needs architecture: assigned small groups of 8–12 on 90-day cycles, connectors working every event, a "first three events" rule so nobody's third visit is them standing alone by the drinks table.</p>
+
+    <h3>Retention: friction where it helps, none where it hurts</h3>
+    <ul class="clean">
+      <li><strong>Application-gated membership.</strong> We added an application and a personal acceptance note from the founder — not to be exclusive, but because "the friction filters out the people who were never serious, which is most of our churn problem."</li>
+      <li><strong>Health scores by the member's own goals.</strong> "Healthy" isn't event attendance — it's whether they're getting what <em>they</em> said they came for. Lifecycle stages: New → Growing → Established → Retained, reviewed weekly.</li>
+      <li><strong>Exit interviews on every cancellation.</strong> A 20-minute conversation, personally. Most leavers say yes or maybe to returning — treat every cancel as a future rejoin.</li>
+      <li><strong>The win-back offer:</strong> original rate honored, fee waived. The rate-lock (Law II) also works in reverse: cancel and you can't rejoin at your old price. It's a churn brake that requires no discounting.</li>
+      <li><strong>Kill pauses before they kill you.</strong> We let members pause memberships for a year — until people strung pauses together and revenue planning became fiction. Ending them hurt for a week and helped forever.</li>
+    </ul>
+
+    <h3>Rituals: the club's heartbeat</h3>
+    <p>One prompt every Friday morning from the club's house account. Introductions on a different weekday, so members never feel pinged twice in a day. A monthly recap email that celebrates attendance numbers, welcomes new members by name and neighborhood, and teases what's next. The rule underneath all of it: <strong>one gentle nudge at a time — a club that shows up for you, never an app that buzzes.</strong></p>
+  </div>
+</section>
+
+<!-- ============ PHASE III ============ -->
+<section id="money" class="alt">
+  <div class="wrap">
+    <div class="chapter-head"><div class="chapter-num">III.</div><div>
+      <div class="kicker">Phase three · Unit economics</div>
+      <h2>The Money</h2>
+    </div></div>
+    <p class="lede">Here are numbers club founders never publish. I'm publishing them because pretending this business is easy helps no one — and because the model genuinely works when you respect the math.</p>
+
+    <h3>Revenue is a three-legged stool</h3>
+    <div class="stool">
+      <div class="s1"><b>62%</b><small>Membership dues</small></div>
+      <div class="s2"><b>29%</b><small>Private events</small></div>
+      <div class="s3"><b>9%</b><small>Sponsors</small></div>
+    </div>
+    <p class="stool-caption">Actual revenue mix, March 2026: ~$33.0K membership MRR · $15.4K private events · $5K sponsorship = $53.4K month</p>
+    <p><strong>Dues are the foundation</strong> — recurring, predictable, and the thing everything else protects. <strong>Private rentals are the margin</strong>: a whole-club buyout runs $2,600 per four hours plus hourly overages, with deposits, a fines schedule, and a bartender requirement above 40 guests, all in a real contract. <strong>Sponsorship is the upside</strong>: our anchor brand deal pays $5K per quarter, and the trick is conversion — when a company asks about a $10K one-day rental, sell them a year-round partnership instead.</p>
+    <div class="note"><strong class="tag">The line that changes how you think</strong>"Every new member at $199–249 is nearly pure margin, since fixed costs are already covered." Once the room is paid for, growth is profit. This is why capping the club (Law IX) is a strategy, not a sacrifice — and why every retention system in Phase II is worth more than any acquisition channel.</div>
+
+    <h3>What events actually cost</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Line item</th><th>Real cost</th><th>The lesson</th></tr>
+      <tr><td>A single happy hour</td><td><strong>$1,000+</strong></td><td>"Free" member events are a real budget line. Plan them as marketing, not charity.</td></tr>
+      <tr><td>Marquee events (NYE, St. Patrick's)</td><td><strong>$10,000+</strong></td><td>Sell public tickets to subsidize member pricing. Guests become tour bookings.</td></tr>
+      <tr><td>Bartending, 75-guest, 4-hour event</td><td><strong>~$1,370</strong></td><td>Get itemized quotes. Staffing is the cost; everything else is decoration.</td></tr>
+      <tr><td>Classes (dance, language)</td><td><strong>100% pass-through</strong></td><td>Fees go straight to instructors. The club sells belonging, not tickets.</td></tr>
+      <tr><td>Boat outings</td><td><strong>$130/head, no refunds</strong></td><td>Scarce inventory needs commitment pricing: one slot per member, find your own replacement.</td></tr>
+    </table></div>
+
+    <h3>The pricing evolution — every change taught something</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Era</th><th>Price</th><th>What we learned</th></tr>
+      <tr><td>Founding cohort '24</td><td>Free first year</td><td>Bought evangelists and a full opening night. Converted at $199/mo with the forever-rate promise.</td></tr>
+      <tr><td>Year one</td><td>$199/mo</td><td>Low enough to say yes on a tour; high enough to mean it.</td></tr>
+      <tr><td>Jul 2025 raise</td><td>$249/mo new members</td><td>Grandfathering made the raise a <em>retention event</em>. Urgency campaigns before the deadline drove our biggest signup weeks.</td></tr>
+      <tr><td>2026 restructure</td><td>$219/mo quarterly · $199/mo annual · enrollment fee on monthly only</td><td>Price the commitment, not just the access. Longer terms lower churn and raise the value of the whole business.</td></tr>
+    </table></div>
+    <div class="note"><strong class="tag">Chicago context</strong>Legacy prestige clubs run $600–750/month with four-figure initiation. The big houses start around $3K/year. A neighborhood clubhouse at $199–249 with everything included isn't the budget option — it's a different product: belonging without performance.</div>
+
+    <h3>What I killed, and why</h3>
+    <ul class="clean">
+      <li><strong>Paid ads as the main engine.</strong> Meta ads worked — roughly 15 members a month at $4–5K spend — but CAC hit ~$500/member. We rebuilt around referrals, partnerships, QR codes, and listing select events publicly. Today the funnel is ~94% direct and word-of-mouth. Rule: one-month CAC payback or it doesn't scale.</li>
+      <li><strong>A $5K/month PR firm.</strong> Months in: one placement, which I'd sourced myself. The same $5K in ads bought 15 members. Fired via the contract clause. Demand a KPI tracker from week one.</li>
+      <li><strong>A $1,600/month video vendor.</strong> Beautiful content, unmeasurable return. A phone and a member with taste got 90% of the value.</li>
+      <li><strong>Lifetime memberships.</strong> Never sold one. Tempting cash today, poison for every future decision — including selling or expanding.</li>
+      <li><strong>Membership pauses.</strong> See Phase II. A $20/month pause fee softened the landing, but the real fix was ending them.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ PHASE IV ============ -->
+<section id="second-house">
+  <div class="wrap">
+    <div class="chapter-head"><div class="chapter-num">IV.</div><div>
+      <div class="kicker">Phase four · Expansion, honestly</div>
+      <h2>The Second House</h2>
+    </div></div>
+    <p class="lede">We opened a second clubhouse fifteen months after the first. Twenty-one months later, I chose not to renew its lease. Both decisions were right. This chapter is the one most consultants can't write.</p>
+
+    <h3>The case for going</h3>
+    <p>Roughly 30% of our members lived in Wicker Park. A sublessor had written off their lease as a sunk cost, which is exactly the counterparty you want: we negotiated <strong>$10K/month on an $18–19K ask</strong> — 45% below — on 8,375 square feet. The launch playbook was already proven: interest list → tour calendar → "founding member spots" scarcity → free-trial bridge with a joining credit. It worked again: founding members signed before the doors opened.</p>
+
+    <h3>The case I didn't want to hear</h3>
+    <p>The honest model said the sublease <em>alone</em> was roughly a <strong>negative-2% IRR</strong> — the bet only worked if the long-term renewal penciled. Buildout was budgeted at $125K and landed near <strong>$300K</strong>. Steady-state, the two-location P&amp;L ran about <strong>$10K/month negative</strong> against a low-six-figure reserve. As I put it in a strategy session that winter: "Even if we lose $5–10K a month right now, that's not a good runway."</p>
+    <div class="pull">The bravest thing I did as a founder wasn't opening the second clubhouse. It was declining the $1.4 million renewal.</div>
+    <p>When the renewal came — five years, ~$23K/month escalating — the math said no, and this time I listened <em>before</em> signing. We consolidated to the flagship, kept the members, kept the programming, and kept the company. The second house wasn't a failure; it was tuition. Here's the checklist it bought:</p>
+
+    <h3>The expansion gates (all four, not three)</h3>
+    <ul class="clean">
+      <li><strong>Bank balance rising for months</strong> — not stable. Rising. Expansion eats reserves faster than any model shows; assume buildout runs 2x.</li>
+      <li><strong>Retention proven, not assumed</strong> — if location one leaks members, location two leaks money.</li>
+      <li><strong>Processes that pass the "if I die tomorrow" test</strong> — you cannot be in two clubhouses at once. If the club needs you daily, you have no business doubling it.</li>
+      <li><strong>A lease your worst case can carry</strong> — we quantified the worst case at $90K before signing. Know your number, and only bet what the first house can absorb.</li>
+    </ul>
+    <div class="note"><strong class="tag">The reframe</strong>Expansion isn't the only way to grow. The same energy pointed at the flagship — deeper programming, sponsorships, private events, capped-membership pricing power — grows revenue without a second rent check. Density beats geography until density is exhausted.</div>
+  </div>
+</section>
+
+<!-- ============ OS ============ -->
+<section id="os" class="alt">
+  <div class="wrap">
+    <div class="chapter-head"><div class="chapter-num">V.</div><div>
+      <div class="kicker">Phase five · Founder sustainability</div>
+      <h2>The Operating System</h2>
+    </div></div>
+    <p class="lede">The #1 risk in this business — named in every plan we ever wrote — is over-reliance on the founder. Here's the system that turned me from the club's single point of failure into its architect.</p>
+
+    <h3>The themed week</h3>
+    <div class="table-scroll"><table>
+      <tr><th>Day</th><th>Theme</th><th>The non-negotiable</th></tr>
+      <tr><td>Monday</td><td>Growth &amp; strategy</td><td>45-minute team sync — four timed blocks, pre-filled, every item leaves with an owner and a deadline. "If it runs over 45 minutes, something is wrong."</td></tr>
+      <tr><td>Tuesday</td><td>Members &amp; revenue</td><td>Review MRR and cancellations; take <em>one</em> action. Primary tour block.</td></tr>
+      <tr><td>Wednesday</td><td>Programming &amp; content</td><td>Build ONE new event concept fully — "not ten halfway." Brief the content contractor; the founder briefs and approves, never executes.</td></tr>
+      <tr><td>Thursday</td><td>Ops &amp; presence</td><td>Update one SOP. Then an hour at the clubhouse with <em>no agenda</em> — presence is the product.</td></tr>
+      <tr><td>Friday</td><td>Review &amp; prep</td><td>20-minute review, six questions, numbers flagged. No tours. "Week is done by noon."</td></tr>
+      <tr><td>Weekend</td><td>The club</td><td>Staff own event execution. The founder attends as founder — not as coordinator.</td></tr>
+    </table></div>
+
+    <h3>The financial rhythm</h3>
+    <p>Two inputs a month: a Stripe export on the first Tuesday ("two minutes") and a one-line note of non-membership revenue. From those, a monthly one-page P&amp;L, an MRR roster, and flags on anything drifting. AI drafts the analysis, event descriptions, and member comms; the founder edits and sends. Everything lives in one project so nothing is re-explained twice.</p>
+
+    <h3>The stack, by stage</h3>
+    <ul class="clean">
+      <li><strong>Phase I (0–25):</strong> a form, a calendar tool, a group chat, a booking link. Genuinely nothing else. Every dollar into the space and the events.</li>
+      <li><strong>Phase II (25–300):</strong> membership platform with billing · door access hardware · room booking · e-signature · email · a CRM for tours · a work-management board for retention tracking.</li>
+      <li><strong>The warning:</strong> platform migrations are churn events. Ours produced double-charges, password chaos, and "which app??" for weeks. Migrate with a formal plan, a hard cutoff date, and a billing bridge — or don't migrate.</li>
+      <li><strong>Vendor rule:</strong> the quote is not the invoice. We were quoted $250/month in cleaning supplies and billed $1,100/month. Read line items monthly; get cancellation clauses in writing; assume every critical vendor (the boat captain, the internet install, the insurance) will fail at the worst moment — and have a second name for each.</li>
+    </ul>
+
+    <h3>The hiring design</h3>
+    <p>First real hire: a community director — as a contractor first, to de-risk. Three rounds: a short screen, an in-person tour with homework (bring three event ideas), then a presentation to a member panel — advisory, but nothing tells you more than watching a candidate hold the room. First-quarter goals are <em>volume</em> goals (give ten tours), not conversion goals: you're testing the engine, not the salesperson.</p>
+  </div>
+</section>
+
+<!-- ============ VAULT ============ -->
+<section id="vault">
+  <div class="wrap-wide">
+    <div class="kicker">The library</div>
+    <h2>The Vault: every template, already battle-tested</h2>
+    <p class="lede" style="max-width:44em">None of this is hypothetical. These documents run a real club today — and they're the working library my consulting clients build from.</p>
+    <div class="vault">
+      <div class="vault-item"><b>Founder Operating Playbook</b><span>The themed week, sync agendas, Friday review, financial rhythm.</span></div>
+      <div class="vault-item"><b>Launch sequence</b><span>Interest list → tours → founding-member scarcity → trial bridge, with the actual emails.</span></div>
+      <div class="vault-item"><b>Intake &amp; tour scripts</b><span>Welcome-call script, tour flow, post-tour email, application + acceptance-letter model.</span></div>
+      <div class="vault-item"><b>Onboarding choreography</b><span>The 4-touchpoint calendar, ambassador program design, first-30-days checklist.</span></div>
+      <div class="vault-item"><b>Private rental kit</b><span>Rate card, full contract with deposits &amp; fines schedule, host + staff SOPs, inquiry SLA.</span></div>
+      <div class="vault-item"><b>Event runbook template</b><span>The one-pager that runs every event: logistics, entry, cancellation policy, space reset.</span></div>
+      <div class="vault-item"><b>League &amp; commitment mechanics</b><span>Deposit-with-attendance-rebate pricing, season structure, standings format.</span></div>
+      <div class="vault-item"><b>Sponsorship kit</b><span>Tiered rate card, the rental-to-sponsorship conversion pitch, corporate membership economics.</span></div>
+      <div class="vault-item"><b>Retention machinery</b><span>Health-score tracker design, exit-interview guide, win-back offer, churn-reason taxonomy.</span></div>
+      <div class="vault-item"><b>Pricing framework</b><span>Grandfathering doctrine, tier structure, enrollment-fee logic, raise-announcement playbook.</span></div>
+      <div class="vault-item"><b>Expansion gate checklist</b><span>The four gates, the site-selection napkin test, the worst-case worksheet.</span></div>
+      <div class="vault-item"><b>House rules &amp; culture guide</b><span>Printed rules, conduct policy, anti-clique mixing practices, ritual design.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OFFER ============ -->
+<section id="work" class="offer-section">
+  <div class="wrap-wide">
+    <div class="kicker">Work with me</div>
+    <h2>I help people build clubs that actually work.</h2>
+    <p class="lede" style="max-width:44em">Plenty of consultants will sell you community strategy. I signed the lease, set the prices, ran 500+ events, made the payroll, and closed the location that didn't pencil. You get the playbook <em>and</em> the scar tissue.</p>
+
+    <div class="icp">
+      <div><b>The aspiring founder</b>You have the idea and maybe a waitlist. You need the sequence: proof before lease, cohort before opening, the napkin test before the broker tour.</div>
+      <div><b>The organizer</b>Your run club, dinner series, or league already draws a crowd. You want to turn showing up into membership — revenue without killing the soul.</div>
+      <div><b>The space</b>You operate a venue, studio, or coworking floor with dead hours. A membership layer can be your highest-margin product — if it's built as a club, not a discount.</div>
+      <div><b>The brand or company</b>You want real community — members, rituals, retention — not another activation that ends when the budget does.</div>
+    </div>
+
+    <div class="tiers">
+      <div class="tier">
+        <h3>The Blueprint Call</h3>
+        <div class="price">$350 <small>· 90 minutes</small></div>
+        <p class="sub">For founders who need direction now.</p>
+        <ul>
+          <li>Full teardown of your concept, space plan, and numbers</li>
+          <li>Pricing and funnel recommendations on the call</li>
+          <li>A written 30-day action plan within 48 hours</li>
+          <li>The expansion-gate / napkin-test worksheets</li>
+        </ul>
+        <a class="btn btn-line" href="mailto:draymond@threecitiessocial.com?subject=Blueprint%20Call">Book a Blueprint Call</a>
+      </div>
+      <div class="tier feature">
+        <h3>The Launch Sprint</h3>
+        <div class="price">$6,500 <small>· 8 weeks</small></div>
+        <p class="sub">From concept to founding cohort and first events.</p>
+        <ul>
+          <li>Weekly working sessions, direct access in between</li>
+          <li>Concept, pricing, and founding-member offer — built together</li>
+          <li>Your launch sequence, tour script, and onboarding choreography</li>
+          <li>The full Vault, adapted to your club</li>
+          <li>Goal: founding members committed before you open</li>
+        </ul>
+        <a class="btn btn-solid" href="mailto:draymond@threecitiessocial.com?subject=Launch%20Sprint">Start a Launch Sprint</a>
+      </div>
+      <div class="tier">
+        <h3>The Operating Partner</h3>
+        <div class="price">$2,000<small>/mo · 3-month min</small></div>
+        <p class="sub">A founder-operator in your corner, ongoing.</p>
+        <ul>
+          <li>Monthly strategy session + async review of anything</li>
+          <li>Your numbers read monthly — MRR, churn, event P&amp;L</li>
+          <li>Programming calendar &amp; sponsorship pipeline reviews</li>
+          <li>Vendor, lease, and hiring decisions — pressure-tested</li>
+        </ul>
+        <a class="btn btn-line" href="mailto:draymond@threecitiessocial.com?subject=Operating%20Partner">Talk it through</a>
+      </div>
+    </div>
+    <p class="offer-foot">Founding rates, honestly labeled — they'll follow Law II: the rate you start at is yours for good.<br>Speaking &amp; workshops for teams, venues, and events: <a href="mailto:draymond@threecitiessocial.com?subject=Speaking">draymond@threecitiessocial.com</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-inner">
+    <div>The Clubhouse Playbook · Draymond Washington · Est. Chicago</div>
+    <div><a href="https://threecitiessocial.com">threecitiessocial.com</a> · <a href="mailto:draymond@threecitiessocial.com">draymond@threecitiessocial.com</a></div>
+  </div>
+</footer>
+
+</body>
+</html>
