@@ -100,7 +100,8 @@
   ul.clean li::before { content: "—"; position: absolute; left: 0; color: var(--autumn); font-weight: 700; }
 
   table { width: 100%; border-collapse: collapse; margin: 26px 0; font-size: .93rem; background: var(--white); border-radius: 10px; overflow: hidden; }
-  .table-scroll { overflow-x: auto; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-scroll table { min-width: 540px; }
   th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .14em; color: var(--white); background: var(--ink); padding: 12px 16px; }
   td { padding: 12px 16px; border-bottom: 1px solid rgba(53,48,44,.09); vertical-align: top; }
   tr:last-child td { border-bottom: none; }
@@ -191,6 +192,12 @@
   .stool .s1 { background: var(--ocean); }
   .stool .s2 { background: var(--gold); }
   .stool .s3 { background: var(--autumn); }
+  @media (max-width: 600px) {
+    .stool { grid-template-columns: 1fr; }
+    .stool > div { display: flex; align-items: baseline; justify-content: flex-start; gap: 10px; text-align: left; padding: 13px 16px; }
+    .stool b { font-size: 1.15rem; min-width: 3em; }
+    .stool small { white-space: normal; overflow: visible; }
+  }
   .stool-caption { font-size: .82rem; color: var(--ink-soft); text-align: center; margin-bottom: 26px; }
 
   /* ---------- Vault ---------- */
