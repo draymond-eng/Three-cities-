@@ -119,6 +119,17 @@
   .statbar small { font-size: .72rem; text-transform: uppercase; letter-spacing: .13em; opacity: .85; }
   @media (max-width: 760px) { .statbar-inner { grid-template-columns: repeat(2, 1fr); } .statbar-inner div:last-child { grid-column: span 2; } }
 
+  /* ---------- Photos ---------- */
+  .photoband { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .photoband img { width: 100%; height: 300px; object-fit: cover; display: block; }
+  @media (max-width: 700px) { .photoband img { height: 150px; } }
+  .founder-figure { margin: 44px 0 8px; }
+  .founder-figure img {
+    width: 100%; max-height: 600px; object-fit: cover; object-position: center 28%;
+    border-radius: 14px; display: block;
+  }
+  .founder-figure figcaption { font-size: .8rem; color: var(--ink-soft); margin-top: 10px; text-align: center; font-style: italic; }
+
   /* ---------- Timeline ---------- */
   .timeline { margin: 40px 0 8px; border-left: 2px solid var(--clay); padding-left: 28px; }
   .tl-item { position: relative; padding-bottom: 26px; }
@@ -323,6 +334,12 @@
   </div>
 </header>
 
+<div class="photoband">
+  <img src="img/trivia.jpg" alt="Members laughing together on couches during trivia night at Three Cities Social">
+  <img src="img/happyhour.jpg" alt="A packed Friday happy hour at the Three Cities clubhouse">
+  <img src="img/fireside.jpg" alt="A fireside author talk in front of the Chicago map mural at Three Cities Social">
+</div>
+
 <!-- ============ STORY ============ -->
 <section id="story">
   <div class="wrap">
@@ -332,6 +349,11 @@
     <div class="pull">"My final bills every month were $2,000 — and I wasn't really doing anything."<cite>The founding insight</cite></div>
     <p>So Three Cities Social was designed as the inversion: <strong>BYOB, everything included, no bar minimums, no bottle service, no celebrity in the corner booth.</strong> A 7,500-square-foot clubhouse open 7am to midnight, running about 90% unmanned on badge access, where the whole point is the person at the next table.</p>
     <p>Research says a friendship takes roughly <strong>70 hours</strong> to form. Apps can't compress that. Bars can't hold it. A clubhouse can — because a physical home base is <em>the validation of "I'll see you again."</em> Everything I build serves that one mechanic.</p>
+
+    <figure class="founder-figure">
+      <img src="img/draymond.jpg" alt="Draymond Washington in a Three Cities cap greeting members at the clubhouse front desk">
+      <figcaption>Working the room. This is the job — everything else is infrastructure.</figcaption>
+    </figure>
 
     <h3>The timeline, honestly</h3>
     <div class="timeline">
