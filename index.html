@@ -175,6 +175,9 @@
   .quote .stars { color: #E8A33D; letter-spacing: 2px; font-size: .95rem; margin-bottom: 10px; }
   .quote p { font-size: .96rem; font-style: italic; flex: 1; }
   .quote cite { display: block; margin-top: 14px; font-style: normal; font-size: .76rem; text-transform: uppercase; letter-spacing: .14em; color: var(--ink-soft); font-weight: 700; }
+  .proof-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 34px; }
+  .proof-photos img { width: 100%; height: 300px; object-fit: cover; border-radius: 12px; display: block; }
+  @media (max-width: 700px) { .proof-photos { grid-template-columns: 1fr; } .proof-photos img { height: 220px; } }
 
   /* ---------- Circle ---------- */
   .circle-section { background: var(--paper-deep); }
@@ -425,6 +428,10 @@
         <cite>Member · Google review</cite></div>
     </div>
     <p style="margin-top:22px; font-size:.88rem; color:var(--ink-soft)">45 of 46 reviews are five stars. The one that isn't keeps me honest.</p>
+    <div class="proof-photos">
+      <img src="img/party.jpg" alt="Members dressed up and laughing around the table at a Three Cities Social party">
+      <img src="img/members.jpg" alt="A group of Three Cities Social members arm in arm at the clubhouse">
+    </div>
   </div>
 </section>
 
@@ -475,6 +482,7 @@
     <div class="kicker">What clients get</div>
     <h2>The System: five chapters, earned the hard way.</h2>
     <p class="lede">This is the operating system that runs Three Cities — documented, tested, and adapted to each client's club. The chapter titles are public. The chapters are not.</p>
+    <img src="img/library.jpg" alt="The Three Cities Social library and games room — bookshelves, orange armchairs, a chess set mid-game" style="width:100%; height:400px; object-fit:cover; object-position:center 62%; border-radius:14px; display:block; margin-top:34px;">
     <div class="sys">
       <div class="sys-chapter">
         <div class="sys-num">I.</div>
@@ -566,10 +574,15 @@
 <!-- ============ CIRCLE ============ -->
 <section id="circle" class="circle-section">
   <div class="wrap">
-    <div class="kicker">The community</div>
-    <h2>The Operators Circle</h2>
-    <span class="founding-chip">Founding cohort · Capped at 50 operators</span>
-    <p class="lede">A membership community for the people who run membership communities. Club founders, event organizers, and space operators — building together, with my playbook and each other's scar tissue on tap.</p>
+    <div class="speak-head" style="align-items:center;">
+      <div>
+        <div class="kicker">The community</div>
+        <h2>The Operators Circle</h2>
+        <span class="founding-chip">Founding cohort · Capped at 50 operators</span>
+        <p class="lede">A membership community for the people who run membership communities. Club founders, event organizers, and space operators — building together, with my playbook and each other's scar tissue on tap.</p>
+      </div>
+      <img src="img/clubroom.jpg" alt="The Three Cities Social clubhouse floor — green lounge chairs in a circle, ring chandeliers, coworking tables beyond">
+    </div>
     <div class="circle-grid">
       <div><b>The monthly table</b>One live group session a month: a teardown of one member's club, a working topic from the System, and open problem-solving. Recorded for the vault.</div>
       <div><b>The channel</b>A private space for the questions between sessions — pricing calls, vendor checks, lease gut-checks. Someone in the room has faced it.</div>
