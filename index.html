@@ -59,8 +59,10 @@
   .nav-mark {
     font-family: var(--serif); font-weight: 700; font-size: 1.02rem;
     letter-spacing: .02em; white-space: nowrap;
+    display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink);
   }
   .nav-mark span { color: var(--autumn); }
+  .nav-mark svg { flex: none; display: block; }
   .nav-links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: flex-end; }
   .nav-links a {
     color: var(--ink-soft); text-decoration: none; font-size: .78rem;
@@ -313,7 +315,18 @@
 
 <nav>
   <div class="nav-inner">
-    <div class="nav-mark">Draymond <span>Washington</span></div>
+    <a class="nav-mark" href="#top">
+      <svg width="40" height="40" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="256" cy="256" r="240" fill="none" stroke="#35302C" stroke-width="22"/>
+        <text x="256" y="296" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-weight="700" font-size="180" fill="#35302C">III</text>
+        <g fill="#984929">
+          <polygon transform="translate(190,362) scale(1.5)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+          <polygon transform="translate(256,370) scale(1.75)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+          <polygon transform="translate(322,362) scale(1.5)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+        </g>
+      </svg>
+      <div>Draymond <span>Washington</span></div>
+    </a>
     <div class="nav-links">
       <a href="#story">The Story</a>
       <a href="#laws">The Laws</a>
