@@ -57,12 +57,13 @@
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
   }
   .nav-mark {
-    font-family: var(--serif); font-weight: 700; font-size: 1.02rem;
-    letter-spacing: .02em; white-space: nowrap;
-    display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink);
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink);
   }
-  .nav-mark span { color: var(--autumn); }
   .nav-mark svg { flex: none; display: block; }
+  .nav-mark .nm-name { font-family: var(--serif); font-weight: 700; font-size: 1.05rem; line-height: 1.15; letter-spacing: .02em; }
+  .nav-mark .nm-name span { color: var(--autumn); }
+  .nav-mark .nm-sub { font-family: var(--sans); font-weight: 700; font-size: .6rem; letter-spacing: .22em; color: var(--gold); text-transform: uppercase; margin-top: 2px; }
   .nav-links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: flex-end; }
   .nav-links a {
     color: var(--ink-soft); text-decoration: none; font-size: .78rem;
@@ -325,7 +326,10 @@
           <polygon transform="translate(322,362) scale(1.5)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
         </g>
       </svg>
-      <div>Draymond <span>Washington</span></div>
+      <div>
+        <div class="nm-name">Draymond <span>Washington</span></div>
+        <div class="nm-sub">The Social Club Consultant</div>
+      </div>
     </a>
     <div class="nav-links">
       <a href="#story">The Story</a>
