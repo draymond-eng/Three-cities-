@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apply — The Operators Circle</title>
+<meta name="description" content="Apply for the founding cohort of the Operators Circle — a membership community for the people who run membership communities. Capped at 50 operators.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2335302C'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23A19D7F' stroke-width='2'/%3E%3Ctext x='32' y='36' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-weight='bold' font-size='20' fill='%23EDE7DB'%3EIII%3C/text%3E%3Ccircle cx='22' cy='46' r='2.5' fill='%23C98A5B'/%3E%3Ccircle cx='32' cy='47.5' r='3' fill='%23C98A5B'/%3E%3Ccircle cx='42' cy='46' r='2.5' fill='%23C98A5B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDE7DB; --ink: #35302C; --ink-soft: #5C554E; --ocean: #427179;
+    --gold: #6B582A; --autumn: #984929; --clay: #A19D7F; --white: #FBF9F4;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'Nunito Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.7; font-size: 17px; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px 90px; }
+  header { padding: 46px 0 10px; text-align: center; }
+  header a { text-decoration: none; color: var(--ink); display: inline-flex; flex-direction: column; align-items: center; gap: 12px; }
+  .kicker { font-size: .75rem; text-transform: uppercase; letter-spacing: .22em; font-weight: 700; color: var(--autumn); margin: 34px 0 12px; text-align: center; }
+  h1 { font-family: var(--serif); font-size: clamp(1.9rem, 5vw, 2.6rem); text-align: center; margin-bottom: 16px; }
+  .lede { color: var(--ink-soft); text-align: center; max-width: 36em; margin: 0 auto 12px; }
+  .chip { display: block; width: fit-content; margin: 18px auto 0; background: var(--ocean); color: var(--white); border-radius: 999px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; padding: 5px 14px; }
+  form { background: var(--white); border: 1px solid rgba(53,48,44,.14); border-radius: 16px; padding: 38px 34px; margin-top: 38px; }
+  label { display: block; font-weight: 700; font-size: .92rem; margin: 24px 0 6px; }
+  label:first-of-type { margin-top: 0; }
+  label small { display: block; font-weight: 400; color: var(--ink-soft); font-size: .82rem; }
+  input, select, textarea {
+    width: 100%; font-family: var(--sans); font-size: .96rem; color: var(--ink);
+    background: var(--paper); border: 1px solid rgba(53,48,44,.22); border-radius: 8px;
+    padding: 11px 14px; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--ocean); box-shadow: 0 0 0 3px rgba(66,113,121,.15); }
+  textarea { min-height: 96px; resize: vertical; }
+  button {
+    margin-top: 30px; width: 100%; font-family: var(--sans); font-weight: 700; font-size: 1rem;
+    background: var(--autumn); color: var(--white); border: none; border-radius: 999px;
+    padding: 15px 26px; cursor: pointer; letter-spacing: .02em;
+  }
+  button:hover { background: var(--gold); }
+  .fine { font-size: .8rem; color: var(--ink-soft); text-align: center; margin-top: 16px; }
+  .thanks { display: none; background: var(--white); border: 1px solid rgba(53,48,44,.14); border-radius: 16px; padding: 46px 38px; margin-top: 38px; text-align: center; }
+  .thanks h2 { font-family: var(--serif); font-size: 1.6rem; margin-bottom: 12px; }
+  .thanks p { color: var(--ink-soft); }
+  body.sent form, body.sent .kicker, body.sent h1, body.sent .lede, body.sent .chip { display: none; }
+  body.sent .thanks { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/">
+    <svg width="54" height="54" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="256" cy="256" r="240" fill="none" stroke="#35302C" stroke-width="22"/>
+      <text x="256" y="296" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-weight="700" font-size="180" fill="#35302C">III</text>
+      <g fill="#984929">
+        <polygon transform="translate(190,362) scale(1.5)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+        <polygon transform="translate(256,370) scale(1.75)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+        <polygon transform="translate(322,362) scale(1.5)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+      </g>
+    </svg>
+    <span style="font-family:var(--serif); font-weight:700;">Draymond Washington · <span style="color:var(--autumn)">The Social Club Consultant</span></span>
+  </a>
+</header>
+
+<div class="wrap">
+  <div class="kicker">The Operators Circle</div>
+  <h1>Apply for a founding seat.</h1>
+  <p class="lede">A membership community for the people who run membership communities. One monthly table, one private channel, real numbers only. $149/month — and per Law II, founding members keep that rate for good.</p>
+  <span class="chip">Founding cohort · capped at 50 · reviewed personally</span>
+
+  <form action="https://formsubmit.co/draymond@threecitiessocial.com" method="POST">
+    <input type="hidden" name="_subject" value="Operators Circle Application">
+    <input type="hidden" name="_template" value="table">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_next" value="https://thesocialclubconsultant.com/apply.html?sent=1">
+    <input type="text" name="_honey" style="display:none">
+
+    <label>Your name</label>
+    <input type="text" name="Name" required>
+
+    <label>Email</label>
+    <input type="email" name="Email" required>
+
+    <label>City &amp; neighborhood</label>
+    <input type="text" name="City" required>
+
+    <label>What are you running or building? <small>Describe it like you'd describe it to a friend.</small></label>
+    <textarea name="What they run" required></textarea>
+
+    <label>What stage are you at?</label>
+    <select name="Stage" required>
+      <option value="" disabled selected>Choose one</option>
+      <option>Just an idea</option>
+      <option>Running free events or a group</option>
+      <option>Charging for events</option>
+      <option>Space identified or lease signed</option>
+      <option>Club or community already open</option>
+    </select>
+
+    <label>How many people show up to a typical thing you host?</label>
+    <input type="text" name="Typical turnout" required>
+
+    <label>The decision you're stuck on right now</label>
+    <textarea name="Stuck on" required></textarea>
+
+    <label>What do you bring to the table? <small>The Circle runs on operators who give before they get.</small></label>
+    <textarea name="Brings to table" required></textarea>
+
+    <label>Link to your thing <small>Instagram, site, event page — optional.</small></label>
+    <input type="text" name="Link">
+
+    <label>How did you hear about the Circle? <small>Optional.</small></label>
+    <input type="text" name="Referral">
+
+    <button type="submit">Submit application</button>
+    <p class="fine">Every application is read and answered personally. If it's a fit, you'll get a note from Draymond with the founding-member link.</p>
+  </form>
+
+  <div class="thanks">
+    <h2>Application received.</h2>
+    <p>It goes straight to Draymond — every application is read and answered personally, usually within a few days. If the Circle is a fit, your founding-member invite will come by email.</p>
+    <p style="margin-top:16px"><a href="/" style="color:var(--autumn); font-weight:700;">← Back to the playbook</a></p>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('sent') === '1') document.body.classList.add('sent');
+</script>
+
+</body>
+</html>
