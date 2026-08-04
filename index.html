@@ -322,6 +322,29 @@
     .speak-head img { height: 360px; }
   }
 
+  /* ---------- Motion ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .hero-inner > * { opacity: 0; transform: translateY(14px); animation: rise .7s ease forwards; }
+    .hero-inner > *:nth-child(1) { animation-delay: .05s; }
+    .hero-inner > *:nth-child(2) { animation-delay: .15s; }
+    .hero-inner > *:nth-child(3) { animation-delay: .3s; }
+    .hero-inner > *:nth-child(4) { animation-delay: .45s; }
+    .hero-inner > *:nth-child(5) { animation-delay: .6s; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+    .law, .quote, .card, .tier, .vault-item, .sys-chapter, .icp > div, .circle-grid > div {
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .law:hover, .quote:hover, .card:hover, .tier:hover, .vault-item:hover, .sys-chapter:hover, .icp > div:hover, .circle-grid > div:hover {
+      transform: translateY(-4px); box-shadow: 0 14px 30px rgba(30,26,22,.14);
+    }
+    nav { transition: box-shadow .3s ease; }
+    nav.scrolled { box-shadow: 0 4px 18px rgba(30,26,22,.1); }
+    .btn { transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease; }
+    .btn:hover { transform: translateY(-2px); }
+  }
+
   /* ---------- Footer ---------- */
   footer { background: var(--ink); color: rgba(237,231,219,.6); border-top: 1px solid rgba(237,231,219,.14); }
   .foot-inner { max-width: 1080px; margin: 0 auto; padding: 44px 24px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: .84rem; }
@@ -714,5 +737,18 @@
   </div>
 </footer>
 
+<script>
+(function () {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var els = document.querySelectorAll('section h2, section .kicker, .law, .quote, .proof-photos img, .sys-chapter, .vault-item, .card, .tier, .icp > div, .circle-grid > div, .founder-figure, .speak-head img, .franchise, .tl-item');
+  els.forEach(function (el, i) { el.classList.add('reveal'); el.style.transitionDelay = (i % 4) * 70 + 'ms'; });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  els.forEach(function (el) { io.observe(el); });
+  var nav = document.querySelector('nav');
+  addEventListener('scroll', function () { nav.classList.toggle('scrolled', scrollY > 30); }, { passive: true });
+})();
+</script>
 </body>
 </html>
