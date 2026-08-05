@@ -152,6 +152,21 @@
   <!-- RECRUITING -->
   <section id="tab-recruiting">
     <div class="panel">
+      <h2>Class Blueprint <span class="muted">(what this class must sign — commits count automatically)</span></h2>
+      <table>
+        <thead><tr><th>Need</th><th>Positions</th><th>Signed</th><th>Target</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="bpRows"></tbody>
+      </table>
+      <form class="row" id="bpForm" style="margin-top:10px">
+        <label>Need <input class="w-name" id="bpTitle" required placeholder="e.g. Pass rusher"></label>
+        <label>Positions <input class="w-name" id="bpPos" required placeholder="comma list, e.g. LE,RE"></label>
+        <label>Target <input class="w-num" id="bpTarget" type="number" min="1" value="1"></label>
+        <label>Notes <input class="w-name" id="bpNotes" placeholder="archetype / size"></label>
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+
+    <div class="panel">
       <h2>Position Needs <span class="muted">(roster today vs. who leaves after this season)</span></h2>
       <div class="needs-grid" id="needsGrid"></div>
     </div>
@@ -292,7 +307,21 @@
       recruits: [],
       players: [],
       games: [],
-      history: []
+      history: [],
+      blueprint: [
+        { id: "bp1", title: "Dual-threat QB", positions: ["QB"], target: 1,
+          notes: "Dual Threat / Pure Runner archetype. Board 2, sign 1." },
+        { id: "bp2", title: "Big O-line", positions: ["LT","LG","C","RG","RT"], target: 4,
+          notes: "6'4\"+ and 300+ lbs. Nobody fights over 3★ linemen — gem city. Redshirt them." },
+        { id: "bp3", title: "Speed WR", positions: ["WR"], target: 2,
+          notes: "Deep Threat archetype, A-grade speed only." },
+        { id: "bp4", title: "Speed CB", positions: ["CB"], target: 2,
+          notes: "A-grade speed only. Freshman can start for us." },
+        { id: "bp5", title: "Home-run HB", positions: ["HB"], target: 1,
+          notes: "Elusive archetype — speed over size." },
+        { id: "bp6", title: "Rangy safety", positions: ["FS","SS"], target: 1,
+          notes: "Coverage archetype, speed first." }
+      ]
     };
   }
 
@@ -350,6 +379,34 @@
   }
   fillPosSelect(el("rcPos")); fillPosSelect(el("plPos"));
   fillPosSelect(el("rcFilterPos"), true); fillPosSelect(el("plFilterPos"), true);
+
+  // ---------- class blueprint ----------
+  function renderBlueprint() {
+    el("bpRows").innerHTML = state.blueprint.map(b => {
+      const signed = state.recruits.filter(r => r.status === "committed" && b.positions.includes(r.pos)).length;
+      const done = signed >= b.target;
+      return `<tr>
+        <td><b>${esc(b.title)}</b></td>
+        <td class="muted">${b.positions.map(esc).join(", ")}</td>
+        <td class="${done ? "win" : ""}">${signed} / ${b.target}${done ? " ✓" : ""}</td>
+        <td><input class="w-num" style="width:60px" type="number" min="1" value="${b.target}" data-act="bp-target" data-id="${b.id}"></td>
+        <td class="muted">${esc(b.notes)}</td>
+        <td><button class="mini" data-act="del-bp" data-id="${b.id}" title="Remove">✕</button></td>
+      </tr>`;
+    }).join("") || '<tr><td colspan="6" class="empty">No class goals set. Add one below.</td></tr>';
+  }
+  el("bpForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const positions = el("bpPos").value.toUpperCase().split(",").map(s => s.trim()).filter(Boolean);
+    if (!positions.length) return;
+    state.blueprint.push({
+      id: uid(), title: el("bpTitle").value.trim(), positions,
+      target: Math.max(1, parseInt(el("bpTarget").value, 10) || 1),
+      notes: el("bpNotes").value.trim()
+    });
+    e.target.reset(); el("bpTarget").value = 1;
+    save(); renderBlueprint();
+  });
 
   // ---------- needs board ----------
   function renderNeeds() {
@@ -546,7 +603,10 @@
     if (!t.dataset || !t.dataset.act) return;
     if (t.dataset.act === "del-recruit") {
       state.recruits = state.recruits.filter(r => r.id !== t.dataset.id);
-      save(); renderRecruits(); renderNeeds();
+      save(); renderRecruits(); renderNeeds(); renderBlueprint();
+    } else if (t.dataset.act === "del-bp") {
+      state.blueprint = state.blueprint.filter(b => b.id !== t.dataset.id);
+      save(); renderBlueprint();
     } else if (t.dataset.act === "del-player") {
       state.players = state.players.filter(p => p.id !== t.dataset.id);
       save(); renderPlayers(); renderNeeds();
@@ -558,12 +618,17 @@
   document.body.addEventListener("change", e => {
     const t = e.target;
     if (!t.dataset || !t.dataset.act) return;
+    if (t.dataset.act === "bp-target") {
+      const b = state.blueprint.find(x => x.id === t.dataset.id);
+      if (b) { b.target = Math.max(1, parseInt(t.value, 10) || 1); save(); renderBlueprint(); }
+      return;
+    }
     const r = state.recruits.find(x => x.id === t.dataset.id);
     if (!r) return;
     if (t.dataset.act === "status") {
       r.status = t.value;
       if (t.value === "committed" || t.value === "lost") r.hours = 0;
-      save(); renderRecruits(); renderNeeds();
+      save(); renderRecruits(); renderNeeds(); renderBlueprint();
     } else if (t.dataset.act === "hours") {
       r.hours = Math.max(0, parseInt(t.value, 10) || 0);
       save(); renderRecruits();
@@ -602,7 +667,7 @@
   });
 
   function renderAll() {
-    renderHeader(); renderNeeds(); renderRecruits();
+    renderHeader(); renderBlueprint(); renderNeeds(); renderRecruits();
     renderPlayers(); renderGames(); renderHistory();
     el("hoursCap").value = state.hoursCap;
   }
