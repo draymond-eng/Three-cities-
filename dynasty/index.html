@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynasty HQ — NCAA 27 Strategy Board</title>
+<title>UTSA Dynasty HQ — Birds Up 🤙</title>
 <style>
   :root {
-    --bg: #0e1117;
-    --panel: #171c26;
-    --panel-2: #1e2532;
-    --border: #2b3444;
-    --text: #e8ecf3;
-    --muted: #8b95a7;
-    --accent: #f5a623;
-    --accent-dim: #b97f1c;
+    --bg: #071120;
+    --panel: #0e1a2e;
+    --panel-2: #14233c;
+    --border: #23375a;
+    --text: #eef2f8;
+    --muted: #8fa1bd;
+    --accent: #f15a22;
+    --accent-dim: #c44417;
+    --navy: #0c2340;
     --green: #3ecf8e;
     --red: #ef5a5a;
     --blue: #5aa9ef;
@@ -128,24 +129,91 @@
     form.row label { flex: 1 1 45%; }
     input.w-name { width: 100%; }
   }
+
+  /* ---------- UTSA hero ---------- */
+  .hero {
+    position: relative; overflow: hidden; border: 1px solid var(--border);
+    border-radius: 14px; padding: 26px 24px 20px; margin-bottom: 14px;
+    background: linear-gradient(120deg, #0c2340 0%, #143563 45%, #0c2340 100%);
+    background-size: 200% 200%;
+    animation: heroShift 14s ease infinite;
+  }
+  @keyframes heroShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .hero::before {
+    content: ""; position: absolute; inset: -60% -240px -60% -30%;
+    background: repeating-linear-gradient(115deg, rgba(241,90,34,0.10) 0 26px, transparent 26px 68px);
+    animation: stripes 18s linear infinite; pointer-events: none;
+  }
+  @keyframes stripes { to { transform: translateX(188px); } }
+  .hero > * { position: relative; }
+  .hero-kicker {
+    color: var(--accent); font-weight: 800; font-size: 12px;
+    letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .hero h1 {
+    font-size: 36px; letter-spacing: 2px; text-transform: uppercase;
+    color: #fff; cursor: pointer; line-height: 1.1;
+    text-shadow: 0 2px 18px rgba(241,90,34,0.25);
+  }
+  .hero h1 .edit-hint { font-size: 11px; color: var(--muted); text-transform: none; letter-spacing: 0; margin-left: 8px; }
+  .hero-tag { color: #c9d6ea; font-size: 13px; margin: 6px 0 16px; }
+  .hero .season-meta { flex-wrap: wrap; }
+
+  /* ---------- motion ---------- */
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .panel { animation: rise 0.45s ease both; }
+  section .panel:nth-of-type(2) { animation-delay: 0.07s; }
+  section .panel:nth-of-type(3) { animation-delay: 0.14s; }
+  section .panel:nth-of-type(4) { animation-delay: 0.21s; }
+  .record-chip { animation: glow 3s ease-in-out infinite; }
+  @keyframes glow { 50% { box-shadow: 0 0 14px rgba(241,90,34,0.4); border-color: var(--accent); } }
+  .need-card, .history-card { transition: transform 0.2s ease, border-color 0.2s ease; }
+  .need-card:hover, .history-card:hover { transform: translateY(-3px); }
+  button.btn { transition: transform 0.15s ease, background 0.15s ease; }
+  button.btn:hover { transform: translateY(-1px); }
+  nav.tabs button { transition: color 0.2s ease; }
+
+  /* ---------- goals ---------- */
+  .progress { height: 10px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+  .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), #ffb347); transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+  .goal-list { list-style: none; }
+  .goal-list li { display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-bottom: 1px solid var(--panel-2); font-size: 14.5px; transition: background 0.2s; }
+  .goal-list li:hover { background: rgba(255,255,255,0.02); }
+  .goal-list li label { display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer; }
+  .goal-list input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+  .goal-list li.done .txt { text-decoration: line-through; color: var(--muted); }
+
+  /* ---------- confetti ---------- */
+  .confetti {
+    position: fixed; top: -20px; z-index: 999; pointer-events: none; border-radius: 2px;
+    animation-name: fall; animation-timing-function: linear; animation-fill-mode: forwards;
+  }
+  @keyframes fall { to { transform: translateY(108vh) rotate(680deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
+  <div class="hero">
+    <div class="hero-kicker">🤙 Birds Up · San Antonio, TX · The Alamodome</div>
     <h1 id="teamName" title="Click to rename"></h1>
+    <div class="hero-tag">Dynasty HQ — Speed on the edges. Beef up front. A QB who can fly.</div>
     <div class="season-meta">
       <span><b id="seasonYear" style="cursor:pointer" title="Click to change"></b> Season</span>
       <span class="week-ctl">Week <button id="wkDown">−</button> <b id="weekNum"></b> <button id="wkUp">+</button></span>
       <span class="record-chip" id="recordChip">0–0</span>
     </div>
-  </header>
+  </div>
   <div class="subhead">Everything saves automatically in this browser. Use Export in the footer for a backup file.</div>
 
   <nav class="tabs">
     <button data-tab="recruiting" class="active">Recruiting Board</button>
     <button data-tab="roster">Roster &amp; Needs</button>
     <button data-tab="season">Season</button>
+    <button data-tab="goals">Goals</button>
     <button data-tab="history">History</button>
   </nav>
 
@@ -272,6 +340,28 @@
     </div>
   </section>
 
+  <!-- GOALS -->
+  <section id="tab-goals" class="hidden">
+    <div class="panel">
+      <h2>This Season — <span id="goalsYear"></span></h2>
+      <div class="progress"><div class="progress-fill" id="progSeason"></div></div>
+      <ul class="goal-list" id="goalsSeason"></ul>
+    </div>
+    <div class="panel">
+      <h2>Dynasty Goals <span class="muted">(the long game)</span></h2>
+      <div class="progress"><div class="progress-fill" id="progDynasty"></div></div>
+      <ul class="goal-list" id="goalsDynasty"></ul>
+    </div>
+    <div class="panel">
+      <h2>Add Goal</h2>
+      <form class="row" id="goalForm">
+        <label>Goal <input class="w-name" id="glText" required placeholder="e.g. Hold a rival under 20 points" style="width:280px"></label>
+        <label>Type <select id="glCat"><option value="season">This Season</option><option value="dynasty">Dynasty</option></select></label>
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+  </section>
+
   <!-- HISTORY -->
   <section id="tab-history" class="hidden">
     <div class="panel">
@@ -300,7 +390,7 @@
 
   function defaults() {
     return {
-      team: "My Dynasty",
+      team: "UTSA Roadrunners",
       year: new Date().getFullYear(),
       week: 2,
       hoursCap: 35,
@@ -321,6 +411,21 @@
           notes: "Elusive archetype — speed over size." },
         { id: "bp6", title: "Rangy safety", positions: ["FS","SS"], target: 1,
           notes: "Coverage archetype, speed first." }
+      ],
+      goals: [
+        { id: "g1",  cat: "season",  done: false, text: "Win 4+ games — beat the rebuild expectations" },
+        { id: "g2",  cat: "season",  done: false, text: "Land the dual-threat QB" },
+        { id: "g3",  cat: "season",  done: false, text: "Sign 4 O-linemen at 300+ lbs" },
+        { id: "g4",  cat: "season",  done: false, text: "Complete the full Blueprint class (11 signees)" },
+        { id: "g5",  cat: "season",  done: false, text: "Win a conference game at the Alamodome" },
+        { id: "g6",  cat: "season",  done: false, text: "Steal one recruit off another user's board" },
+        { id: "g7",  cat: "dynasty", done: false, text: "Bowl game by Year 2" },
+        { id: "g8",  cat: "dynasty", done: false, text: "Winning season by Year 3" },
+        { id: "g9",  cat: "dynasty", done: false, text: "Beat a ranked team" },
+        { id: "g10", cat: "dynasty", done: false, text: "Conference championship by Year 4" },
+        { id: "g11", cat: "dynasty", done: false, text: "Finish a season ranked Top 25" },
+        { id: "g12", cat: "dynasty", done: false, text: "College Football Playoff berth" },
+        { id: "g13", cat: "dynasty", done: false, text: "Put a Roadrunner in Round 1 of the draft" }
       ]
     };
   }
@@ -328,9 +433,29 @@
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) return Object.assign(defaults(), JSON.parse(raw));
+      if (raw) {
+        const s = Object.assign(defaults(), JSON.parse(raw));
+        if (s.team === "My Dynasty") s.team = "UTSA Roadrunners";
+        return s;
+      }
     } catch (e) { /* corrupted save — start fresh */ }
     return defaults();
+  }
+
+  function confetti(n) {
+    const colors = ["#f15a22", "#ffffff", "#7ea6d9", "#ffb347"];
+    for (let i = 0; i < (n || 36); i++) {
+      const d = document.createElement("div");
+      d.className = "confetti";
+      d.style.left = (Math.random() * 100) + "vw";
+      d.style.background = colors[i % colors.length];
+      d.style.width = (6 + Math.random() * 6) + "px";
+      d.style.height = (10 + Math.random() * 8) + "px";
+      d.style.animationDuration = (0.9 + Math.random() * 1.2) + "s";
+      d.style.animationDelay = (Math.random() * 0.3) + "s";
+      document.body.appendChild(d);
+      d.addEventListener("animationend", () => d.remove());
+    }
   }
 
   function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
@@ -367,8 +492,12 @@
     btn.addEventListener("click", () => {
       document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      ["recruiting","roster","season","history"].forEach(t =>
+      ["recruiting","roster","season","goals","history"].forEach(t =>
         el("tab-" + t).classList.toggle("hidden", t !== btn.dataset.tab));
+      // replay the panel entrance animation on tab switch
+      el("tab-" + btn.dataset.tab).querySelectorAll(".panel").forEach(p => {
+        p.style.animation = "none"; void p.offsetHeight; p.style.animation = "";
+      });
     });
   });
 
@@ -585,6 +714,26 @@
     alert("Welcome to the " + state.year + " season. Time to build next year's board.");
   });
 
+  // ---------- goals ----------
+  function renderGoals() {
+    el("goalsYear").textContent = state.year;
+    [["season", "goalsSeason", "progSeason"], ["dynasty", "goalsDynasty", "progDynasty"]].forEach(([cat, listId, progId]) => {
+      const list = state.goals.filter(g => g.cat === cat);
+      el(listId).innerHTML = list.map(g => `<li class="${g.done ? "done" : ""}">
+        <label><input type="checkbox" ${g.done ? "checked" : ""} data-act="goal-toggle" data-id="${g.id}"><span class="txt">${esc(g.text)}</span></label>
+        <button class="mini" data-act="del-goal" data-id="${g.id}" title="Remove">✕</button>
+      </li>`).join("") || '<li class="muted" style="padding:8px 6px">Nothing here yet — add one below.</li>';
+      const pct = list.length ? Math.round(100 * list.filter(g => g.done).length / list.length) : 0;
+      el(progId).style.width = pct + "%";
+    });
+  }
+  el("goalForm").addEventListener("submit", e => {
+    e.preventDefault();
+    state.goals.push({ id: uid(), cat: el("glCat").value, done: false, text: el("glText").value.trim() });
+    e.target.reset();
+    save(); renderGoals();
+  });
+
   // ---------- history ----------
   function renderHistory() {
     el("historyList").innerHTML = state.history.slice().reverse().map(h => `
@@ -607,6 +756,9 @@
     } else if (t.dataset.act === "del-bp") {
       state.blueprint = state.blueprint.filter(b => b.id !== t.dataset.id);
       save(); renderBlueprint();
+    } else if (t.dataset.act === "del-goal") {
+      state.goals = state.goals.filter(g => g.id !== t.dataset.id);
+      save(); renderGoals();
     } else if (t.dataset.act === "del-player") {
       state.players = state.players.filter(p => p.id !== t.dataset.id);
       save(); renderPlayers(); renderNeeds();
@@ -623,12 +775,18 @@
       if (b) { b.target = Math.max(1, parseInt(t.value, 10) || 1); save(); renderBlueprint(); }
       return;
     }
+    if (t.dataset.act === "goal-toggle") {
+      const g = state.goals.find(x => x.id === t.dataset.id);
+      if (g) { g.done = t.checked; save(); renderGoals(); if (t.checked) confetti(); }
+      return;
+    }
     const r = state.recruits.find(x => x.id === t.dataset.id);
     if (!r) return;
     if (t.dataset.act === "status") {
       r.status = t.value;
       if (t.value === "committed" || t.value === "lost") r.hours = 0;
       save(); renderRecruits(); renderNeeds(); renderBlueprint();
+      if (t.value === "committed") confetti(50);
     } else if (t.dataset.act === "hours") {
       r.hours = Math.max(0, parseInt(t.value, 10) || 0);
       save(); renderRecruits();
@@ -668,7 +826,7 @@
 
   function renderAll() {
     renderHeader(); renderBlueprint(); renderNeeds(); renderRecruits();
-    renderPlayers(); renderGames(); renderHistory();
+    renderPlayers(); renderGames(); renderGoals(); renderHistory();
     el("hoursCap").value = state.hoursCap;
   }
   renderAll();
