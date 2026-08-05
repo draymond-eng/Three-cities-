@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynasty HQ — NCAA 27 Strategy Board</title>
+<style>
+  :root {
+    --bg: #0e1117;
+    --panel: #171c26;
+    --panel-2: #1e2532;
+    --border: #2b3444;
+    --text: #e8ecf3;
+    --muted: #8b95a7;
+    --accent: #f5a623;
+    --accent-dim: #b97f1c;
+    --green: #3ecf8e;
+    --red: #ef5a5a;
+    --blue: #5aa9ef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 20px; margin-bottom: 6px; }
+  header h1 {
+    font-size: 26px; letter-spacing: 0.5px; text-transform: uppercase;
+    color: var(--accent); cursor: pointer;
+  }
+  header h1 span.edit-hint { font-size: 11px; color: var(--muted); text-transform: none; letter-spacing: 0; margin-left: 8px; }
+  .season-meta { display: flex; align-items: center; gap: 14px; font-size: 14px; color: var(--muted); }
+  .season-meta b { color: var(--text); }
+  .record-chip {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 20px;
+    padding: 4px 14px; font-weight: 700; color: var(--text); font-size: 15px;
+  }
+  .week-ctl { display: flex; align-items: center; gap: 6px; }
+  .week-ctl button {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 15px; line-height: 1;
+  }
+  .week-ctl button:hover { border-color: var(--accent); }
+
+  .subhead { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+
+  nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; flex-wrap: wrap; }
+  nav.tabs button {
+    background: none; border: none; color: var(--muted); padding: 10px 16px;
+    font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
+  }
+  nav.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  nav.tabs button:hover { color: var(--text); }
+
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .panel h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+  .panel h2 .count { color: var(--accent); }
+
+  form.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+  form.row label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); padding: 8px 10px; font-size: 14px;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  input.w-name { width: 170px; }
+  input.w-num { width: 70px; }
+  button.btn {
+    background: var(--accent); color: #14100a; border: none; border-radius: 6px;
+    padding: 9px 16px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  button.btn:hover { background: var(--accent-dim); }
+  button.btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 6px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+  }
+  button.btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+  button.btn-danger { border-color: var(--red); color: var(--red); }
+  button.mini {
+    background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 2px 6px;
+  }
+  button.mini:hover { color: var(--red); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--panel-2); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  td select, td input { padding: 5px 8px; font-size: 13px; }
+  td input.hours { width: 60px; }
+  .stars { color: var(--accent); letter-spacing: 1px; white-space: nowrap; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .tag-target { background: rgba(90,169,239,0.15); color: var(--blue); }
+  .tag-committed { background: rgba(62,207,142,0.15); color: var(--green); }
+  .tag-lost { background: rgba(239,90,90,0.15); color: var(--red); }
+  .tag-cooling { background: rgba(245,166,35,0.15); color: var(--accent); }
+  .yr-SR { color: var(--red); font-weight: 700; }
+  .yr-JR { color: var(--accent); }
+  .muted { color: var(--muted); }
+  .win { color: var(--green); font-weight: 700; }
+  .loss { color: var(--red); font-weight: 700; }
+
+  .needs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .need-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; }
+  .need-card .pos { font-weight: 800; font-size: 16px; }
+  .need-card .nums { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.6; }
+  .need-card.urgent { border-color: var(--red); }
+  .need-card.urgent .pos { color: var(--red); }
+  .need-card.covered { border-color: var(--green); }
+
+  .hours-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
+  .hours-bar b.over { color: var(--red); }
+  .hours-bar b.ok { color: var(--green); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .toolbar .spacer { flex: 1; }
+
+  .history-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; }
+  .history-card .year { font-size: 18px; font-weight: 800; color: var(--accent); }
+
+  .empty { color: var(--muted); font-size: 14px; padding: 16px 4px; text-align: center; }
+  footer.databar { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+  .hidden { display: none; }
+  @media (max-width: 640px) {
+    form.row label { flex: 1 1 45%; }
+    input.w-name { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="teamName" title="Click to rename"></h1>
+    <div class="season-meta">
+      <span><b id="seasonYear" style="cursor:pointer" title="Click to change"></b> Season</span>
+      <span class="week-ctl">Week <button id="wkDown">−</button> <b id="weekNum"></b> <button id="wkUp">+</button></span>
+      <span class="record-chip" id="recordChip">0–0</span>
+    </div>
+  </header>
+  <div class="subhead">Everything saves automatically in this browser. Use Export in the footer for a backup file.</div>
+
+  <nav class="tabs">
+    <button data-tab="recruiting" class="active">Recruiting Board</button>
+    <button data-tab="roster">Roster &amp; Needs</button>
+    <button data-tab="season">Season</button>
+    <button data-tab="history">History</button>
+  </nav>
+
+  <!-- RECRUITING -->
+  <section id="tab-recruiting">
+    <div class="panel">
+      <h2>Position Needs <span class="muted">(roster today vs. who leaves after this season)</span></h2>
+      <div class="needs-grid" id="needsGrid"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Add Recruit</h2>
+      <form class="row" id="recruitForm">
+        <label>Name <input class="w-name" id="rcName" required placeholder="Recruit name"></label>
+        <label>Pos <select id="rcPos"></select></label>
+        <label>Stars <select id="rcStars">
+          <option value="5">★★★★★</option><option value="4" selected>★★★★</option>
+          <option value="3">★★★</option><option value="2">★★</option><option value="1">★</option>
+        </select></label>
+        <label>Archetype / notes <input class="w-name" id="rcNotes" placeholder="e.g. Field General, wants playing time"></label>
+        <label>Hrs/wk <input class="w-num" id="rcHours" type="number" min="0" max="50" value="0"></label>
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="hours-bar">
+        Weekly hours committed: <b id="hoursTotal">0</b>
+        <span class="muted">/ <input class="w-num" id="hoursCap" type="number" min="1" style="width:60px"> cap</span>
+        <span class="spacer"></span>
+      </div>
+      <div class="toolbar">
+        <select id="rcFilterPos"><option value="">All positions</option></select>
+        <select id="rcFilterStatus">
+          <option value="">All statuses</option>
+          <option value="target">Targets</option>
+          <option value="cooling">Cooling</option>
+          <option value="committed">Committed</option>
+          <option value="lost">Lost</option>
+        </select>
+        <div class="spacer"></div>
+        <span class="muted" id="rcSummary"></span>
+      </div>
+      <table>
+        <thead><tr><th>Recruit</th><th>Pos</th><th>Stars</th><th>Status</th><th>Hrs/wk</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="recruitRows"></tbody>
+      </table>
+      <div class="empty hidden" id="recruitEmpty">No recruits on the board yet. Add your top targets above — quality over quantity: it's better to dominate hours on 8–10 guys than sprinkle across 25.</div>
+    </div>
+  </section>
+
+  <!-- ROSTER -->
+  <section id="tab-roster" class="hidden">
+    <div class="panel">
+      <h2>Add Player</h2>
+      <form class="row" id="playerForm">
+        <label>Name <input class="w-name" id="plName" required placeholder="Player name"></label>
+        <label>Pos <select id="plPos"></select></label>
+        <label>Year <select id="plYear">
+          <option>FR</option><option>SO</option><option>JR</option><option>SR</option>
+        </select></label>
+        <label><span>RS</span><input type="checkbox" id="plRS" style="height:34px;width:20px"></label>
+        <label>OVR <input class="w-num" id="plOvr" type="number" min="40" max="99" placeholder="—"></label>
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <select id="plFilterPos"><option value="">All positions</option></select>
+        <div class="spacer"></div>
+        <span class="muted" id="plSummary"></span>
+      </div>
+      <table>
+        <thead><tr><th>Player</th><th>Pos</th><th>Year</th><th>OVR</th><th></th></tr></thead>
+        <tbody id="playerRows"></tbody>
+      </table>
+      <div class="empty hidden" id="playerEmpty">No players yet. You don't need the whole roster — at minimum add your starters and every JR/SR, since departures drive the needs board.</div>
+    </div>
+  </section>
+
+  <!-- SEASON -->
+  <section id="tab-season" class="hidden">
+    <div class="panel">
+      <h2>Log Game</h2>
+      <form class="row" id="gameForm">
+        <label>Week <input class="w-num" id="gmWeek" type="number" min="0" max="25"></label>
+        <label>Opponent <input class="w-name" id="gmOpp" required placeholder="Opponent"></label>
+        <label>Site <select id="gmSite"><option>Home</option><option>Away</option><option>Neutral</option></select></label>
+        <label>Us <input class="w-num" id="gmUs" type="number" min="0" required></label>
+        <label>Them <input class="w-num" id="gmThem" type="number" min="0" required></label>
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>Schedule &amp; Results — <span id="seasonYear2"></span></h2>
+      <table>
+        <thead><tr><th>Wk</th><th>Opponent</th><th>Site</th><th>Result</th><th></th></tr></thead>
+        <tbody id="gameRows"></tbody>
+      </table>
+      <div class="empty hidden" id="gameEmpty">No games logged yet.</div>
+    </div>
+    <div class="panel">
+      <h2>End of Season</h2>
+      <p class="muted" style="font-size:13px; margin-bottom:12px; line-height:1.6">
+        When your season is done (after signing day), this archives the record to History, graduates seniors,
+        advances everyone a year, converts committed recruits into freshmen on the roster, and starts the next season.
+      </p>
+      <button class="btn-ghost btn-danger" id="endSeasonBtn">End Season &amp; Advance →</button>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="tab-history" class="hidden">
+    <div class="panel">
+      <h2>Dynasty History</h2>
+      <div id="historyList"></div>
+      <div class="empty hidden" id="historyEmpty">No completed seasons yet. Your story starts now.</div>
+    </div>
+  </section>
+
+  <footer class="databar">
+    <button class="btn-ghost" id="exportBtn">Export backup</button>
+    <button class="btn-ghost" id="importBtn">Import backup</button>
+    <input type="file" id="importFile" accept=".json" class="hidden">
+    <div class="spacer" style="flex:1"></div>
+    <button class="btn-ghost btn-danger" id="resetBtn">Reset everything</button>
+  </footer>
+</div>
+
+<script>
+(function () {
+  const KEY = "ncaa27-dynasty-hq";
+  const POSITIONS = ["QB","HB","FB","WR","TE","LT","LG","C","RG","RT","LE","RE","DT","LOLB","MLB","ROLB","CB","FS","SS","K","P"];
+  const STATUSES = ["target","cooling","committed","lost"];
+
+  let state = load();
+
+  function defaults() {
+    return {
+      team: "My Dynasty",
+      year: new Date().getFullYear(),
+      week: 2,
+      hoursCap: 35,
+      recruits: [],
+      players: [],
+      games: [],
+      history: []
+    };
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) return Object.assign(defaults(), JSON.parse(raw));
+    } catch (e) { /* corrupted save — start fresh */ }
+    return defaults();
+  }
+
+  function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+      ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  }
+  function el(id) { return document.getElementById(id); }
+
+  // ---------- header ----------
+  function renderHeader() {
+    el("teamName").innerHTML = esc(state.team) + '<span class="edit-hint">✎</span>';
+    el("seasonYear").textContent = state.year;
+    el("seasonYear2").textContent = state.year;
+    el("weekNum").textContent = state.week;
+    const w = state.games.filter(g => g.us > g.them).length;
+    const l = state.games.filter(g => g.us < g.them).length;
+    el("recordChip").textContent = w + "–" + l;
+  }
+  el("teamName").addEventListener("click", () => {
+    const name = prompt("Team name:", state.team);
+    if (name && name.trim()) { state.team = name.trim(); save(); renderHeader(); }
+  });
+  el("seasonYear").addEventListener("click", () => {
+    const y = parseInt(prompt("Season year:", state.year), 10);
+    if (!isNaN(y) && y > 2000 && y < 2200) { state.year = y; save(); renderHeader(); }
+  });
+  el("wkUp").addEventListener("click", () => { state.week = Math.min(30, state.week + 1); save(); renderHeader(); });
+  el("wkDown").addEventListener("click", () => { state.week = Math.max(0, state.week - 1); save(); renderHeader(); });
+
+  // ---------- tabs ----------
+  document.querySelectorAll("nav.tabs button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      ["recruiting","roster","season","history"].forEach(t =>
+        el("tab-" + t).classList.toggle("hidden", t !== btn.dataset.tab));
+    });
+  });
+
+  // ---------- position selects ----------
+  function fillPosSelect(sel, includeBlank) {
+    sel.innerHTML = (includeBlank ? '<option value="">All positions</option>' : "") +
+      POSITIONS.map(p => `<option>${p}</option>`).join("");
+  }
+  fillPosSelect(el("rcPos")); fillPosSelect(el("plPos"));
+  fillPosSelect(el("rcFilterPos"), true); fillPosSelect(el("plFilterPos"), true);
+
+  // ---------- needs board ----------
+  function renderNeeds() {
+    const grid = el("needsGrid");
+    const cards = POSITIONS.map(pos => {
+      const have = state.players.filter(p => p.pos === pos).length;
+      const leaving = state.players.filter(p => p.pos === pos && p.year === "SR").length;
+      const commits = state.recruits.filter(r => r.pos === pos && r.status === "committed").length;
+      if (!have && !leaving && !commits) return "";
+      const after = have - leaving + commits;
+      let cls = "";
+      if (leaving > 0 && commits < leaving) cls = "urgent";
+      else if (leaving > 0 && commits >= leaving) cls = "covered";
+      return `<div class="need-card ${cls}">
+        <div class="pos">${pos}</div>
+        <div class="nums">${have} now · ${leaving} leaving<br>${commits} committed → <b>${after}</b> next yr</div>
+      </div>`;
+    }).join("");
+    grid.innerHTML = cards || '<div class="empty" style="grid-column:1/-1">Add roster players (Roster tab) and the needs board fills in automatically. Red = losing more than you\'ve signed.</div>';
+  }
+
+  // ---------- recruiting ----------
+  el("hoursCap").value = state.hoursCap;
+  el("hoursCap").addEventListener("change", () => {
+    state.hoursCap = Math.max(1, parseInt(el("hoursCap").value, 10) || 35);
+    save(); renderRecruits();
+  });
+
+  el("recruitForm").addEventListener("submit", e => {
+    e.preventDefault();
+    state.recruits.push({
+      id: uid(),
+      name: el("rcName").value.trim(),
+      pos: el("rcPos").value,
+      stars: parseInt(el("rcStars").value, 10),
+      notes: el("rcNotes").value.trim(),
+      hours: Math.max(0, parseInt(el("rcHours").value, 10) || 0),
+      status: "target"
+    });
+    e.target.reset();
+    el("rcHours").value = 0;
+    save(); renderRecruits(); renderNeeds();
+  });
+
+  el("rcFilterPos").addEventListener("change", renderRecruits);
+  el("rcFilterStatus").addEventListener("change", renderRecruits);
+
+  function renderRecruits() {
+    const fp = el("rcFilterPos").value, fs = el("rcFilterStatus").value;
+    const list = state.recruits
+      .filter(r => (!fp || r.pos === fp) && (!fs || r.status === fs))
+      .sort((a, b) => b.stars - a.stars || a.pos.localeCompare(b.pos));
+    el("recruitRows").innerHTML = list.map(r => `<tr>
+      <td>${esc(r.name)}</td>
+      <td><b>${r.pos}</b></td>
+      <td class="stars">${"★".repeat(r.stars)}</td>
+      <td><select data-act="status" data-id="${r.id}">
+        ${STATUSES.map(s => `<option value="${s}" ${s === r.status ? "selected" : ""}>${s}</option>`).join("")}
+      </select></td>
+      <td><input class="hours" type="number" min="0" max="50" value="${r.hours}" data-act="hours" data-id="${r.id}"></td>
+      <td class="muted">${esc(r.notes)}</td>
+      <td><button class="mini" data-act="del-recruit" data-id="${r.id}" title="Remove">✕</button></td>
+    </tr>`).join("");
+    el("recruitEmpty").classList.toggle("hidden", state.recruits.length > 0);
+
+    const active = state.recruits.filter(r => r.status === "target" || r.status === "cooling");
+    const hours = active.reduce((s, r) => s + r.hours, 0);
+    const ht = el("hoursTotal");
+    ht.textContent = hours;
+    ht.className = hours > state.hoursCap ? "over" : "ok";
+    const commits = state.recruits.filter(r => r.status === "committed").length;
+    el("rcSummary").textContent = `${active.length} active · ${commits} committed`;
+  }
+
+  // ---------- roster ----------
+  el("playerForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const ovr = parseInt(el("plOvr").value, 10);
+    state.players.push({
+      id: uid(),
+      name: el("plName").value.trim(),
+      pos: el("plPos").value,
+      year: el("plYear").value,
+      rs: el("plRS").checked,
+      ovr: isNaN(ovr) ? null : ovr
+    });
+    e.target.reset();
+    save(); renderPlayers(); renderNeeds();
+  });
+
+  el("plFilterPos").addEventListener("change", renderPlayers);
+
+  function renderPlayers() {
+    const fp = el("plFilterPos").value;
+    const order = { FR: 0, SO: 1, JR: 2, SR: 3 };
+    const list = state.players
+      .filter(p => !fp || p.pos === fp)
+      .sort((a, b) => POSITIONS.indexOf(a.pos) - POSITIONS.indexOf(b.pos) || (b.ovr || 0) - (a.ovr || 0));
+    el("playerRows").innerHTML = list.map(p => `<tr>
+      <td>${esc(p.name)}</td>
+      <td><b>${p.pos}</b></td>
+      <td class="yr-${p.year}">${p.rs ? "RS " : ""}${p.year}</td>
+      <td>${p.ovr == null ? '<span class="muted">—</span>' : p.ovr}</td>
+      <td><button class="mini" data-act="del-player" data-id="${p.id}" title="Remove">✕</button></td>
+    </tr>`).join("");
+    el("playerEmpty").classList.toggle("hidden", state.players.length > 0);
+    const srs = state.players.filter(p => p.year === "SR").length;
+    el("plSummary").textContent = `${state.players.length} tracked · ${srs} leaving after this season`;
+  }
+
+  // ---------- season ----------
+  el("gameForm").addEventListener("submit", e => {
+    e.preventDefault();
+    state.games.push({
+      id: uid(),
+      week: parseInt(el("gmWeek").value, 10) || state.games.length + 1,
+      opp: el("gmOpp").value.trim(),
+      site: el("gmSite").value,
+      us: parseInt(el("gmUs").value, 10),
+      them: parseInt(el("gmThem").value, 10)
+    });
+    e.target.reset();
+    save(); renderGames(); renderHeader();
+  });
+
+  function renderGames() {
+    const list = state.games.slice().sort((a, b) => a.week - b.week);
+    el("gameRows").innerHTML = list.map(g => {
+      const won = g.us > g.them, tie = g.us === g.them;
+      const res = tie ? `T ${g.us}–${g.them}` : `${won ? "W" : "L"} ${g.us}–${g.them}`;
+      return `<tr>
+        <td>${g.week}</td>
+        <td>${esc(g.opp)}</td>
+        <td class="muted">${g.site}</td>
+        <td class="${tie ? "" : won ? "win" : "loss"}">${res}</td>
+        <td><button class="mini" data-act="del-game" data-id="${g.id}" title="Remove">✕</button></td>
+      </tr>`;
+    }).join("");
+    el("gameEmpty").classList.toggle("hidden", state.games.length > 0);
+  }
+
+  // ---------- end season ----------
+  el("endSeasonBtn").addEventListener("click", () => {
+    const w = state.games.filter(g => g.us > g.them).length;
+    const l = state.games.filter(g => g.us < g.them).length;
+    const commits = state.recruits.filter(r => r.status === "committed");
+    const srs = state.players.filter(p => p.year === "SR");
+    const msg = `End the ${state.year} season?\n\n` +
+      `• Record ${w}–${l} moves to History\n` +
+      `• ${srs.length} senior(s) graduate\n` +
+      `• Everyone else advances a year\n` +
+      `• ${commits.length} commit(s) join the roster as freshmen\n` +
+      `• Recruiting board and schedule clear for ${state.year + 1}\n\nThis can't be undone.`;
+    if (!confirm(msg)) return;
+
+    const accolades = prompt("Any accolades for " + state.year + "? (bowl win, conference title, natty, class rank…)", "") || "";
+    state.history.push({
+      year: state.year, wins: w, losses: l,
+      classSize: commits.length,
+      accolades: accolades.trim()
+    });
+
+    const next = { FR: "SO", SO: "JR", JR: "SR" };
+    state.players = state.players
+      .filter(p => p.year !== "SR")
+      .map(p => Object.assign({}, p, { year: next[p.year] || p.year }));
+    commits.forEach(c => state.players.push({
+      id: uid(), name: c.name, pos: c.pos, year: "FR", rs: false, ovr: null
+    }));
+
+    state.recruits = [];
+    state.games = [];
+    state.year += 1;
+    state.week = 0;
+    save(); renderAll();
+    alert("Welcome to the " + state.year + " season. Time to build next year's board.");
+  });
+
+  // ---------- history ----------
+  function renderHistory() {
+    el("historyList").innerHTML = state.history.slice().reverse().map(h => `
+      <div class="history-card">
+        <span class="year">${h.year}</span>
+        <span><b>${h.wins}–${h.losses}</b></span>
+        <span class="muted">${h.classSize} signee${h.classSize === 1 ? "" : "s"}</span>
+        <span>${esc(h.accolades)}</span>
+      </div>`).join("");
+    el("historyEmpty").classList.toggle("hidden", state.history.length > 0);
+  }
+
+  // ---------- delegated row actions ----------
+  document.body.addEventListener("click", e => {
+    const t = e.target;
+    if (!t.dataset || !t.dataset.act) return;
+    if (t.dataset.act === "del-recruit") {
+      state.recruits = state.recruits.filter(r => r.id !== t.dataset.id);
+      save(); renderRecruits(); renderNeeds();
+    } else if (t.dataset.act === "del-player") {
+      state.players = state.players.filter(p => p.id !== t.dataset.id);
+      save(); renderPlayers(); renderNeeds();
+    } else if (t.dataset.act === "del-game") {
+      state.games = state.games.filter(g => g.id !== t.dataset.id);
+      save(); renderGames(); renderHeader();
+    }
+  });
+  document.body.addEventListener("change", e => {
+    const t = e.target;
+    if (!t.dataset || !t.dataset.act) return;
+    const r = state.recruits.find(x => x.id === t.dataset.id);
+    if (!r) return;
+    if (t.dataset.act === "status") {
+      r.status = t.value;
+      if (t.value === "committed" || t.value === "lost") r.hours = 0;
+      save(); renderRecruits(); renderNeeds();
+    } else if (t.dataset.act === "hours") {
+      r.hours = Math.max(0, parseInt(t.value, 10) || 0);
+      save(); renderRecruits();
+    }
+  });
+
+  // ---------- export / import / reset ----------
+  el("exportBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "dynasty-" + state.year + "-backup.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  el("importBtn").addEventListener("click", () => el("importFile").click());
+  el("importFile").addEventListener("change", e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        state = Object.assign(defaults(), JSON.parse(reader.result));
+        save(); renderAll();
+        alert("Backup restored.");
+      } catch (err) { alert("That file isn't a valid backup."); }
+      e.target.value = "";
+    };
+    reader.readAsText(f);
+  });
+  el("resetBtn").addEventListener("click", () => {
+    if (confirm("Wipe ALL dynasty data (roster, recruits, history)? Export a backup first if unsure.")) {
+      state = defaults();
+      save(); renderAll();
+    }
+  });
+
+  function renderAll() {
+    renderHeader(); renderNeeds(); renderRecruits();
+    renderPlayers(); renderGames(); renderHistory();
+    el("hoursCap").value = state.hoursCap;
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
