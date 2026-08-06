@@ -183,6 +183,21 @@
   .goal-list input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
   .goal-list li.done .txt { text-decoration: line-through; color: var(--muted); }
 
+  /* ---------- gameplan ---------- */
+  ol.routine { list-style: none; counter-reset: step; }
+  ol.routine li {
+    counter-increment: step; position: relative; padding: 10px 6px 10px 44px;
+    border-bottom: 1px solid var(--panel-2); font-size: 14.5px; line-height: 1.55;
+  }
+  ol.routine li::before {
+    content: counter(step); position: absolute; left: 4px; top: 10px;
+    width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: var(--panel-2); border: 1px solid var(--accent); color: var(--accent);
+    font-weight: 800; font-size: 13px;
+  }
+  .side-O { color: var(--accent); font-weight: 800; }
+  .side-D { color: var(--blue); font-weight: 800; }
+
   /* ---------- confetti ---------- */
   .confetti {
     position: fixed; top: -20px; z-index: 999; pointer-events: none; border-radius: 2px;
@@ -212,6 +227,7 @@
   <nav class="tabs">
     <button data-tab="recruiting" class="active">Recruiting Board</button>
     <button data-tab="roster">Roster &amp; Needs</button>
+    <button data-tab="gameplan">Gameplan</button>
     <button data-tab="season">Season</button>
     <button data-tab="goals">Goals</button>
     <button data-tab="history">History</button>
@@ -306,6 +322,70 @@
         <tbody id="playerRows"></tbody>
       </table>
       <div class="empty hidden" id="playerEmpty">No players yet. You don't need the whole roster — at minimum add your starters and every JR/SR, since departures drive the needs board.</div>
+    </div>
+  </section>
+
+  <!-- GAMEPLAN -->
+  <section id="tab-gameplan" class="hidden">
+    <div class="panel">
+      <h2>Money Plays <span class="muted">(your answers — call them from muscle memory)</span></h2>
+      <table>
+        <thead><tr><th>Side</th><th>Play</th><th>Formation / Shell</th><th>When to call it</th><th></th></tr></thead>
+        <tbody id="playRows"></tbody>
+      </table>
+      <form class="row" id="playForm" style="margin-top:10px">
+        <label>Side <select id="pySide"><option value="O">Offense</option><option value="D">Defense</option></select></label>
+        <label>Play <input class="w-name" id="pyName" required placeholder="e.g. Mesh"></label>
+        <label>Formation <input class="w-name" id="pyForm" placeholder="e.g. Gun Trips TE"></label>
+        <label>When <input class="w-name" id="pyWhen" placeholder="e.g. vs man blitz" style="width:220px"></label>
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Audible Package <span class="muted">(set these 4 in-game on your base formation — one look, four answers)</span></h2>
+      <table>
+        <thead><tr><th>Slot</th><th>Play</th><th>Punishes</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><b>Zone Read</b></td><td>Light box (6 or fewer) — let the QB's legs eat</td></tr>
+          <tr><td>2</td><td><b>Mesh</b></td><td>Man coverage and blitzes — the rub springs free underneath</td></tr>
+          <tr><td>3</td><td><b>Four Verticals</b></td><td>One-high safety (Cover 1/3) — your speed WRs win deep</td></tr>
+          <tr><td>4</td><td><b>WR Screen</b></td><td>Soft off-coverage and heavy pressure looks</td></tr>
+        </tbody>
+      </table>
+      <p class="muted" style="font-size:13px; margin-top:10px; line-height:1.6">
+        Rule: never scroll the playbook at the line. If the defense shows a look, one button answers it.
+        Two audibles you know cold beat six you have to think about.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2>Pre-Snap Routine — Offense <span class="muted">(same order, every snap, ~5 seconds)</span></h2>
+      <ol class="routine">
+        <li><b>Count the box.</b> 6 or fewer → run it (Zone Read). 8 → pass answer, now.</li>
+        <li><b>Find the safeties.</b> One high = shots available deep. Two high = work underneath and run.</li>
+        <li><b>Check one matchup.</b> Your fastest WR — is he pressed with no help? That's the alert.</li>
+        <li><b>Snap or audible.</b> One decision, one button. Don't hold the defense's attention longer.</li>
+      </ol>
+    </div>
+
+    <div class="panel">
+      <h2>Pre-Snap Routine — Defense</h2>
+      <ol class="routine">
+        <li><b>Read personnel.</b> Extra WRs = nickel/dime. Heavy set = base and load the box.</li>
+        <li><b>Disguise the shell.</b> Show 2-high, drop to 1-high at the snap (or the reverse). Same look twice in a row is a gift to a user.</li>
+        <li><b>Set the line.</b> 3rd &amp; long → pinch and contain the scramble. Short yardage → crash down.</li>
+        <li><b>Shade your best CB</b> onto their favorite WR — users force feed one guy. Take him away.</li>
+      </ol>
+    </div>
+
+    <div class="panel">
+      <h2>Tempo Rules</h2>
+      <ol class="routine">
+        <li><b>After any gain of 10+:</b> no-huddle immediately — users panic-call defense and you get vanilla looks.</li>
+        <li><b>When they're on a hot streak calling blitzes:</b> slow down, flip to Mesh/Screen answers, make them pay twice.</li>
+        <li><b>Up in the 4th:</b> bleed clock, stay inbounds, Zone Read behind your big line. That's what the 300-pounders are for.</li>
+      </ol>
     </div>
   </section>
 
@@ -426,6 +506,17 @@
         { id: "g11", cat: "dynasty", done: false, text: "Finish a season ranked Top 25" },
         { id: "g12", cat: "dynasty", done: false, text: "College Football Playoff berth" },
         { id: "g13", cat: "dynasty", done: false, text: "Put a Roadrunner in Round 1 of the draft" }
+      ],
+      plays: [
+        { id: "p1", side: "O", name: "Zone Read",      form: "Gun Split Close",  when: "Light box — QB keeps vs crashing end" },
+        { id: "p2", side: "O", name: "Mesh",           form: "Gun Trips TE",     when: "Man coverage or blitz — hit the rub" },
+        { id: "p3", side: "O", name: "Four Verticals", form: "Gun Empty",        when: "1-high safety — speed wins deep" },
+        { id: "p4", side: "O", name: "HB Screen",      form: "Gun Doubles",      when: "User blitzing 2+ downs in a row" },
+        { id: "p5", side: "O", name: "QB Draw",        form: "Gun Empty",        when: "3rd & 4-7 vs man — their backs are turned" },
+        { id: "p6", side: "D", name: "Cover 3 Match",  form: "Nickel",           when: "Base call — safe vs run and deep shots" },
+        { id: "p7", side: "D", name: "Cover 2 Man",    form: "Nickel",           when: "Slant/drag spammers — trail + hard flats" },
+        { id: "p8", side: "D", name: "Mid Blitz",      form: "Dime",             when: "3rd & 8+ — force the ball out fast" },
+        { id: "p9", side: "D", name: "Engage Eight",   form: "Goal Line",        when: "Their short-yardage QB sneak habit" }
       ]
     };
   }
@@ -492,7 +583,7 @@
     btn.addEventListener("click", () => {
       document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      ["recruiting","roster","season","goals","history"].forEach(t =>
+      ["recruiting","roster","gameplan","season","goals","history"].forEach(t =>
         el("tab-" + t).classList.toggle("hidden", t !== btn.dataset.tab));
       // replay the panel entrance animation on tab switch
       el("tab-" + btn.dataset.tab).querySelectorAll(".panel").forEach(p => {
@@ -714,6 +805,30 @@
     alert("Welcome to the " + state.year + " season. Time to build next year's board.");
   });
 
+  // ---------- gameplan ----------
+  function renderPlays() {
+    const order = { O: 0, D: 1 };
+    const list = state.plays.slice().sort((a, b) => order[a.side] - order[b.side]);
+    el("playRows").innerHTML = list.map(p => `<tr>
+      <td class="side-${p.side}">${p.side === "O" ? "OFF" : "DEF"}</td>
+      <td><b>${esc(p.name)}</b></td>
+      <td class="muted">${esc(p.form)}</td>
+      <td>${esc(p.when)}</td>
+      <td><button class="mini" data-act="del-play" data-id="${p.id}" title="Remove">✕</button></td>
+    </tr>`).join("") || '<tr><td colspan="5" class="empty">No plays yet — add your money calls below.</td></tr>';
+  }
+  el("playForm").addEventListener("submit", e => {
+    e.preventDefault();
+    state.plays.push({
+      id: uid(), side: el("pySide").value,
+      name: el("pyName").value.trim(),
+      form: el("pyForm").value.trim(),
+      when: el("pyWhen").value.trim()
+    });
+    e.target.reset();
+    save(); renderPlays();
+  });
+
   // ---------- goals ----------
   function renderGoals() {
     el("goalsYear").textContent = state.year;
@@ -759,6 +874,9 @@
     } else if (t.dataset.act === "del-goal") {
       state.goals = state.goals.filter(g => g.id !== t.dataset.id);
       save(); renderGoals();
+    } else if (t.dataset.act === "del-play") {
+      state.plays = state.plays.filter(p => p.id !== t.dataset.id);
+      save(); renderPlays();
     } else if (t.dataset.act === "del-player") {
       state.players = state.players.filter(p => p.id !== t.dataset.id);
       save(); renderPlayers(); renderNeeds();
@@ -826,7 +944,7 @@
 
   function renderAll() {
     renderHeader(); renderBlueprint(); renderNeeds(); renderRecruits();
-    renderPlayers(); renderGames(); renderGoals(); renderHistory();
+    renderPlayers(); renderGames(); renderPlays(); renderGoals(); renderHistory();
     el("hoursCap").value = state.hoursCap;
   }
   renderAll();
