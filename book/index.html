@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Room — Three Cities Social</title>
+<meta name="description" content="Members' room booking for Three Cities Social. Check availability, book a room, manage your reservations.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2335302C'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23A19D7F' stroke-width='2'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-weight='bold' font-size='22' fill='%23EDE7DB'%3EIII%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDE7DB;
+    --paper-deep: #E4DCCB;
+    --ink: #35302C;
+    --ink-soft: #5C554E;
+    --ocean: #427179;
+    --gold: #6B582A;
+    --autumn: #984929;
+    --clay: #A19D7F;
+    --white: #FBF9F4;
+    --line: rgba(53,48,44,.14);
+    --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --sans: 'Nunito Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--ocean); color: var(--white); }
+  a { color: var(--ocean); }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 60;
+    background: rgba(237,231,219,.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 1180px; margin: 0 auto; padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  }
+  .nav-mark {
+    font-family: var(--serif); font-weight: 700; font-size: 1rem;
+    text-decoration: none; color: var(--ink); letter-spacing: .01em;
+  }
+  .nav-mark span { color: var(--autumn); }
+  .nav-right { display: flex; align-items: center; gap: 10px; font-size: .84rem; }
+  .who { color: var(--ink-soft); max-width: 42vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- Shell ---------- */
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 20px 80px; }
+  h1 { font-family: var(--serif); font-size: 1.9rem; font-weight: 700; line-height: 1.2; }
+  h2 { font-family: var(--serif); font-size: 1.28rem; font-weight: 600; }
+  h3 { font-family: var(--serif); font-size: 1.02rem; font-weight: 600; }
+  .lede { color: var(--ink-soft); font-size: .95rem; margin-top: 6px; }
+
+  .tabs { display: flex; gap: 6px; margin: 18px 0 20px; flex-wrap: wrap; }
+  .tab {
+    font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer;
+    background: transparent; border: 1px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; padding: 7px 16px; transition: .15s;
+  }
+  .tab:hover { border-color: var(--clay); color: var(--ink); }
+  .tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+  .card {
+    background: var(--white); border: 1px solid rgba(53,48,44,.12);
+    border-radius: 14px; padding: 22px;
+  }
+  .card + .card { margin-top: 16px; }
+  .muted { color: var(--ink-soft); font-size: .88rem; }
+  .tiny { font-size: .78rem; color: var(--ink-soft); }
+
+  /* ---------- Buttons & fields ---------- */
+  .btn {
+    font: inherit; font-weight: 600; font-size: .88rem; cursor: pointer;
+    border: 1.5px solid transparent; border-radius: 999px; padding: 9px 20px;
+    transition: .15s; text-decoration: none; display: inline-flex;
+    align-items: center; justify-content: center; gap: 7px; line-height: 1.2;
+  }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-solid { background: var(--autumn); color: var(--white); }
+  .btn-solid:not(:disabled):hover { background: var(--gold); }
+  .btn-line { border-color: var(--ink); color: var(--ink); background: transparent; }
+  .btn-line:not(:disabled):hover { border-color: var(--autumn); color: var(--autumn); }
+  .btn-quiet { border-color: var(--line); color: var(--ink-soft); background: transparent; padding: 7px 14px; font-size: .82rem; }
+  .btn-quiet:not(:disabled):hover { border-color: var(--clay); color: var(--ink); }
+  .btn-danger { border-color: rgba(152,73,41,.4); color: var(--autumn); background: transparent; padding: 7px 14px; font-size: .82rem; }
+  .btn-danger:not(:disabled):hover { background: var(--autumn); color: var(--white); border-color: var(--autumn); }
+  .btn-sm { padding: 6px 14px; font-size: .8rem; }
+
+  label { display: block; font-size: .78rem; font-weight: 700; letter-spacing: .07em;
+          text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+  input, select, textarea {
+    font: inherit; font-size: .93rem; width: 100%; color: var(--ink);
+    background: var(--white); border: 1px solid var(--line);
+    border-radius: 10px; padding: 10px 12px;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--ocean); outline-offset: -1px; border-color: var(--ocean); }
+  .field + .field { margin-top: 14px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > .field { flex: 1 1 160px; margin-top: 0; }
+
+  .banner { border-radius: 10px; padding: 11px 14px; font-size: .88rem; margin-bottom: 14px; }
+  .banner-err { background: rgba(152,73,41,.1); border: 1px solid rgba(152,73,41,.32); color: #7a3a20; }
+  .banner-ok  { background: rgba(66,113,121,.1); border: 1px solid rgba(66,113,121,.32); color: #2e565d; }
+  .banner-info{ background: rgba(107,88,42,.09); border: 1px solid rgba(107,88,42,.28); color: var(--gold); }
+
+  /* ---------- Date strip ---------- */
+  .daybar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .days { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; flex: 1 1 auto; scrollbar-width: thin; }
+  .day {
+    font: inherit; cursor: pointer; flex: 0 0 auto; text-align: center;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+    padding: 7px 12px; min-width: 62px; line-height: 1.25; transition: .15s;
+  }
+  .day:hover { border-color: var(--clay); }
+  .day .dow { font-size: .68rem; text-transform: uppercase; letter-spacing: .09em; color: var(--ink-soft); }
+  .day .dnum { font-family: var(--serif); font-size: 1.12rem; font-weight: 600; }
+  .day[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .day[aria-pressed="true"] .dow { color: rgba(237,231,219,.7); }
+  .day.is-today .dnum::after {
+    content: ''; display: block; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--autumn); margin: 1px auto 0;
+  }
+  .day[aria-pressed="true"].is-today .dnum::after { background: var(--clay); }
+  .day:disabled { opacity: .38; cursor: not-allowed; }
+
+  /* ---------- Availability grid ---------- */
+  .gridwrap { overflow-x: auto; border: 1px solid rgba(53,48,44,.12); border-radius: 14px; background: var(--white); }
+  .grid { display: grid; min-width: 520px; }
+  .gcell { border-bottom: 1px solid rgba(53,48,44,.07); border-right: 1px solid rgba(53,48,44,.07); }
+  .ghead {
+    position: sticky; top: 0; z-index: 2; background: var(--white);
+    border-bottom: 1px solid var(--line); padding: 12px 12px 10px; text-align: left;
+  }
+  .ghead .rname { font-family: var(--serif); font-weight: 600; font-size: .98rem; display: flex; align-items: center; gap: 7px; }
+  .swatch { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .ghead .rmeta { font-size: .74rem; color: var(--ink-soft); margin-top: 2px; }
+  .gtime {
+    font-size: .72rem; color: var(--ink-soft); text-align: right;
+    padding: 0 9px 0 12px; transform: translateY(-7px); white-space: nowrap;
+    border-right: 1px solid rgba(53,48,44,.07);
+  }
+  .gtime.minor { opacity: 0; }
+  .slot { position: relative; cursor: pointer; background: transparent; border: 0; padding: 0;
+          width: 100%; font: inherit; transition: background .12s; }
+  .slot:hover:not(:disabled) { background: rgba(66,113,121,.13); }
+  .slot:focus-visible { outline: 2px solid var(--ocean); outline-offset: -2px; z-index: 3; }
+  .slot::after {
+    content: '+'; position: absolute; inset: 0; display: none;
+    align-items: center; justify-content: center; color: var(--ocean); font-size: 1rem; font-weight: 700;
+  }
+  .slot:hover:not(:disabled)::after { display: flex; }
+  .slot:disabled { cursor: default; }
+  .gcell.off { background: repeating-linear-gradient(45deg, rgba(53,48,44,.05) 0 6px, transparent 6px 12px); }
+  .slot.past { background: rgba(53,48,44,.055); }
+
+  .ev {
+    position: absolute; left: 3px; right: 3px; border-radius: 8px;
+    padding: 5px 8px; font-size: .76rem; overflow: hidden; z-index: 1;
+    line-height: 1.25; text-align: left; pointer-events: none;
+  }
+  .ev .evt { font-weight: 700; font-size: .7rem; opacity: .85; }
+  .ev-busy    { background: var(--paper-deep); border: 1px solid rgba(53,48,44,.16); color: var(--ink-soft); }
+  .ev-mine    { background: var(--ocean); border: 1px solid var(--ocean); color: var(--white); pointer-events: auto; cursor: pointer; }
+  .ev-blocked { background: repeating-linear-gradient(45deg, rgba(152,73,41,.16) 0 7px, rgba(152,73,41,.07) 7px 14px);
+                border: 1px solid rgba(152,73,41,.3); color: #7a3a20; }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: .78rem; color: var(--ink-soft); }
+  .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+  /* ---------- Booking list ---------- */
+  .blist { display: grid; gap: 10px; }
+  .bitem {
+    display: flex; gap: 14px; align-items: center; justify-content: space-between;
+    background: var(--white); border: 1px solid rgba(53,48,44,.12);
+    border-left: 4px solid var(--ocean); border-radius: 12px; padding: 14px 16px; flex-wrap: wrap;
+  }
+  .bitem.is-past, .bitem.is-cancelled { opacity: .62; border-left-color: var(--clay); }
+  .bitem .bwhen { font-family: var(--serif); font-size: 1.02rem; font-weight: 600; }
+  .bitem .bwhere { font-size: .85rem; color: var(--ink-soft); }
+  .pill {
+    display: inline-block; font-size: .68rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; border-radius: 999px; padding: 2px 10px;
+    border: 1px solid var(--clay); color: var(--gold);
+  }
+  .pill-cancelled { border-color: rgba(152,73,41,.4); color: var(--autumn); }
+
+  /* ---------- Allowance ---------- */
+  .allow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .allow div {
+    background: var(--white); border: 1px solid rgba(53,48,44,.12); border-radius: 10px;
+    padding: 9px 14px; font-size: .8rem; color: var(--ink-soft);
+  }
+  .allow b { display: block; font-family: var(--serif); font-size: 1.05rem; color: var(--ink); font-weight: 600; }
+
+  /* ---------- Sheet ---------- */
+  .scrim {
+    position: fixed; inset: 0; z-index: 90; background: rgba(53,48,44,.45);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .sheet {
+    background: var(--paper); border-radius: 16px; padding: 24px;
+    width: 100%; max-width: 440px; max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(53,48,44,.3);
+  }
+  .sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+  .sheet-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .sheet-actions .btn { flex: 1; }
+  .x { background: none; border: 0; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--ink-soft); padding: 0 4px; }
+
+  /* ---------- Tables ---------- */
+  .tbl { width: 100%; border-collapse: collapse; font-size: .86rem; }
+  .tbl th {
+    text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--ink-soft); border-bottom: 1px solid var(--line); padding: 8px 10px 8px 0; font-weight: 700;
+  }
+  .tbl td { border-bottom: 1px solid rgba(53,48,44,.07); padding: 10px 10px 10px 0; vertical-align: top; }
+  .tblwrap { overflow-x: auto; }
+
+  .empty { text-align: center; padding: 34px 20px; color: var(--ink-soft); font-size: .9rem; }
+  .spinner {
+    width: 20px; height: 20px; border: 2px solid var(--line); border-top-color: var(--ocean);
+    border-radius: 50%; animation: spin .7s linear infinite; margin: 30px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 620px) {
+    .wrap { padding: 18px 14px 70px; }
+    h1 { font-size: 1.5rem; }
+    .nav-inner { padding: 10px 14px; }
+    .who { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-mark" href="/">Three Cities <span>Social</span></a>
+    <div class="nav-right">
+      <span class="who" id="who"></span>
+      <button class="btn btn-quiet" id="signOut" hidden>Sign out</button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- ===================== Signed out ===================== -->
+  <section id="viewAuth" hidden>
+    <div style="max-width:440px; margin:6vh auto 0;">
+      <h1>Book a room</h1>
+      <p class="lede">Members' room booking at the clubhouse. Enter the email on your membership and we'll send you a sign-in link — no password to remember.</p>
+      <div class="card" style="margin-top:20px;">
+        <div id="authMsg"></div>
+        <form id="authForm">
+          <div class="field">
+            <label for="authEmail">Email address</label>
+            <input id="authEmail" type="email" required autocomplete="email" placeholder="you@example.com">
+          </div>
+          <button class="btn btn-solid" type="submit" id="authBtn" style="width:100%; margin-top:16px;">Send me a sign-in link</button>
+        </form>
+        <p class="tiny" style="margin-top:14px;">Not a member yet? <a href="/">Read about the club</a> or email us and we'll get you set up.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Signed in ===================== -->
+  <section id="viewApp" hidden>
+    <h1 id="appTitle">Book a room</h1>
+    <p class="lede" id="appLede"></p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="book" aria-selected="true">Rooms &amp; availability</button>
+      <button class="tab" role="tab" data-tab="mine" aria-selected="false">My bookings</button>
+      <button class="tab" role="tab" data-tab="admin" aria-selected="false" hidden>Admin</button>
+    </div>
+
+    <div id="globalMsg"></div>
+
+    <!-- ---- Book ---- -->
+    <div id="paneBook" role="tabpanel">
+      <div class="allow" id="allowance"></div>
+      <div class="daybar">
+        <button class="btn btn-quiet" id="dayPrev" aria-label="Previous week">←</button>
+        <div class="days" id="days"></div>
+        <button class="btn btn-quiet" id="dayNext" aria-label="Next week">→</button>
+      </div>
+      <div id="gridHost"><div class="spinner"></div></div>
+      <div class="legend">
+        <span><i style="background:var(--white); border:1px solid var(--line);"></i>Free — tap to book</span>
+        <span><i style="background:var(--ocean);"></i>Yours</span>
+        <span><i style="background:var(--paper-deep); border:1px solid rgba(53,48,44,.16);"></i>Taken</span>
+        <span><i style="background:rgba(152,73,41,.2); border:1px solid rgba(152,73,41,.3);"></i>Closed / private event</span>
+      </div>
+    </div>
+
+    <!-- ---- My bookings ---- -->
+    <div id="paneMine" role="tabpanel" hidden></div>
+
+    <!-- ---- Admin ---- -->
+    <div id="paneAdmin" role="tabpanel" hidden></div>
+  </section>
+</main>
+
+<div id="sheetHost"></div>
+
+<script>
+  // If the Supabase library cannot be fetched — a blocked CDN, an ad blocker, a
+  // flaky connection — app.js never runs and members would stare at a blank
+  // page. Say something useful instead. app.js clears this the moment it loads.
+  window.__bookLoadTimer = setTimeout(function () {
+    var view = document.getElementById('viewAuth');
+    var form = document.getElementById('authForm');
+    var msg = document.getElementById('authMsg');
+    if (view) view.hidden = false;
+    if (form) form.hidden = true;
+    if (msg) msg.innerHTML = '<div class="banner banner-err">The booking app could not load. That is usually a network hiccup or a browser extension blocking it \u2014 try a refresh, or email the club and we will book the room for you.</div>';
+  }, 8000);
+</script>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
