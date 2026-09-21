@@ -291,6 +291,16 @@
   .btn-ghost:hover { border-color: #C98A5B; color: #C98A5B; }
   .offer-foot { margin-top: 40px; text-align: center; font-size: .9rem; color: rgba(237,231,219,.66); }
   .offer-foot a { color: #C98A5B; }
+  .ask { max-width: 620px; margin: 52px auto 0; background: var(--paper); color: var(--ink); border-radius: 14px; padding: 30px 32px; text-align: center; }
+  .ask-line { font-size: .95rem; color: var(--ink-soft); margin-bottom: 18px; }
+  .ask input[type="email"], .ask textarea {
+    width: 100%; font-family: var(--sans); font-size: .95rem; color: var(--ink);
+    background: var(--white); border: 1px solid rgba(53,48,44,.22); border-radius: 8px;
+    padding: 11px 14px; margin-bottom: 12px; outline: none;
+  }
+  .ask input:focus, .ask textarea:focus { border-color: var(--ocean); }
+  .ask textarea { resize: vertical; }
+  .ask button { border: none; cursor: pointer; font-family: var(--sans); width: 100%; }
 
   /* ---------- Franchise ---------- */
   .franchise {
@@ -534,6 +544,23 @@
     </div>
 
     <p class="offer-foot">These are founding rates. Per Law II, the rate you start at is yours for good.</p>
+
+    <div class="ask" id="ask">
+      <p class="ask-line"><strong style="color:var(--ink)">Not sure which fits?</strong> The Blueprint Call is where everyone starts. Or tell me what you're building and I'll tell you straight if I can help.</p>
+      <form action="https://formsubmit.co/draymond@threecitiessocial.com" method="POST">
+        <input type="hidden" name="_subject" value="Site inquiry — thesocialclubconsultant.com">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_next" value="https://thesocialclubconsultant.com/?asked=1#ask">
+        <input type="text" name="_honey" style="display:none">
+        <input type="email" name="Email" placeholder="Your email" required>
+        <textarea name="What they're building" placeholder="What are you building?" rows="3" required></textarea>
+        <button class="btn btn-solid" type="submit">Ask me</button>
+      </form>
+      <div class="ask-thanks" hidden>
+        <p><strong>Got it.</strong> It lands straight in my inbox — I read and answer every one.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -674,6 +701,16 @@
 
 <script>
 (function () {
+  if (new URLSearchParams(location.search).get('asked') === '1') {
+    var ask = document.getElementById('ask');
+    if (ask) {
+      ask.querySelector('form').hidden = true;
+      ask.querySelector('.ask-line').hidden = true;
+      ask.querySelector('.ask-thanks').hidden = false;
+    }
+  }
+})();
+(function () {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var els = document.querySelectorAll('section h2, section .kicker, .law, .quote, .proof-photos img, .sys-chapter, .vault-item, .card, .tier, .icp > div, .circle-grid > div, .founder-figure, .speak-head img, .franchise, .tl-item');
   els.forEach(function (el, i) { el.classList.add('reveal'); el.style.transitionDelay = (i % 4) * 70 + 'ms'; });
@@ -685,5 +722,6 @@
   addEventListener('scroll', function () { nav.classList.toggle('scrolled', scrollY > 30); }, { passive: true });
 })();
 </script>
+<script data-goatcounter="https://thesocialclubconsultant.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
