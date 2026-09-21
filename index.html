@@ -286,6 +286,9 @@
   .btn-line:hover { border-color: var(--autumn); color: var(--autumn); }
   .btn-gold { background: var(--gold); color: var(--white); }
   .btn-gold:hover { background: var(--autumn); }
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 4px; }
+  .btn-ghost { border: 1.5px solid rgba(237,231,219,.55); color: var(--paper); }
+  .btn-ghost:hover { border-color: #C98A5B; color: #C98A5B; }
   .offer-foot { margin-top: 40px; text-align: center; font-size: .9rem; color: rgba(237,231,219,.66); }
   .offer-foot a { color: #C98A5B; }
 
@@ -385,8 +388,11 @@
   <div class="hero-inner">
     <div class="kicker">The Social Club Consultant · Est. Chicago</div>
     <h1>I built a social club from 25 strangers to 300 members. <span class="accent">Now I build them with you.</span></h1>
-    <p style="font-family:var(--serif); font-style:italic; font-size:clamp(1.15rem, 2.4vw, 1.45rem); color:#C98A5B; margin-bottom:20px;">Everything I teach, I paid for first.</p>
-    <p class="lede">Founder of Three Cities Social — a Chicago clubhouse that hit profitability in four months with zero venture capital. I help founders, organizers, and operators build clubs that actually work.</p>
+    <p style="font-family:var(--serif); font-style:italic; font-size:clamp(1.15rem, 2.4vw, 1.45rem); color:#C98A5B; margin-bottom:24px;">Everything I teach, I paid for first.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-solid" href="#work">Work with me</a>
+      <a class="btn btn-ghost" href="#story">Read the story first</a>
+    </div>
     <div class="hero-byline">
       <img class="founder-avatar" src="img/draymond.jpg" alt="Draymond Washington">
       <p><strong>Draymond Washington</strong>Founder, Three Cities Social · Est. Chicago, 2024</p>
@@ -408,7 +414,7 @@
   <div class="wrap">
     <div class="kicker">The story</div>
     <h2>I left finance to build the club I couldn’t find.</h2>
-    <p class="lede">Before I opened a clubhouse, I joined four social clubs in Chicago. Every one of them nickel-and-dimed me at the door and hoped I wouldn't show up. After years in corporate finance, I'd figured out the real problem anyway:</p>
+    <p class="lede">Before I opened a clubhouse, I joined four social clubs in Chicago. Every one of them nickel-and-dimed me at the door and hoped I wouldn't show up. By then I'd figured out the real problem:</p>
     <div class="pull">"What most adults are missing isn't ambition. It's connection."<cite>Why I left Merrill Lynch to build a clubhouse</cite></div>
     <p>So I built Three Cities Social — a River North clubhouse designed around one idea: make it easy to see the same people again. It worked.</p>
 
@@ -428,7 +434,7 @@
       <div class="tl-item"><div class="when">2026</div><div class="what">Walked away from a ~$1.4M lease renewal because the math said walk. The club is healthier for it.</div></div>
       <div class="tl-item"><div class="when">Today</div><div class="what">Going deeper, not just bigger — capped membership, sharper programming, and the playbook you're reading.</div></div>
     </div>
-    <p style="margin-top:26px">That timeline matters. Most "community experts" will only sell you the growth story. I'll also tell you about the expansion that didn't pencil — because knowing when <em>not</em> to sign is worth more than any launch tactic.</p>
+    <p style="margin-top:26px">Most "community experts" only sell the growth story. I'll also tell you about the expansion that didn't pencil — knowing when <em>not</em> to sign is worth more than any launch tactic.</p>
   </div>
 </section>
 
@@ -457,88 +463,6 @@
       <img src="img/party.jpg" alt="Members dressed up and laughing around the table at a Three Cities Social party">
       <img src="img/members.jpg" alt="A group of Three Cities Social members arm in arm at the clubhouse">
     </div>
-  </div>
-</section>
-
-<!-- ============ LAWS ============ -->
-<section id="laws" class="laws-section">
-  <div class="wrap-wide">
-    <div class="kicker">What I believe</div>
-    <h2>The Ten Laws of the Clubhouse</h2>
-    <p class="lede">There are ten of them — the rules the club actually runs on, each one paid for before it was written down. Here's the first. The other nine belong to clients and the Circle.</p>
-    <div class="laws" style="grid-template-columns:1fr; max-width:720px;">
-      <div class="law"><div class="num">Law I</div><h3>Charge to show up.</h3>
-        <p>Free things get treated like free things. Attach even a small, refundable commitment and attendance transforms.</p>
-        <div class="receipt"><b>Receipt:</b> Our free kickball team of 25 forfeited ~80% of its games. Our deposit-backed volleyball league never forfeited once. Same members.</div></div>
-      <div class="law" style="text-align:center; border-style:dashed;">
-        <p style="font-family:var(--serif); font-style:italic; font-size:1.15rem; color:var(--paper);">Laws II — X</p>
-        <p>Pricing, programming, culture, growth, and the one about money. Each with the receipt that taught it.</p>
-        <p style="margin-top:10px;"><span class="lock-chip" style="border-color:#C98A5B; color:#C98A5B;">Clients &amp; the Circle only</span></p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ SYSTEM ============ -->
-<section id="system">
-  <div class="wrap">
-    <div class="kicker">What clients get</div>
-    <h2>The System: five chapters, earned the hard way.</h2>
-    <p class="lede">Five phases, from before the lease to running it without you. This is the operating system that runs Three Cities — documented, tested, and adapted to each client's club. The titles are public. Nothing else is.</p>
-    <img src="img/library.jpg" alt="The Three Cities Social library and games room — bookshelves, orange armchairs, a chess set mid-game" style="width:100%; height:400px; object-fit:cover; object-position:center 62%; border-radius:14px; display:block; margin-top:34px;">
-    <div class="sys">
-      <div class="sys-chapter"><div class="sys-num">I.</div><div><h3>The Container</h3><span class="lock-chip">Client engagements only</span></div></div>
-      <div class="sys-chapter"><div class="sys-num">II.</div><div><h3>The Engine</h3><span class="lock-chip">Client engagements only</span></div></div>
-      <div class="sys-chapter"><div class="sys-num">III.</div><div><h3>The Money</h3><span class="lock-chip">Client engagements only</span></div></div>
-      <div class="sys-chapter"><div class="sys-num">IV.</div><div><h3>The Second House</h3><span class="lock-chip">Client engagements only</span></div></div>
-      <div class="sys-chapter"><div class="sys-num">V.</div><div><h3>The Operating System</h3><span class="lock-chip">Client engagements only</span></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ VAULT ============ -->
-<section id="vault" class="laws-section" style="padding-top:84px">
-  <div class="wrap-wide">
-    <div class="kicker">The library</div>
-    <h2>The Vault: every template, already battle-tested.</h2>
-    <p class="lede" style="max-width:44em">These documents run a real club today. They are not for sale separately — they travel with engagements, adapted to your club, your city, your numbers.</p>
-    <div class="vault">
-      <div class="vault-item"><b>Founder Operating Playbook</b></div>
-      <div class="vault-item"><b>Launch sequence</b></div>
-      <div class="vault-item"><b>Intake &amp; tour scripts</b></div>
-      <div class="vault-item"><b>Onboarding choreography</b></div>
-      <div class="vault-item"><b>Private rental kit</b></div>
-      <div class="vault-item"><b>Event runbook template</b></div>
-      <div class="vault-item"><b>League &amp; commitment mechanics</b></div>
-      <div class="vault-item"><b>Sponsorship kit</b></div>
-      <div class="vault-item"><b>Retention machinery</b></div>
-      <div class="vault-item"><b>Pricing framework</b></div>
-      <div class="vault-item"><b>Expansion gate checklist</b></div>
-      <div class="vault-item"><b>House rules &amp; culture guide</b></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ CIRCLE ============ -->
-<section id="circle" class="circle-section">
-  <div class="wrap">
-    <div class="speak-head" style="align-items:center;">
-      <div>
-        <div class="kicker">The community</div>
-        <h2>The Operators Circle</h2>
-        <span class="founding-chip">Founding cohort · Capped at 50 operators</span>
-        <p class="lede">A membership community for the people who run membership communities. Club founders, event organizers, and space operators — building together, with my playbook and each other's experience on tap.</p>
-      </div>
-      <img src="img/clubroom.jpg" alt="The Three Cities Social clubhouse floor — green lounge chairs in a circle, ring chandeliers, coworking tables beyond">
-    </div>
-    <div class="circle-grid">
-      <div><b>The monthly table</b>One live group session a month: a teardown of one member's club, a working topic from the System, and open problem-solving. Recorded for the vault.</div>
-      <div><b>The channel</b>A private space for the questions between sessions — pricing calls, vendor checks, lease gut-checks. Someone in the room has faced it.</div>
-      <div><b>Template drops</b>Working documents from the Vault released to the Circle over time, with walkthroughs of how to adapt them.</div>
-      <div><b>The network effect</b>Cross-city referrals, guest-host swaps, and first access to Founder Days, workshops, and license conversations.</div>
-    </div>
-    <p><strong>$149/month, founding rate</strong> — and per Law II, founding members keep that rate for as long as they stay. The Circle opens when the founding waitlist fills; membership is capped at 50 so it stays a table, not an audience.</p>
-    <p style="margin-top:24px"><a class="btn btn-solid" href="apply.html">Apply for a founding seat</a></p>
   </div>
 </section>
 
@@ -609,12 +533,101 @@
       </div>
     </div>
 
+    <p class="offer-foot">These are founding rates. Per Law II, the rate you start at is yours for good.</p>
+  </div>
+</section>
+
+<!-- ============ LAWS ============ -->
+<section id="laws" class="laws-section" style="border-top:1px solid rgba(237,231,219,.16)">
+  <div class="wrap-wide">
+    <div class="kicker">What I believe</div>
+    <h2>The Ten Laws of the Clubhouse</h2>
+    <p class="lede">Ten rules the club actually runs on, each one paid for before it was written down. Here's the first. The other nine belong to clients and the Circle.</p>
+    <div class="laws" style="grid-template-columns:1fr; max-width:720px;">
+      <div class="law"><div class="num">Law I</div><h3>Charge to show up.</h3>
+        <p>Free things get treated like free things. Attach even a small, refundable commitment and attendance transforms.</p>
+        <div class="receipt"><b>Receipt:</b> Our free kickball team of 25 forfeited ~80% of its games. Our deposit-backed volleyball league never forfeited once. Same members.</div></div>
+      <div class="law" style="text-align:center; border-style:dashed;">
+        <p style="font-family:var(--serif); font-style:italic; font-size:1.15rem; color:var(--paper);">Laws II — X</p>
+        <p>Pricing, programming, culture, growth, and the one about money. Each with the receipt that taught it.</p>
+        <p style="margin-top:10px;"><span class="lock-chip" style="border-color:#C98A5B; color:#C98A5B;">Clients &amp; the Circle only</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SYSTEM ============ -->
+<section id="system">
+  <div class="wrap">
+    <div class="kicker">What clients get</div>
+    <h2>The System: the five chapters that run Three Cities.</h2>
+    <p class="lede">From before the lease to running it without you — documented, tested, and adapted to each client's club. The titles are public. Nothing else is.</p>
+    <img src="img/library.jpg" alt="The Three Cities Social library and games room — bookshelves, orange armchairs, a chess set mid-game" style="width:100%; height:400px; object-fit:cover; object-position:center 62%; border-radius:14px; display:block; margin-top:34px;">
+    <div class="sys">
+      <div class="sys-chapter"><div class="sys-num">I.</div><div><h3>The Container</h3><span class="lock-chip">Client engagements only</span></div></div>
+      <div class="sys-chapter"><div class="sys-num">II.</div><div><h3>The Engine</h3><span class="lock-chip">Client engagements only</span></div></div>
+      <div class="sys-chapter"><div class="sys-num">III.</div><div><h3>The Money</h3><span class="lock-chip">Client engagements only</span></div></div>
+      <div class="sys-chapter"><div class="sys-num">IV.</div><div><h3>The Second House</h3><span class="lock-chip">Client engagements only</span></div></div>
+      <div class="sys-chapter"><div class="sys-num">V.</div><div><h3>The Operating System</h3><span class="lock-chip">Client engagements only</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VAULT ============ -->
+<section id="vault" class="laws-section" style="padding-top:84px">
+  <div class="wrap-wide">
+    <div class="kicker">The library</div>
+    <h2>The Vault: the documents that run a real club.</h2>
+    <p class="lede" style="max-width:44em">Not for sale separately. They travel with engagements — adapted to your club, your city, your numbers.</p>
+    <div class="vault">
+      <div class="vault-item"><b>Founder Operating Playbook</b></div>
+      <div class="vault-item"><b>Launch sequence</b></div>
+      <div class="vault-item"><b>Intake &amp; tour scripts</b></div>
+      <div class="vault-item"><b>Onboarding choreography</b></div>
+      <div class="vault-item"><b>Private rental kit</b></div>
+      <div class="vault-item"><b>Event runbook template</b></div>
+      <div class="vault-item"><b>League &amp; commitment mechanics</b></div>
+      <div class="vault-item"><b>Sponsorship kit</b></div>
+      <div class="vault-item"><b>Retention machinery</b></div>
+      <div class="vault-item"><b>Pricing framework</b></div>
+      <div class="vault-item"><b>Expansion gate checklist</b></div>
+      <div class="vault-item"><b>House rules &amp; culture guide</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CIRCLE ============ -->
+<section id="circle" class="circle-section">
+  <div class="wrap">
+    <div class="speak-head" style="align-items:center;">
+      <div>
+        <div class="kicker">The community</div>
+        <h2>The Operators Circle</h2>
+        <span class="founding-chip">Founding cohort · Capped at 50 operators</span>
+        <p class="lede">A membership community for the people who run membership communities. Club founders, event organizers, space operators — one table, real numbers.</p>
+      </div>
+      <img src="img/clubroom.jpg" alt="The Three Cities Social clubhouse floor — green lounge chairs in a circle, ring chandeliers, coworking tables beyond">
+    </div>
+    <div class="circle-grid">
+      <div><b>The monthly table</b>One live group session a month: a teardown of one member's club, a working topic from the System, and open problem-solving. Recorded for the vault.</div>
+      <div><b>The channel</b>A private space for the questions between sessions — pricing calls, vendor checks, lease gut-checks. Someone in the room has faced it.</div>
+      <div><b>Template drops</b>Working documents from the Vault released to the Circle over time, with walkthroughs of how to adapt them.</div>
+      <div><b>The network effect</b>Cross-city referrals, guest-host swaps, and first access to Founder Days, workshops, and license conversations.</div>
+    </div>
+    <p><strong>$149/month, founding rate</strong> — and per Law II, founding members keep that rate for as long as they stay. The Circle opens when the founding waitlist fills; membership is capped at 50 so it stays a table, not an audience.</p>
+    <p style="margin-top:24px"><a class="btn btn-solid" href="apply.html">Apply for a founding seat</a></p>
+  </div>
+</section>
+
+<!-- ============ FRANCHISE & SPEAKING ============ -->
+<section class="offer-section">
+  <div class="wrap-wide">
     <!-- ============ FRANCHISE ============ -->
     <div class="franchise" id="franchise">
       <div>
-        <div class="kicker">The top of the pyramid · Application only</div>
+        <div class="kicker">The license · Application only</div>
         <h3>Bring Three Cities to your city.</h3>
-        <p style="margin-bottom:18px">For a small number of operators, the relationship goes past advice: a license to build a Three Cities club of your own — the brand, the identity, and the complete operating system, launched with me beside you.</p>
+        <p style="margin-bottom:18px">For a few operators, this goes past advice: a license to build a Three Cities club of your own — the brand, the full operating system, and me on the ground for launch.</p>
         <ul>
           <li>The Three Cities name, brand system, and member experience standards</li>
           <li>The full operating system: every playbook, contract, script, and SOP</li>
@@ -649,7 +662,6 @@
       <p style="margin-top:26px;"><a class="btn btn-gold" href="mailto:draymond@threecitiessocial.com?subject=Speaking%20Inquiry">Book Draymond to speak</a></p>
     </div>
 
-    <p class="offer-foot">Founding rates, honestly labeled — they follow Law II: the rate you start at is yours for good.</p>
   </div>
 </section>
 
