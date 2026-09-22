@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're booked — The Social Club Consultant</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2335302C'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23A19D7F' stroke-width='2'/%3E%3Ctext x='32' y='36' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-weight='bold' font-size='20' fill='%23EDE7DB'%3EIII%3C/text%3E%3Ccircle cx='22' cy='46' r='2.5' fill='%23C98A5B'/%3E%3Ccircle cx='32' cy='47.5' r='3' fill='%23C98A5B'/%3E%3Ccircle cx='42' cy='46' r='2.5' fill='%23C98A5B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDE7DB; --ink: #35302C; --ink-soft: #5C554E; --ocean: #427179;
+    --gold: #6B582A; --autumn: #984929; --clay: #A19D7F; --white: #FBF9F4;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'Nunito Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.7; font-size: 17px; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 24px 90px; }
+  header { padding: 46px 0 10px; text-align: center; }
+  header a { text-decoration: none; color: var(--ink); display: inline-flex; flex-direction: column; align-items: center; gap: 12px; }
+  .card { background: var(--white); border: 1px solid rgba(53,48,44,.14); border-radius: 16px; padding: 42px 38px; margin-top: 34px; }
+  h1 { font-family: var(--serif); font-size: clamp(1.9rem, 5vw, 2.5rem); margin-bottom: 14px; }
+  .lede { color: var(--ink-soft); margin-bottom: 26px; }
+  .steps { border-top: 1px solid rgba(53,48,44,.12); }
+  .step { display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding: 20px 0; border-bottom: 1px solid rgba(53,48,44,.12); }
+  .step .n { font-family: var(--serif); font-style: italic; font-size: 1.6rem; color: var(--autumn); line-height: 1.1; }
+  .step b { display: block; margin-bottom: 2px; }
+  .step p { font-size: .93rem; color: var(--ink-soft); }
+  .fine { font-size: .85rem; color: var(--ink-soft); margin-top: 24px; }
+  .fine a { color: var(--autumn); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/">
+    <svg width="54" height="54" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="256" cy="256" r="240" fill="none" stroke="#35302C" stroke-width="22"/>
+      <text x="256" y="296" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-weight="700" font-size="180" fill="#35302C">III</text>
+      <g fill="#984929">
+        <polygon transform="translate(190,362) scale(1.5)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+        <polygon transform="translate(256,370) scale(1.75)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+        <polygon transform="translate(322,362) scale(1.5)" points="0,-15 2.75,-4.76 12.99,-7.5 5.5,0 12.99,7.5 2.75,4.76 0,15 -2.75,4.76 -12.99,7.5 -5.5,0 -12.99,-7.5 -2.75,-4.76"/>
+      </g>
+    </svg>
+    <span style="font-family:var(--serif); font-weight:700;">Draymond Washington · <span style="color:var(--autumn)">The Social Club Consultant</span></span>
+  </a>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <h1>You're in.</h1>
+    <p class="lede">Payment received — Stripe's receipt is on its way to your inbox. Here's exactly what happens next:</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div>
+        <b>Within 24 hours, you'll get an email from me.</b>
+        <p>From draymond@threecitiessocial.com — personally, not an autoresponder. Check spam if you don't see it.</p>
+      </div></div>
+      <div class="step"><div class="n">2</div><div>
+        <b>We lock a time.</b>
+        <p>I'll send a few options and we pick what works. For Founder Days and Sprints, we'll also map the schedule.</p>
+      </div></div>
+      <div class="step"><div class="n">3</div><div>
+        <b>Come with your real numbers.</b>
+        <p>Whatever you have — pricing, turnout, rent quotes, the decision you're stuck on. The more real, the more useful I am.</p>
+      </div></div>
+    </div>
+    <p class="fine">Need me sooner, or booked the wrong thing? Email <a href="mailto:draymond@threecitiessocial.com">draymond@threecitiessocial.com</a> and I'll sort it out.</p>
+  </div>
+</div>
+
+<script data-goatcounter="https://thesocialclubconsultant.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
